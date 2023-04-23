@@ -1,6 +1,6 @@
-# web
+# ssg-services
 
-.NET 6.0 Empty Web Template
+Useful APIs for Razor SSG Websites
 
 [![](https://raw.githubusercontent.com/ServiceStack/Assets/master/csharp-templates/web.png)](http://web.web-templates.io/)
 
