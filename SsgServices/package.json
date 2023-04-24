@@ -2,6 +2,8 @@
   "scripts": {
     "dtos": "x mjs",
     "dev": "dotnet watch",
+    "ui:dev": "npx tailwindcss -i ./tailwind.input.css -o ./wwwroot/css/app.css --watch",
+    "ui:build": "npx tailwindcss -i ./tailwind.input.css -o ./wwwroot/css/app.css --minify",
     "postinstall": "dotnet run --AppTasks=migrate",
     "migrate": "dotnet run --AppTasks=migrate",
     "revert:last": "dotnet run --AppTasks=migrate.revert:last",
