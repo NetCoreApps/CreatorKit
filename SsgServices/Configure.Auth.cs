@@ -37,7 +37,14 @@ public class ConfigureAuth : IHostingStartup
                     new FacebookAuthProvider(appSettings),        /* Create App https://developers.facebook.com/apps */
                     new GoogleAuthProvider(appSettings),          /* Create App https://console.developers.google.com/apis/credentials */
                     new MicrosoftGraphAuthProvider(appSettings),  /* Create App https://apps.dev.microsoft.com */
-                }));
+                })
+            {
+                ValidateRedirectLinks = (req, redirect) => {
+                    var allowedRedirects = HostContext.GetPlugin<CorsFeature>().AllowOriginWhitelist;
+                    if (!allowedRedirects.Any(redirect.StartsWith))
+                        AuthFeature.NoExternalRedirects(req, redirect);
+                }                
+            });
 
             appHost.Plugins.Add(new RegistrationFeature()); //Enable /register Service
 
