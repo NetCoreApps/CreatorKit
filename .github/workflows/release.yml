@@ -48,7 +48,23 @@ jobs:
           if [ "${{ github.event.inputs.version }}" != "" ]; then
             echo "TAG_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi;
-      
+          
+      - name: setup .net core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0'
+          
+      - name: Install x tool
+        run: dotnet tool install -g x
+          
+      - name: Apply Production AppSettings
+        working-directory: ./SsgServices
+        run: | 
+          cat <<EOF >> appsettings.json.patch
+          ${{ secrets.APPSETTINGS_PATCH }}
+          EOF
+          x patch appsettings.json.patch
+          
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
