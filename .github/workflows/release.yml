@@ -61,7 +61,7 @@ jobs:
         working-directory: ./SsgServices
         run: | 
           echo "{{ secrets.APPSETTINGS_PATCH }}" > appsettings.json.patch
-          x patch
+          x patch appsettings.json.patch
           
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
