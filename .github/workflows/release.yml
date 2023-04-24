@@ -60,7 +60,7 @@ jobs:
       - name: Apply Production AppSettings
         working-directory: ./SsgServices
         run: | 
-          cat <<EOF >> appsettings.json.patch {{ secrets.APPSETTINGS_PATCH }} EOF
+          cat <<EOF >> appsettings.json.patch ${{ secrets.APPSETTINGS_PATCH }} EOF
           x patch appsettings.json.patch
           
       - name: Login to GitHub Container Registry
