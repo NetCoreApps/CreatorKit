@@ -6,5 +6,10 @@
     "migrate": "dotnet run --AppTasks=migrate",
     "revert:last": "dotnet run --AppTasks=migrate.revert:last",
     "revert:all": "dotnet run --AppTasks=migrate.revert:all"
+  },
+  "dependencies": {
+    "@servicestack/client": "^2.0.8",
+    "@servicestack/vue": "^3.0.74",
+    "vue": "^3.2.47"
   }
 }

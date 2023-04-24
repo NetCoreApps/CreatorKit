@@ -21,8 +21,4 @@
     <ProjectReference Include="..\SsgServices.ServiceModel\SsgServices.ServiceModel.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="wwwroot\js\dtos.mjs" />
-  </ItemGroup>
-
 </Project>
