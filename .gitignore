@@ -11,6 +11,7 @@
 *.db
 *.sqlite
 .vs/
+*.patch
 
 # User-specific files
 *.rsuser
