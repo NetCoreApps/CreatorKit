@@ -11,6 +11,7 @@
 *.db
 *.sqlite
 .vs/
+appsettings.json
 
 # User-specific files
 *.rsuser
