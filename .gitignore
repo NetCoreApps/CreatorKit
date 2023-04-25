@@ -12,6 +12,7 @@
 *.sqlite
 .vs/
 *.patch
+Configure.Secrets.cs
 
 # User-specific files
 *.rsuser
