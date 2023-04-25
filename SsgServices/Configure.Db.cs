@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using ServiceStack;
 using ServiceStack.Data;
-using ServiceStack.DataAnnotations;
 using ServiceStack.OrmLite;
+using ServiceStack.OrmLite.Converters;
 
 [assembly: HostingStartup(typeof(SsgServices.ConfigureDb))]
 
@@ -17,6 +14,8 @@ public class ConfigureDb : IHostingStartup
                 context.Configuration.GetConnectionString("DefaultConnection")
                 ?? ":memory:",
                 SqliteDialect.Provider));
+
+            ((DateTimeConverter)SqliteDialect.Provider.GetConverter<DateTime>()).DateStyle = DateTimeKind.Utc;
         })
         .ConfigureAppHost(appHost => {
             // Enable built-in Database Admin UI at /admin-ui/database
