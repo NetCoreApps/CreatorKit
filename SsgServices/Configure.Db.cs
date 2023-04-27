@@ -1,6 +1,7 @@
 using ServiceStack.Data;
 using ServiceStack.OrmLite;
 using ServiceStack.OrmLite.Converters;
+using ServiceStack.Text;
 
 [assembly: HostingStartup(typeof(SsgServices.ConfigureDb))]
 
@@ -11,10 +12,10 @@ public class ConfigureDb : IHostingStartup
     public void Configure(IWebHostBuilder builder) => builder
         .ConfigureServices((context, services) => {
             services.AddSingleton<IDbConnectionFactory>(new OrmLiteConnectionFactory(
-                context.Configuration.GetConnectionString("DefaultConnection")
-                ?? ":memory:",
+                "App_Data/db.sqlite",
                 SqliteDialect.Provider));
 
+            SqliteDialect.Provider.StringSerializer = new JsonStringSerializer();       
             ((DateTimeConverter)SqliteDialect.Provider.GetConverter<DateTime>()).DateStyle = DateTimeKind.Utc;
         })
         .ConfigureAppHost(appHost => {

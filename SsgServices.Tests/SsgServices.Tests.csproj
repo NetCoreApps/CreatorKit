@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SsgServices\SsgServices.csproj" />
     <ProjectReference Include="..\SsgServices.ServiceInterface\SsgServices.ServiceInterface.csproj" />
     <ProjectReference Include="..\SsgServices.ServiceModel\SsgServices.ServiceModel.csproj" />
 
@@ -14,7 +15,15 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.1.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
     <PackageReference Include="ServiceStack" Version="6.*" />
+    <PackageReference Include="ServiceStack.Server" Version="6.*" />
     <PackageReference Include="ServiceStack.Kestrel" Version="6.*" />
+    <ProjectReference Include="..\SsgServices\SsgServices.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

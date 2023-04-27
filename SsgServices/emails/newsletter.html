@@ -1,0 +1,23 @@
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="border:0 none;border-collapse:collapse">
+    <tbody>
+    <tr>
+        <td width="100%" align="center" valign="top" style="padding:40px 0;border-collapse:collapse;font-family:'Google Sans',Roboto,sans-serif;font-size:24px;line-height:28px;color:#000000">
+            <h2 style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;font-size:72px;line-height:80px;text-align:center;color:#27282c">ServiceStack Newsletter</h2>
+            <p style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;font-size:38px;letter-spacing:-1px;line-height:48px;font-weight:normal;text-align:center;color:#27282c">
+                {{title}}
+            </p>
+        </td>
+    </tr>
+    {{ 'partial-divider' |> partial }}
+    {{ 'partial-section' |> partial({ iconSrc:images.BlogSection, title:'New Posts' }) }}
+    
+    <tr>
+        <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
+            {{#each meta.Posts }}
+                <h3 style="margin:1em 0 0.25em 0"><a href="{{ it.url }}" style="font-size:18px;color:#4f46e5!important;text-decoration:none" target="_blank">{{ it.title }} →</a></h3>
+                <p style="margin:.5em 0">{{ it.summary }}</p>
+            {{/each}}
+        </td>
+    </tr>
+    </tbody>
+</table>

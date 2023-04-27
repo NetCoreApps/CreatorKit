@@ -6,6 +6,7 @@ using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceModel;
 
+[Icon(Svg = Icons.Thread)]
 [AutoPopulate(nameof(ExternalRef), Eval = "nguid")]
 public class Thread
 {
@@ -26,6 +27,7 @@ public class Thread
     public DateTime? DeletedDate { get; set; }
 }
 
+[Icon(Svg = Icons.Comment)]
 public class Comment : AuditBase
 {
     [AutoIncrement]
@@ -56,6 +58,7 @@ public class ThreadLike
     public DateTime CreatedDate { get; set; }
 }
 
+[Icon(Svg = Icons.Vote)]
 [UniqueConstraint(nameof(CommentId), nameof(AppUserId))]
 public class CommentVote
 {
@@ -243,6 +246,36 @@ public class CreateCommentReport : ICreateDb<CommentReport>, IReturnVoid
 [ValidateIsAuthenticated]
 [AutoFilter(QueryTerm.Ensure, nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
 public class DeleteCommentReport : IDeleteDb<CommentReport>, IReturnVoid
+{
+    public int Id { get; set; }
+}
+
+
+[Tag(Tag.Posts)]
+[ValidateIsAdmin]
+[AutoApply(Behavior.AuditQuery)]
+public class QueryThreads : QueryDb<Thread>
+{
+    public int? Id { get; set; }
+}
+[Tag(Tag.Posts)]
+[ValidateIsAdmin]
+[AutoApply(Behavior.AuditModify)]
+public class UpdateThread : IPatchDb<Thread>, IReturn<Thread>
+{
+    public int Id { get; set; }
+    public string Url { get; set; }
+    public string Description { get; set; }
+    public string ExternalRef { get; set; }
+    public long? RefId { get; set; }
+    public string RefIdStr { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ClosedDate { get; set; }
+    public DateTime? DeletedDate { get; set; }
+}
+[Tag(Tag.Posts)]
+[ValidateIsAdmin]
+public class DeleteThread : IDeleteDb<Thread>, IReturnVoid
 {
     public int Id { get; set; }
 }
