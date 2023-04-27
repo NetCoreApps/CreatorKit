@@ -22,6 +22,7 @@ public class IntegrationTest
 
     public IntegrationTest()
     {
+        SsgServices.AppHost.RegisterLicense();
         appHost = new AppHost()
             .Init()
             .Start(BaseUri);
