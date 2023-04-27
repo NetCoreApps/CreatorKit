@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿Licensing.RegisterLicense("OSS BSD-3-Clause 2023 https://github.com/NetCoreApps/ssg-services JyPOp3PjQXHkwYmxCq86NLwnfZuqLTdSCNJ2ymUdIhPcr+z8cvx3XZW//rLsHjHDWhzmSxnMV+0ql2N9RTOvJHeyjq22infs0PExajdpKXfGK9j+EWwB4eKK/uod1h3lUIyCVnp6DLsMQS6yIWT37F2W3xeT1+iH7y5qMfAVYF0=");
+
+var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
