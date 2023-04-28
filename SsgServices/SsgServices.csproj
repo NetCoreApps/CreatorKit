@@ -9,7 +9,11 @@
     <Using Include="SsgServices" />
     <Using Include="ServiceStack" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <Content Include="emails\**" CopyToPublishDirectory="PreserveNewest"/>
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.30.*" />
     <PackageReference Include="ServiceStack" Version="6.*" />
@@ -20,10 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\SsgServices.ServiceInterface\SsgServices.ServiceInterface.csproj" />
     <ProjectReference Include="..\SsgServices.ServiceModel\SsgServices.ServiceModel.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>
