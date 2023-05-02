@@ -1,5 +1,5 @@
 /* Options:
-Date: 2023-04-24 09:50:51
+Date: 2023-05-03 00:35:07
 Version: 6.81
 Tip: To override a DTO option, remove "//" prefix before updating
 BaseUrl: https://localhost:5001
@@ -57,6 +57,11 @@ export class QueryBase {
     /** @type {{ [index: string]: string; }} */
     meta;
 }
+/** @typedef T {any} */
+export class QueryDb_1 extends QueryBase {
+    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+}
 /** @typedef From {any} */
 /** @typedef  Into {any} */
 export class QueryDb_2 extends QueryBase {
@@ -98,11 +103,6 @@ export class CommentResult {
     createdDate;
     /** @type {string} */
     modifiedDate;
-}
-/** @typedef T {any} */
-export class QueryDb_1 extends QueryBase {
-    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
 }
 export class AuditBase {
     /** @param {{createdDate?:string,createdBy?:string,modifiedDate?:string,modifiedBy?:string,deletedDate?:string,deletedBy?:string}} [init] */
@@ -169,32 +169,6 @@ export class CommentReport {
     /** @type {string} */
     createdDate;
 }
-export class ResponseError {
-    /** @param {{errorCode?:string,fieldName?:string,message?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    errorCode;
-    /** @type {string} */
-    fieldName;
-    /** @type {string} */
-    message;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-}
-export class ResponseStatus {
-    /** @param {{errorCode?:string,message?:string,stackTrace?:string,errors?:ResponseError[],meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    errorCode;
-    /** @type {string} */
-    message;
-    /** @type {string} */
-    stackTrace;
-    /** @type {ResponseError[]} */
-    errors;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-}
 export class Thread {
     /** @param {{id?:number,url?:string,description?:string,externalRef?:string,viewCount?:number,likesCount?:number,commentsCount?:number,refId?:number,refIdStr?:string,createdDate?:string,closedDate?:string,deletedDate?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -222,6 +196,32 @@ export class Thread {
     closedDate;
     /** @type {?string} */
     deletedDate;
+}
+export class ResponseError {
+    /** @param {{errorCode?:string,fieldName?:string,message?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    errorCode;
+    /** @type {string} */
+    fieldName;
+    /** @type {string} */
+    message;
+    /** @type {{ [index: string]: string; }} */
+    meta;
+}
+export class ResponseStatus {
+    /** @param {{errorCode?:string,message?:string,stackTrace?:string,errors?:ResponseError[],meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    errorCode;
+    /** @type {string} */
+    message;
+    /** @type {string} */
+    stackTrace;
+    /** @type {ResponseError[]} */
+    errors;
+    /** @type {{ [index: string]: string; }} */
+    meta;
 }
 export class GetThreadUserDataResponse {
     /** @param {{threadId?:number,liked?:boolean,upVoted?:number[],downVoted?:number[],responseStatus?:ResponseStatus}} [init] */
@@ -338,6 +338,15 @@ export class QueryCommentVotes extends QueryDb_1 {
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
+export class QueryThreads extends QueryDb_1 {
+    /** @param {{id?:number,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {?number} */
+    id;
+    getTypeName() { return 'QueryThreads' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
 export class CreateComment {
     /** @param {{threadId?:number,replyId?:number,content?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -390,6 +399,40 @@ export class DeleteCommentReport {
     /** @type {number} */
     id;
     getTypeName() { return 'DeleteCommentReport' }
+    getMethod() { return 'DELETE' }
+    createResponse() { }
+}
+export class UpdateThread {
+    /** @param {{id?:number,url?:string,description?:string,externalRef?:string,refId?:number,refIdStr?:string,createdDate?:string,closedDate?:string,deletedDate?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {string} */
+    url;
+    /** @type {string} */
+    description;
+    /** @type {string} */
+    externalRef;
+    /** @type {?number} */
+    refId;
+    /** @type {string} */
+    refIdStr;
+    /** @type {string} */
+    createdDate;
+    /** @type {?string} */
+    closedDate;
+    /** @type {?string} */
+    deletedDate;
+    getTypeName() { return 'UpdateThread' }
+    getMethod() { return 'PATCH' }
+    createResponse() { return new Thread() }
+}
+export class DeleteThread {
+    /** @param {{id?:number}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    getTypeName() { return 'DeleteThread' }
     getMethod() { return 'DELETE' }
     createResponse() { }
 }

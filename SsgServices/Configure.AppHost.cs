@@ -16,13 +16,17 @@ public class AppHost : AppHostBase, IHostingStartup
             {
                 BaseUrl = context.HostingEnvironment.IsDevelopment()
                     ? "https://localhost:5002"
-                    : "https://servicestack.net"
+                    : "https://servicestack.net",
+                AppBaseUrl = context.HostingEnvironment.IsDevelopment()
+                    ? "https://localhost:5001"
+                    : "https://" + Environment.GetEnvironmentVariable("DEPLOY_HOST")
             };
             services.AddSingleton(MailData.Instance);
             services.AddSingleton(AppData.Instance);
+            services.AddSingleton(EmailRenderer.Instance);
         });
 
-    public AppHost() : base("SSG Services", typeof(MyServices).Assembly) {}
+    public AppHost() : base("Creator Kit", typeof(MyServices).Assembly) {}
 
     public override void Configure(Container container)
     {
@@ -41,15 +45,18 @@ public class AppHost : AppHostBase, IHostingStartup
                 "https://servicestack.net",
                 "https://diffusion.works",
             }, allowCredentials: true));
+        Plugins.Add(new CleanUrlsFeature());
         
         MarkdownConfig.Transformer = new MarkdigTransformer();
+
         LoadAsync(container).GetAwaiter().GetResult();
     }
 
     public async Task LoadAsync(Container container)
     {
         container.Resolve<MailData>().LoadAsync().GetAwaiter().GetResult();
-        container.Resolve<AppData>().LoadAsync(ContentRootDirectory.GetDirectory("emails")).GetAwaiter().GetResult();
+        container.Resolve<EmailRenderer>().Init(this);
+        container.Resolve<AppData>().LoadAsync(this, ContentRootDirectory.GetDirectory("emails")).GetAwaiter().GetResult();
         ScriptContext.ScriptAssemblies.Add(typeof(Hello).Assembly);
         ScriptContext.Args[nameof(AppData)] = AppData.Instance;
     }

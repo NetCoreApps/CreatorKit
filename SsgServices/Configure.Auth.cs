@@ -33,6 +33,7 @@ public class ConfigureAuth : IHostingStartup
             var appSettings = appHost.AppSettings;
             appHost.Plugins.Add(new AuthFeature(() => new CustomUserSession(),
                 new IAuthProvider[] {
+                    // new JwtAuthProvider(appSettings) { AuthKey = AesUtils.CreateKey() },
                     new CredentialsAuthProvider(appSettings),     /* Sign In with Username / Password credentials */
                     new FacebookAuthProvider(appSettings),        /* Create App https://developers.facebook.com/apps */
                     new GoogleAuthProvider(appSettings),          /* Create App https://console.developers.google.com/apis/credentials */

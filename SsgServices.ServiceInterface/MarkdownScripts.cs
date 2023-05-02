@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Script;
 using ServiceStack.Text;
+using SsgServices.ServiceInterface;
 using SsgServices.ServiceModel;
 
 namespace SsgServices;
@@ -14,6 +15,8 @@ public class EmailMarkdownScriptMethods : ScriptMethods
     public IRawString emailmarkdown(string? markdown) => markdown != null 
         ? EmailMarkdownScriptBlock.Transform(markdown).ToRawString() 
         : RawString.Empty;
+
+    public string imgMail(string fileName) => MailData.Instance.AppBaseUrl.CombineWith(fileName);
 }
 
 

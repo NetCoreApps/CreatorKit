@@ -13,16 +13,17 @@ public class Subscription
     [AutoIncrement]
     public int Id { get; set; }
     public string Email { get; set; }
-    [Index(Unique = true)]
-    public string EmailLower { get; set; }
-
     public string FirstName { get; set; }
     public string LastName { get; set; }
     [FormatEnumFlags(nameof(MailingList))]
     public MailingList MailingLists { get; set; }
-
     public MailSource Source { get; set; }
     public string Token { get; set; }
+    [Index(Unique = true)]
+    public string EmailLower { get; set; }
+    [Index]
+    public string NameLower { get; set; }
+    [Index(Unique = true)]
     public string ExternalRef { get; set; }
     public int? AppUserId { get; set; }
     public DateTime CreatedDate { get; set; }
@@ -36,12 +37,13 @@ public class MailMessage
 {
     [AutoIncrement]
     public int Id { get; set; }
-    public string To { get; set; }
+    public string Email { get; set; }
+    public string Layout { get; set; }
     public string Page { get; set; }
-    public string Request { get; set; }
-    public Dictionary<string,object> RequestArgs { get; set; }
-    public EmailTemplate Template { get; set; }
+    public string Renderer { get; set; }
+    public Dictionary<string,object> RendererArgs { get; set; }
     public EmailMessage Message { get; set; }
+    public DateTime? StartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
@@ -52,25 +54,35 @@ public class MailRun
 {
     [AutoIncrement]
     public int Id { get; set; }
+    [FormatEnumFlags(nameof(MailingList))]
     public MailingList MailingList { get; set; }
-    public string Subject { get; set; }
-    public string Request { get; set; }
-    public Dictionary<string,object> RequestArgs { get; set; }
-    public EmailTemplate Template { get; set; }
-    public DateTime StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public int EmailsSent { get; set; }
+    public string Layout { get; set; }
+    public string Page { get; set; }
+    public string Generator { get; set; }
+    public Dictionary<string,object> GeneratorArgs { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? GeneratedDate { get; set; }
+    public DateTime? SentDate { get; set; }
+    public DateTime? CompletedDate { get; set; }
+    public int EmailsCount { get; set; }
 }
 
 [Icon(Svg = Icons.Mail)]
 [UniqueConstraint(nameof(MailRunId), nameof(SubscriptionId))]
-public class MailRunMessage
+public class MailMessageRun
 {
     [AutoIncrement]
     public int Id { get; set; }
     public int MailRunId { get; set; }
+    [Ref(Model = nameof(ServiceModel.Subscription), RefId = nameof(ServiceModel.Subscription.Id), RefLabel = nameof(ServiceModel.Subscription.Email))]
     public int SubscriptionId { get; set; }
+    [Reference]
+    [Format(FormatMethods.Hidden)]
+    public Subscription Subscription { get; set; }
+    public string Renderer { get; set; }
+    public Dictionary<string,object> RendererArgs { get; set; }
     public EmailMessage Message { get; set; }
+    public DateTime? StartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
@@ -117,19 +129,12 @@ public class EmailMessage
     public string? BodyHtml { get; set; }
     public string? BodyText { get; set; }
 }
-public class EmailTemplate
-{
-    public string Layout { get; set; }
-    public string Page { get; set; }
-    public string LayoutText { get; set; }
-    public string PageText { get; set; }
-    public Dictionary<string,object> Args { get; set; }
-}
+
 
 /** APIS **/
 
 [Tag(Tag.Mail)]
-public class SubscribeToMailingList : IPost, IReturn<SubscribeToMailingListResponse>
+public class CreateSubscription : ICreateDb<Subscription>, IReturn<Subscription>
 {
     [ValidateNotEmpty]
     public string Email { get; set; }
@@ -142,10 +147,6 @@ public class SubscribeToMailingList : IPost, IReturn<SubscribeToMailingListRespo
     public List<string>? MailingLists { get; set; }
     
     public MailSource Source { get; set; }
-}
-public class SubscribeToMailingListResponse
-{
-    public ResponseStatus ResponseStatus { get; set; }
 }
 
 
@@ -175,25 +176,16 @@ public class UnsubscribeFromMailingList : IPost, IReturnVoid
 
 [Tag(Tag.Mail)]
 [ValidateIsAdmin]
-public class QueryMail : QueryDb<Subscription> {}
-
-[Tag(Tag.Mail)]
-[ValidateIsAdmin]
-[AutoPopulate(nameof(Subscription.ExternalRef), Eval = "nguid")]
-[AutoPopulate(nameof(Subscription.CreatedDate), Eval = "utcNow")]
-public class CreateMail : ICreateDb<Subscription>, IReturn<Subscription>
+public class QuerySubscriptions : QueryDb<Subscription>
 {
-    public string Email { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public MailSource Source { get; set; }
-    public int? AppUserId { get; set; }
+    [QueryDbField(Template = "EmailLower LIKE {Value} OR NameLower LIKE {Value}", ValueFormat = "%{0}%", Field = "EmailLower")]
+    public string? Search { get; set; }
 }
 
 [Tag(Tag.Mail)]
 [ValidateIsAdmin]
 [AutoPopulate(nameof(Subscription.MailingLists), Eval = "dto.MailingLists.fromEnumFlagsList(typeof('MailingList'))")]
-public class UpdateMail : IPatchDb<Subscription>, IReturn<Subscription>
+public class UpdateSubscription : IPatchDb<Subscription>, IReturn<Subscription>
 {
     public int Id { get; set; }
     public string? Email { get; set; }
@@ -214,6 +206,14 @@ public class UpdateMail : IPatchDb<Subscription>, IReturn<Subscription>
 
 [Tag(Tag.Mail)]
 [ValidateIsAdmin]
+public class DeleteSubscription : IDeleteDb<Subscription>, IReturnVoid
+{
+    public int Id { get; set; }
+}
+
+
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
 public class MailTestGroup : IPost, IReturn<EmptyResponse>
 {
     public string? Subject { get; set; }
@@ -231,11 +231,61 @@ public class MailResponse
     public ResponseStatus ResponseStatus { get; set; }
 }
 
-public abstract class RenderEmail
+public abstract class CreateEmailBase
 {
+    [ValidateNotEmpty]
     public string Email { get; set; }
+    [ValidateNotEmpty]
+    [FieldCss(Field = "col-span-3")]
     public string FirstName { get; set; }
+    [ValidateNotEmpty]
+    [FieldCss(Field = "col-span-3")]
     public string LastName { get; set; }
+}
+
+public abstract class RenderEmailBase
+{
+    public string? Email { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? ExternalRef { get; set; }
+}
+public abstract class MailRunBase
+{
+    public MailingList MailingList { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+//[Icon(Svg = Icons.PlainText)]
+[Description("Simple Text Email")]
+public class CreateSimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
+{
+    [ValidateNotEmpty]
+    public string Subject { get; set; }
+    [ValidateNotEmpty]
+    [Input(Type = "textarea"), FieldCss(Field = "col-span-12", Input = "h-36")]
+    public string Body { get; set; }
+    public bool? Send { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+[Icon(Svg = Icons.RichHtml)]
+[Description("Rich HTML Email")]
+public class CreateMarkdownHtmlEmail : CreateEmailBase, IPost, IReturn<MailMessage>
+{
+    [ValidateNotEmpty]
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
+    public string Layout { get; set; }
+    [ValidateNotEmpty]
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
+    public string Page { get; set; }
+    [ValidateNotEmpty]
+    [FieldCss(Field = "col-span-12")]
+    public string? Title { get; set; }
+    public string Subject { get; set; }
+    [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
+    public string? Body { get; set; }
+    public bool? Send { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin, ExcludeMetadata]
@@ -254,7 +304,7 @@ public class ViewMailRunMessage : IGet, IReturn<string>
     public long Id { get; set; }
 }
 
-[Tag(Tag.Mail), ValidateIsAdmin, ExcludeMetadata]
+[Tag(Tag.Mail), ValidateIsAdmin]
 [Route("/message/send/{id}")]
 public class SendMailMessage : IGet, IReturn<MailMessage>
 {
@@ -264,7 +314,7 @@ public class SendMailMessage : IGet, IReturn<MailMessage>
 }
 
 
-[Tag(Tag.Mail), ValidateIsAdmin, ExcludeMetadata]
+[Tag(Tag.Mail), ValidateIsAdmin]
 [Route("/messagerun/send/{id}")]
 public class SendMailMessageRun : IGet, IReturn<MailMessage>
 {
@@ -300,4 +350,145 @@ public class MarkdownFile
     public int? WordCount { get; set; }
     public int? LineCount { get; set; }
     public int MinutesToRead => (int)Math.Ceiling((WordCount ?? 1) / (double)225);
+}
+
+[Route("/verify/email/{ExternalRef}")]
+public class VerifyEmailAddress : IReturnVoid
+{
+    public string ExternalRef { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin, ExcludeMetadata]
+[Route("/mail/view")]
+public class ViewMail : RenderEmailBase, IGet, IReturn<string>
+{
+    [ValidateNotEmpty]
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
+    public string Layout { get; set; }
+
+    [ValidateNotEmpty]
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
+    public string Page { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class QueryMailMessages : QueryDb<MailMessage> {}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class UpdateMailMessage : IPatchDb<MailMessage>, IReturn<MailMessage>
+{
+    public int Id { get; set; }
+    public string? Email { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
+    public string? Layout { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
+    public string? Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.RenderEmailApis")]
+    public string? Renderer { get; set; }
+    public Dictionary<string,object>? RendererArgs { get; set; }
+    public EmailMessage? Message { get; set; }
+    public DateTime? CompletedDate { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class DeleteMailMessages : IDeleteDb<MailMessage>, IReturnVoid
+{
+    public int Id { get; set; }
+}
+
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class QueryMailRuns : QueryDb<MailRun>
+{
+    public int? Id { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class CreateMailRun : ICreateDb<MailRun>, IReturn<MailRun>
+{
+    [Input(Type = "tag", EvalAllowableValues = "AppData.MailingListValues"), FieldCss(Field = "col-span-12")]
+    public MailingList MailingList { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
+    public string Layout { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
+    public string Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.MailRunGeneratorApis")]
+    public string Generator { get; set; }
+    public Dictionary<string,object> GeneratorArgs { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class UpdateMailRun : IUpdateDb<MailRun>, IReturn<MailRun>
+{
+    public int Id { get; set; }
+    public MailingList? MailingList { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
+    public string? Layout { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
+    public string? Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.MailRunGeneratorApis")]
+    public string? Generator { get; set; }
+    public Dictionary<string,object>? GeneratorArgs { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? GeneratedDate { get; set; }
+    public DateTime? SentDate { get; set; }
+    public DateTime? CompletedDate { get; set; }
+    public int? EmailsCount { get; set; }
+}
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class DeleteMailRun : IDeleteDb<MailRun>, IReturnVoid
+{
+    public int Id { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class SendMailRun : IPost, IReturnVoid
+{
+    public int Id { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class ViewMailRunInfo : IGet, IReturn<ViewMailRunInfoResponse>
+{
+    public int Id { get; set; }
+}
+public class ViewMailRunInfoResponse
+{
+    public int MessagesSent { get; set; }
+    public int TotalMessages { get; set; }
+    public TimeSpan TimeTaken { get; set; }
+    public ResponseStatus ResponseStatus { get; set; }
+}
+
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class QueryMailRunMessages : QueryDb<MailMessageRun> {}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class UpdateMailRunMessage : IPatchDb<MailMessageRun>, IReturn<MailMessageRun>
+{
+    public int Id { get; set; }
+    public int MailRunId { get; set; }
+    public int SubscriptionId { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.RenderEmailApis")]
+    public string Renderer { get; set; }
+    public Dictionary<string,object> RendererArgs { get; set; }
+    public EmailMessage? Message { get; set; }
+    public DateTime? StartedDate { get; set; }
+    public DateTime? CompletedDate { get; set; }
+}
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class DeleteMailRunMessage : IDeleteDb<MailMessageRun>, IReturnVoid
+{
+    public int Id { get; set; }
+}
+
+public static class MailingExtensions
+{
+    public static MailTo ToMailTo(this Subscription sub) => new()
+    {
+        Email = sub.Email,
+        Name = $"{sub.FirstName} {sub.LastName}",
+    };
+    public static List<MailTo> ToMailTos(this Subscription sub) => new() { sub.ToMailTo() };
 }

@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using ServiceStack;
 using ServiceStack.Messaging;
 using SsgServices.ServiceModel;
 
@@ -8,11 +5,6 @@ using SsgServices.ServiceModel;
 
 namespace SsgServices;
 
-/**
-      Register Services you want available via MQ in your AppHost, e.g:
-        var mqServer = container.Resolve<IMessageService>();
-        mqServer.RegisterHandler<MyRequest>(ExecuteMessage);
-*/
 public class ConfigureMq : IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
@@ -22,6 +14,7 @@ public class ConfigureMq : IHostingStartup
         .ConfigureAppHost(afterAppHostInit: appHost => {
             var mqServer = appHost.Resolve<IMessageService>();
             mqServer.RegisterHandler<SendMessages>(appHost.ExecuteMessage);
+            mqServer.RegisterHandler<BackgroundTasks>(appHost.ExecuteMessage);
             mqServer.Start();
         });
 }

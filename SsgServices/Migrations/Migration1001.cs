@@ -1,7 +1,5 @@
-﻿using System.Runtime.Serialization;
-using ServiceStack.DataAnnotations;
+﻿using ServiceStack.DataAnnotations;
 using ServiceStack.OrmLite;
-using SsgServices.ServiceModel;
 
 namespace SsgServices.Migrations;
 
@@ -12,14 +10,17 @@ public class Migration1001 : MigrationBase
         [AutoIncrement]
         public int Id { get; set; }
         public string Email { get; set; }
-        [Index(Unique = true)]
-        public string EmailLower { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         [FormatEnumFlags(nameof(MailingList))]
         public MailingList MailingLists { get; set; }
         public MailSource Source { get; set; }
         public string Token { get; set; }
+        [Index(Unique = true)]
+        public string EmailLower { get; set; }
+        [Index]
+        public string NameLower { get; set; }
+        [Index(Unique = true)]
         public string ExternalRef { get; set; }
         public int? AppUserId { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -32,12 +33,13 @@ public class Migration1001 : MigrationBase
     {
         [AutoIncrement]
         public int Id { get; set; }
-        public string To { get; set; }
+        public string Email { get; set; }
+        public string Layout { get; set; }
         public string Page { get; set; }
-        public string Request { get; set; }
-        public Dictionary<string,object> RequestArgs { get; set; }
-        public EmailTemplate Template { get; set; }
+        public string Renderer { get; set; }
+        public Dictionary<string,object> RendererArgs { get; set; }
         public EmailMessage Message { get; set; }
+        public DateTime? StartedDate { get; set; }
         public DateTime? CompletedDate { get; set; }
         public string? ErrorCode { get; set; }
         public string? ErrorMessage { get; set; }
@@ -47,24 +49,34 @@ public class Migration1001 : MigrationBase
     {
         [AutoIncrement]
         public int Id { get; set; }
+        [FormatEnumFlags(nameof(MailingList))]
         public MailingList MailingList { get; set; }
-        public string Subject { get; set; }
-        public string Request { get; set; }
-        public Dictionary<string,object> RequestArgs { get; set; }
-        public EmailTemplate Template { get; set; }
-        public DateTime StartedAt { get; set; }
-        public DateTime? CompletedAt { get; set; }
-        public int EmailsSent { get; set; }
+        public string Layout { get; set; }
+        public string Page { get; set; }
+        public string Generator { get; set; }
+        public Dictionary<string,object> GeneratorArgs { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime? GeneratedDate { get; set; }
+        public DateTime? SentDate { get; set; }
+        public DateTime? CompletedDate { get; set; }
+        public int EmailsCount { get; set; }
     }
 
     [UniqueConstraint(nameof(MailRunId), nameof(SubscriptionId))]
-    public class MailRunMessage
+    public class MailMessageRun
     {
         [AutoIncrement]
         public int Id { get; set; }
         public int MailRunId { get; set; }
+        [Ref(Model = nameof(ServiceModel.Subscription), RefId = nameof(ServiceModel.Subscription.Id), RefLabel = nameof(ServiceModel.Subscription.Email))]
         public int SubscriptionId { get; set; }
+        [Reference]
+        [Format(FormatMethods.Hidden)]
+        public Subscription Subscription { get; set; }
+        public string Renderer { get; set; }
+        public Dictionary<string,object> RendererArgs { get; set; }
         public EmailMessage Message { get; set; }
+        public DateTime? StartedDate { get; set; }
         public DateTime? CompletedDate { get; set; }
         public string? ErrorCode { get; set; }
         public string? ErrorMessage { get; set; }
@@ -111,26 +123,19 @@ public class Migration1001 : MigrationBase
         public string? BodyHtml { get; set; }
         public string? BodyText { get; set; }
     }
-    public class EmailTemplate
-    {
-        public string Layout { get; set; }
-        public string Page { get; set; }
-        public string LayoutText { get; set; }
-        public string PageText { get; set; }
-        public Dictionary<string,object> Args { get; set; }
-    }
+
 
     public override void Up()
     {
         Db.CreateTable<Subscription>();
         Db.CreateTable<MailMessage>();
         Db.CreateTable<MailRun>();
-        Db.CreateTable<MailRunMessage>();
+        Db.CreateTable<MailMessageRun>();
     }
 
     public override void Down()
     {
-        Db.DropTable<MailRunMessage>();
+        Db.DropTable<MailMessageRun>();
         Db.DropTable<MailRun>();
         Db.DropTable<MailMessage>();
         Db.DropTable<Subscription>();

@@ -1,0 +1,12 @@
+Company           ServiceStack
+CompanyOfficial   ServiceStack, Inc.
+Domain            servicestack.net
+MailingAddress    470 Schooleys Mt Road #636, Hackettstown, NJ 07840-4096
+MailPreferences   Mail Preferences
+Unsubscribe       Unsubscribe
+Contact           Contact
+Privacy           Privacy policy
+OurAddress        Our mailing address:
+MailReason        You received this email because you are subscribed to ServiceStack news and announcements.
+SignOffTeam       The ServiceStack Team
+NewsletterFmt     ServiceStack Newsletter, {0}

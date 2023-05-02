@@ -1,0 +1,10 @@
+<script type="module">
+    import { useConfig } from "@servicestack/vue"
+    const { events } = useConfig()
+    events.subscribe('signIn', auth => {
+        console.log('custom signIn', auth)
+        // if (auth.bearerToken) {
+        //     document.cookie = `ss-tok=${auth.bearerToken};path=/`
+        // }
+    })
+</script>

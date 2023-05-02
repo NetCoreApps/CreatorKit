@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,28 +13,23 @@ namespace SsgServices.ServiceInterface;
 public class AppData
 {
     public static AppData Instance { get; } = new();
+    public TimeSpan PeriodicTasksInterval { get; set; } = TimeSpan.FromMinutes(10);
     public List<string> EmailLayouts { get; set; } = new();
     public List<string> EmailPartials { get; set; } = new();
     public List<string> EmailPages { get; set; } = new();
 
-    public List<KeyValuePair<string, string>> EmailLayoutOptions => ToKeyValuePairs(EmailLayouts);
-    public List<KeyValuePair<string, string>> EmailPageOptions => ToKeyValuePairs(EmailPages);
+    public List<string> EmailLayoutOptions => EmailLayouts.Map(x => x.WithoutExtension());
+    public List<string> EmailPageOptions => EmailPages.Map(x => x.WithoutExtension());
+    public List<string> RenderEmailApis { get; set; } = new();
+    public List<string> MailRunGeneratorApis { get; set; } = new();
     public KeyValuePair<string, string>[] MailingListOptions => Input.GetEnumEntries(typeof(MailingList));
     public string[]? MailingListValues => Input.GetEnumValues(typeof(MailingList));
 
-    public List<KeyValuePair<string, string>> ToKeyValuePairs(List<string> filenames)
+    public async Task LoadAsync(ServiceStackHost appHost, IVirtualDirectory emailsDir)
     {
-        var sorted = filenames.OrderBy(x => x).ToList();
-        var to = new List<KeyValuePair<string, string>>();
-        foreach (var file in sorted)
-        {
-            to.Add(new(file, file.WithoutExtension()));
-        }
-        return to;
-    }
-
-    public async Task LoadAsync(IVirtualDirectory emailsDir)
-    {
+        RenderEmailApis = appHost.Metadata.RequestTypes.Where(x => typeof(RenderEmailBase).IsAssignableFrom(x)).Map(x => x.Name);
+        MailRunGeneratorApis = appHost.Metadata.RequestTypes.Where(x => typeof(MailRunBase).IsAssignableFrom(x)).Map(x => x.Name);
+        
         EmailLayouts.Clear();
         EmailPartials.Clear();
         EmailPages.Clear();

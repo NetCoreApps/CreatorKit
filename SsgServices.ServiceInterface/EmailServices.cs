@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ServiceStack;
-using ServiceStack.IO;
 using ServiceStack.OrmLite;
-using ServiceStack.Script;
 using SsgServices.ServiceModel;
 
 namespace SsgServices.ServiceInterface;
@@ -13,6 +10,7 @@ namespace SsgServices.ServiceInterface;
 public class EmailServices : Service
 {
     public EmailProvider EmailProvider { get; set; }
+    public EmailRenderer Renderer { get; set; }
     public MailData MailData { get; set; }
 
     public async Task<object> Any(MailNewsletter request)
@@ -20,31 +18,25 @@ public class EmailServices : Service
         var viewRequest = request.ConvertTo<ViewNewsletter>();
         var year = request.Year ?? DateTime.UtcNow.Year;
         var fromDate = new DateTime(year, request.Month ?? 1, 1);
+
         var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
-        var msg = new MailMessage {
-            Request = nameof(ViewNewsletter),
-            RequestArgs = viewRequest.ToObjectDictionary(),
+        var msg = await Renderer.CreateMessageAsync(Db, new MailMessage
+        {
             Message = new EmailMessage
             {
                 To = new() { new MailTo { Email = request.Email } },
-                Subject = request.Subject ?? string.Format(MailInfo.Instance.NewsletterFmt, $"{fromDate:MMMM} {fromDate:yyyy}"),
+                Subject = request.Subject ??
+                          string.Format(MailInfo.Instance.NewsletterFmt, $"{fromDate:MMMM} {fromDate:yyyy}"),
                 BodyHtml = bodyHtml,
-            } 
-        }.PopulateWith(request);
-
-        var id = await Db.InsertAsync(msg, selectIdentity:true);
-
-        if (request.Send == true)
-        {
-            PublishMessage(new SendMessages { MailMessageIds = new() { id }});
-        }
+            }
+        }.FromRequest(request), send:request.Send == true);
         
         return new MailResponse
         {
             To = msg.Message.To.First(),
             Subject = msg.Message.Subject,
-            SendUrl = base.Request.ResolveAbsoluteUrl(new SendMailMessage { Id = id }.ToUrl()),
-            ViewUrl = base.Request.ResolveAbsoluteUrl(new ViewMailMessage { Id = id }.ToUrl()),
+            SendUrl = base.Request.ResolveAbsoluteUrl(new SendMailMessage { Id = msg.Id }.ToUrl()),
+            ViewUrl = base.Request.ResolveAbsoluteUrl(new ViewMailMessage { Id = msg.Id }.ToUrl()),
         };
     }
 
@@ -52,21 +44,14 @@ public class EmailServices : Service
     {
         var year = request.Year ?? DateTime.UtcNow.Year;
         var fromDate = new DateTime(year, request.Month ?? 1, 1);
-        var context = CreateMailContext(layout:"layout-marketing", page:"newsletter",
+        var context = Renderer.CreateMailContext(layout:"layout-marketing", page:"newsletter",
             meta: MailData.Search(fromDate: fromDate,
-                toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null), 
+                toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null),
             args: new() {
                 ["title"] = $"{fromDate:MMMM} {fromDate:yyyy}"
             });
 
-        var htmlEmail = await new PageResult(context.GetPage("content")) {
-            Layout = "layout",
-        }.RenderToStringAsync();
-
-        return new HttpResult(htmlEmail)
-        {
-            ContentType = MimeTypes.Html
-        };
+        return await Renderer.RenderToHtmlResultAsync(Db, context, request);
     }
     
     public async Task<object> Any(MailTestMail request)
@@ -91,67 +76,50 @@ public class EmailServices : Service
 
     public async Task<object> Any(ViewTestMail request)
     {
-        var context = CreateMailContext(layout:request.Layout ?? "layout", page:request.Page ?? "test",
+        var context = Renderer.CreateMailContext(layout:request.Layout ?? "layout", page:request.Page ?? "test",
             args: new() {
                 ["title"] = request.Title ?? "Test Title",
                 ["body"] = request.Body ?? "Test Body",
             });
         
-        var htmlEmail = await new PageResult(context.GetPage("content")) {
-            Layout = "layout",
-        }.RenderToStringAsync();
-
-        return new HttpResult(htmlEmail)
-        {
-            ContentType = MimeTypes.Html
-        };
+        return await Renderer.RenderToHtmlResultAsync(Db, context, request);
     }
 
-    private ScriptContext CreateMailContext(string page, string? layout=null,
-        Dictionary<string,object>? args = null, MailData? meta=null)
+    public async Task<object> Any(CreateNewsletterMailRun request)
     {
-        if (string.IsNullOrEmpty(page))
-            throw new ArgumentNullException(nameof(page));
-        
-        layout ??= "_layout.html";
-        if (!layout.EndsWith(".html"))
-            layout += ".html";
-        if (!page.EndsWith(".html"))
-            page += ".html";
-        
-        var context = new ScriptContext
-        {
-            PageFormats = { new MarkdownPageFormat() },
-            ScriptBlocks = { new EmailMarkdownScriptBlock() },
-            ScriptMethods = { new EmailMarkdownScriptMethods() },
-            Args =
-            {
-                [nameof(AppData)] = AppData.Instance,
-                ["meta"] = meta ?? MailData,
-                ["info"] = MailInfo.Instance,
-                ["links"] = MailLinks.Instance,
-                ["images"] = MailImages.Instance,
-            }
-        };
-        if (args != null)
-        {
-            foreach (var entry in args)
-            {
-                context.Args[entry.Key] = entry.Value;
-            }
-        }
-        context.Init();
+        var ret = new CreateNewsletterMailRunResponse { StartedAt = DateTime.UtcNow, CreatedIds = new() };
+        request.Year ??= DateTime.UtcNow.Year;
+        request.Month ??= DateTime.UtcNow.Month;
 
-        var emailsDir = VirtualFiles.GetDirectory("emails");
-        var sharedDir = VirtualFiles.GetDirectory("emails/shared");
-        context.VirtualFiles.WriteFile("layout.html", sharedDir.GetFile(layout));
-        context.VirtualFiles.WriteFile("content.html", emailsDir.GetFile(page));
-        var partials = sharedDir.GetAllMatchingFiles("partial*.html");
-        foreach (var partial in partials)
+        var viewRequest = request.ConvertTo<ViewNewsletter>();
+        var fromDate = new DateTime(request.Year.Value, request.Month.Value, 1);
+        var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
+
+        var mailRun = await Db.CreateMailRunAsync(new MailRun {
+            Layout = "layout-marketing",
+            Page = "newsletter",
+            CreatedDate = ret.StartedAt,
+        }, request);
+        
+        var mailingListSubs = await Db.GetActiveSubscriptionsAsync(request.MailingList);
+        foreach (var sub in mailingListSubs)
         {
-            context.VirtualFiles.WriteFile(partial.Name, partial);
+            var msg = await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
+            {
+                Message = new EmailMessage
+                {
+                    To = sub.ToMailTos(),
+                    Subject = string.Format(MailInfo.Instance.NewsletterFmt, $"{fromDate:MMMM} {fromDate:yyyy}"),
+                    BodyHtml = bodyHtml,
+                }
+            }.FromRequest(viewRequest), mailRun, sub);
+            ret.CreatedIds.Add(msg.Id);
         }
 
-        return context;
+        await Db.UpdateMailRunGeneratedEmailsAsync(mailRun, ret.CreatedIds.Count);
+
+        ret.TimeTaken = DateTime.UtcNow - ret.StartedAt;
+        return ret;
     }
+
 }
