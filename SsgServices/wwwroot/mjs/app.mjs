@@ -2,6 +2,7 @@ import { createApp, nextTick, reactive } from "vue"
 import { JsonApiClient, $1, $$ } from "@servicestack/client"
 import ServiceStackVue, { useAuth } from "@servicestack/vue"
 import { Authenticate } from "./dtos.mjs"
+import { EmailInput } from "./components/Inputs.mjs"
 
 let client = null, Apps = []
 let AppData = {
@@ -34,6 +35,8 @@ export function mount(sel, component, props) {
     app.component('RouterLink', ServiceStackVue.component('RouterLink'))
     app.mount(el)
     Apps.push(app)
+    // Register custom input components
+    ServiceStackVue.component('EmailInput', EmailInput) 
     return app
 }
 

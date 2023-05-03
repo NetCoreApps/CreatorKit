@@ -234,6 +234,7 @@ public class MailResponse
 public abstract class CreateEmailBase
 {
     [ValidateNotEmpty]
+    [Input(Type="EmailInput")]
     public string Email { get; set; }
     [ValidateNotEmpty]
     [FieldCss(Field = "col-span-3")]
