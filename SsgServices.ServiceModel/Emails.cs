@@ -3,6 +3,7 @@ using ServiceStack.DataAnnotations;
 
 namespace SsgServices.ServiceModel;
 
+[Renderer(typeof(RenderSimpleText))]
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Description("Simple Text Email")]
 public class SimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
@@ -16,6 +17,7 @@ public class SimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     public bool? Send { get; set; }
 }
 
+[Renderer(typeof(RenderCustomHtml), Layout = "layout", Page="markdown")]
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Icon(Svg = Icons.TextMarkup)]
 [Description("Markdown Email")]
@@ -31,6 +33,7 @@ public class MarkdownEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     public bool? Send { get; set; }
 }
 
+[Renderer(typeof(RenderCustomHtml))]
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Icon(Svg = Icons.RichHtml)]
 [Description("Custom HTML Email")]

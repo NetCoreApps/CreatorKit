@@ -45,7 +45,7 @@ public class MailingServices : Service
             };
             contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
             
-            var viewRequest = new RenderCustomHtml { Layout = "layout-marketing", Page = "verify-email" }.FromSub(contact);
+            var viewRequest = new RenderCustomHtml { Layout = "marketing", Page = "verify-email" }.FromContact(contact);
             var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, contact);
             await Renderer.SendMessageAsync(Db, new MailMessage {
@@ -174,7 +174,7 @@ public class MailingServices : Service
         var sub = await Db.SingleAsync<Contact>(x => x.ExternalRef == request.ExternalRef);
         if (sub != null)
         {
-            var viewRequest = new RenderCustomHtml { Layout = "layout-marketing", Page = "newsletter-welcome" }.FromSub(sub);
+            var viewRequest = new RenderCustomHtml { Layout = "marketing", Page = "newsletter-welcome" }.FromContact(sub);
             var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
             await Renderer.SendMessageAsync(Db, new MailMessage {
@@ -246,7 +246,7 @@ public static class MailMessageExtensions
         return sub;
     }
 
-    public static T FromSub<T>(this T request, Contact sub) where T : RenderEmailBase
+    public static T FromContact<T>(this T request, Contact sub) where T : RenderEmailBase
     {
         request.Email = sub.Email;
         request.FirstName = sub.FirstName;

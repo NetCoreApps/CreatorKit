@@ -40,13 +40,14 @@ const SelectEmail = {
         }
 
         function selectIndex(index) {
-            const sub = index >= 0 ? results.value[index] : null
-            if (sub) {
+            const contact = index >= 0 ? results.value[index] : null
+            if (contact) {
                 const setFields = ['email','firstName','lastName']
                 setFields.forEach(id => {
                     const el = props.inputElement.form[id]
                     if (el) {
-                        el.value = sub[id]
+                        el.value = contact[id]
+                        el.dispatchEvent(new Event('input', {bubbles:true}));
                     }
                 })
                 focusNextElement({ after:props.inputElement.form['lastName'] })

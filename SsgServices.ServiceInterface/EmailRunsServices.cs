@@ -21,19 +21,19 @@ public class EmailRunsServices : Service
     {
         var response = CreateMailRunResponse();
 
-        var context = Renderer.CreateScriptContext();
-
         var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun(), request);
         foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
         {
-            var evalBody = await context.RenderScriptAsync(request.Body, sub.ToObjectDictionary());
+            var viewRequest = request.ConvertTo<RenderSimpleText>().FromContact(sub);
+            var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
+
             response.AddMessage(await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
             {
                 Message = new EmailMessage
                 {
                     To = sub.ToMailTos(),
                     Subject = request.Subject,
-                    BodyText = evalBody,
+                    BodyText = bodyHtml,
                 }
             }, mailRun, sub));
         }
@@ -61,7 +61,7 @@ public class EmailRunsServices : Service
         
         foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
         {
-            var viewRequest = request.ConvertTo<RenderCustomHtml>().FromSub(sub);
+            var viewRequest = request.ConvertTo<RenderCustomHtml>().FromContact(sub);
             var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
 
             response.AddMessage(await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
@@ -90,7 +90,7 @@ public class EmailRunsServices : Service
         var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
 
         var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun {
-            Layout = "layout-marketing",
+            Layout = "marketing",
             Page = "newsletter",
         }, request);
         

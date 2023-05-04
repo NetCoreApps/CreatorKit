@@ -17,6 +17,7 @@ public class AppData
     public List<string> EmailLayouts { get; set; } = new();
     public List<string> EmailPartials { get; set; } = new();
     public List<string> EmailPages { get; set; } = new();
+    public List<string> EmailVars { get; set; } = new();
 
     public List<string> EmailLayoutOptions => EmailLayouts.Map(x => x.WithoutExtension());
     public List<string> EmailPageOptions => EmailPages.Map(x => x.WithoutExtension());
@@ -35,28 +36,21 @@ public class AppData
         EmailPages.Clear();
         
         var files = emailsDir.GetFiles();
-        foreach (var file in files)
+        foreach (var file in files.Where(x => x.Name.EndsWith(".html")))
         {
-            if (!file.Name.EndsWith(".html"))
-                continue;
-
             EmailPages.Add(file.Name);
         }
-
-        var emailsSharedDir = emailsDir.GetDirectory("shared");
-        foreach (var file in emailsSharedDir.GetFiles())
+        foreach (var file in emailsDir.GetDirectory("layouts").GetFiles().Where(x => x.Name.EndsWith(".html")))
         {
-            if (!file.Name.EndsWith(".html"))
-                continue;
-
-            if (file.Name.Contains("layout"))
-            {
-                EmailLayouts.Add(file.Name);
-            } 
-            else if (file.Name.Contains("partial"))
-            {
-                EmailPartials.Add(file.Name);
-            }
+            EmailLayouts.Add(file.Name);
+        }
+        foreach (var file in emailsDir.GetDirectory("partials").GetFiles().Where(x => x.Name.EndsWith(".html")))
+        {
+            EmailPartials.Add(file.Name);
+        }
+        foreach (var file in emailsDir.GetDirectory("vars").GetFiles().Where(x => x.Name.EndsWith(".txt")))
+        {
+            EmailVars.Add(file.Name);
         }
     }
 }

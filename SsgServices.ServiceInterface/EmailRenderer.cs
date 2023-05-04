@@ -154,10 +154,11 @@ public class EmailRenderer
         var context = CreateScriptContext(args, meta);
 
         var emailsDir = VirtualFiles.GetDirectory("emails");
-        var sharedDir = VirtualFiles.GetDirectory("emails/shared");
-        context.VirtualFiles.WriteFile("layout.html", sharedDir.GetFile(layout));
+        var layoutsDir = VirtualFiles.GetDirectory("emails/layouts");
+        var partialsDir = VirtualFiles.GetDirectory("emails/partials");
+        context.VirtualFiles.WriteFile("layout.html", layoutsDir.GetFile(layout));
         context.VirtualFiles.WriteFile("content.html", emailsDir.GetFile(page));
-        var partials = sharedDir.GetAllMatchingFiles("partial*.html");
+        var partials = partialsDir.GetAllMatchingFiles("*.html");
         foreach (var partial in partials)
         {
             context.VirtualFiles.WriteFile(partial.Name, partial);

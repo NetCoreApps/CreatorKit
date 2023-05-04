@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Script;
@@ -12,10 +13,49 @@ public class EmailRenderersServices : Service
     public EmailRenderer Renderer { get; set; }
     public MailData MailData { get; set; }
 
+    public async Task<object> Any(PreviewEmail request)
+    {
+        var args = new Dictionary<string,object>(request.RequestArgs ?? new(), StringComparer.OrdinalIgnoreCase);
+        
+        var defaultValues = new Dictionary<string, object>
+        {
+            [nameof(RenderEmailBase.Email)] = "email@example.org",
+            [nameof(RenderEmailBase.FirstName)] = "First",
+            [nameof(RenderEmailBase.LastName)] = "Last",
+            [nameof(RenderEmailBase.ExternalRef)] = "0123456789"
+        };
+        foreach (var entry in defaultValues)
+        {
+            args.TryAdd(entry.Key, entry.Value);
+        }
+
+        var requestType = HostContext.Metadata.GetRequestType(request.Request);
+        var rendererAttr = requestType.FirstAttribute<RendererAttribute>();
+        var renderRequestType = rendererAttr?.Type ?? typeof(RenderSimpleText);
+
+        if (rendererAttr?.Layout != null)
+            args.TryAdd(nameof(RenderCustomHtml.Layout), rendererAttr.Layout);
+        if (rendererAttr?.Page != null)
+            args.TryAdd(nameof(RenderCustomHtml.Page), rendererAttr.Page);
+
+        var renderRequest = args.FromObjectDictionary(renderRequestType);
+        var response = await HostContext.ServiceController.ExecuteAsync(renderRequest, Request);
+        return response;
+    }
+
+    public async Task<object> Any(RenderSimpleText request)
+    {
+        var context = Renderer.CreateScriptContext();
+        var evalBody = await context.RenderScriptAsync(request.Body, request.ToObjectDictionary());
+        return evalBody;
+    }
+
     public async Task<object> Any(RenderCustomHtml request)
     {
         var context = Renderer.CreateMailContext(layout:request.Layout, page:request.Page);
-        var evalBody = await context.RenderScriptAsync(request.Body, request.ToObjectDictionary());
+        var evalBody = !string.IsNullOrEmpty(request.Body) 
+            ? await context.RenderScriptAsync(request.Body, request.ToObjectDictionary())
+            : string.Empty;
 
         return await Renderer.RenderToHtmlResultAsync(Db, context, request, 
             args:new() {
@@ -27,7 +67,7 @@ public class EmailRenderersServices : Service
     {
         var year = request.Year ?? DateTime.UtcNow.Year;
         var fromDate = new DateTime(year, request.Month ?? 1, 1);
-        var context = Renderer.CreateMailContext(layout:"layout-marketing", page:"newsletter",
+        var context = Renderer.CreateMailContext(layout:"marketing", page:"newsletter",
             meta: MailData.Search(fromDate: fromDate,
                 toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null));
 

@@ -969,6 +969,11 @@ select{
   margin-bottom: 0.5rem;
 }
 
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
 .-mb-px {
   margin-bottom: -1px;
 }
@@ -1287,6 +1292,10 @@ select{
 
 .flex-shrink-0 {
   flex-shrink: 0;
+}
+
+.flex-shrink {
+  flex-shrink: 1;
 }
 
 .shrink {

@@ -149,10 +149,10 @@
 
 <script type="module">
 import { mount } from "/mjs/app.mjs"
-import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun } from "/mjs/dtos.mjs"
-import { leftPart, rightPart, appendQueryString, queryString, on } from "@servicestack/client"
-import { useAuth, useClient, useMetadata, useUtils } from "@servicestack/vue"
-import { ref, computed, onMounted, shallowRef, nextTick, onUnmounted } from "vue"
+import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun, PreviewEmail } from "/mjs/dtos.mjs"
+import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult } from "@servicestack/client"
+import { useAuth, useClient, useMetadata, useUtils, useFormatters } from "@servicestack/vue"
+import { ref, computed, onMounted, onUnmounted, shallowRef, watch } from "vue"
 
 // Order all tables descending so latest appears first
 const idColumns = ['MailRun.Id','MailMessageRun.Id','MailMessage.Id','Contact.Id'].map(x => 'Column/AutoQueryGrid:' + x)
@@ -173,6 +173,46 @@ function formatEmails(emails) {
     if (!emails?.length) return ''
     const to = emails.map(x => x.name ? `${x.name} <${x.email}>` : x.email)
     return to.join(', ')
+}
+
+function isHtml(s) {
+    return typeof s == 'string' && (s.trimStart().startsWith('<') || s.includes('style="'))
+}
+
+const EmailPreview = {
+    template:`<div class="w-full">
+        <ErrorSummary v-if="hadSuccess" />
+        <div :class="['border-t border-gray-200 pt-4 px-4', isHtml(api.response) ? '' : 'whitespace-pre-wrap']" v-html="api.response"></div>
+    </div>
+    `,
+    props:['type','modelValue'],
+    setup(props) {
+
+        const client = useClient()
+        const api = ref(new ApiResult())
+        const hadSuccess = ref(false)
+
+        async function update() {
+            const requestArgs = Object.assign({}, props.modelValue)
+            Object.keys(requestArgs).forEach(k => {
+                // unwrap dropdown values '{ key, value }' to just use key  
+                if (typeof requestArgs[k] == 'object' && requestArgs[k]?.key)
+                    requestArgs[k] = requestArgs[k].key
+            })
+
+            const request = new PreviewEmail({
+                request: props.type,
+                requestArgs,
+            })
+            api.value = await client.api(request)
+            if (api.value.succeeded) hadSuccess.value = true
+        }
+
+        watch(() => props.modelValue, update, { deep: true })
+        onMounted(update)
+
+        return { api, hadSuccess, isHtml }
+    }
 }
 
 const Dashboard = {
@@ -221,7 +261,7 @@ const MailRunInfo = {
 }
 
 const MailRuns = {
-    components: { MailRunInfo },
+    components: { MailRunInfo, EmailPreview },
     template:`
       <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Mail Runs</h1>
       <div class="py-4 flex flex-wrap gap-3">
@@ -239,7 +279,11 @@ const MailRuns = {
           </div>
         </template>
       </AutoQueryGrid>
-      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done" />
+      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done">
+          <template #footer="{ model }">
+            <EmailPreview :type="selectedOp?.name" :modelValue="model" />
+          </template>
+      </AutoCreateForm>
     `,
     emits: ['nav'],
     setup(props, { emit }) {
@@ -346,7 +390,7 @@ const MessageView = {
 }
 
 const Messages = {
-    components: { MessageView },
+    components: { MessageView, EmailPreview },
     template:`
       <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Messages</h1>
       <div class="py-4 flex flex-wrap gap-3">
@@ -355,7 +399,11 @@ const Messages = {
             {{op.description || op.name}}
           </button>
       </div>
-      <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" selected-columns="id,email,layout,page,renderer,rendererArgs,completedDate">
+      <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
+                     selectedColumns="id,email,layout,page,renderer,rendererArgs,completedDate">
+        <template #renderer="{ renderer, rendererArgs }">
+          <span :title="indentJson(rendererArgs)">{{renderer}}</span>
+        </template>
         <template #formfooter="{ id, model }">
           <div v-if="!model.completedDate" class="py-3 flex justify-center">
             <PrimaryButton :disabled="sending" @click="sendMessage(model)" type="button">{{ sending ? 'Sending...' : 'Send Email' }}</PrimaryButton>
@@ -363,11 +411,16 @@ const Messages = {
           <MessageView :model="model" />
         </template>
       </AutoQueryGrid>
-      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done" />
+      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done">
+        <template #footer="{ model }">
+            <EmailPreview :type="selectedOp?.name" :modelValue="model" />
+        </template>
+      </AutoCreateForm>
     `,
     emits: ['nav'],
     setup(props, { emit }) {
         const client = useClient()
+        const { indentJson } = useFormatters()
         const createMsgApis = metadataApi.value.operations.filter(x => x.request.inherits?.name === 'CreateEmailBase')
             .map(x => x.request)
         const grid = ref()
@@ -412,7 +465,8 @@ const Messages = {
             }
         }
         
-        return { css, grid, createMsgApis, selectOp, selectedOp, done, save, configureFormLayout, sendMessage, sending }
+        return { css, grid, createMsgApis, selectOp, selectedOp, done, save, configureFormLayout, sendMessage, 
+                 sending, indentJson }
     }
 }
 

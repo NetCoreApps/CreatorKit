@@ -15,12 +15,12 @@ Thank you, <br>
 {{/capture}}
 
 <p style="margin:20px 0">&nbsp;</p>
-{{ 'partial-image-centered' |> partial({ src:images.Email, width:100, height:100 }) }}
+{{ 'image-centered' |> partial({ src:images.Email, width:100, height:100 }) }}
 <p style="margin:10px 0">&nbsp;</p>
 
 <div style="padding:20px 50px">
     {{markdown |> emailmarkdown}}
-    {{ 'partial-button-centered' |> partial({ label:'Verify your email address', href:`${links.AppBaseUrl}/verify/email/${ExternalRef}` }) }}
+    {{ 'button-centered' |> partial({ label:'Verify your email address', href:`${links.AppBaseUrl}/verify/email/${ExternalRef}` }) }}
 
     <p style="margin:10px 0">&nbsp;</p>
     <p style="margin:10px 0;font-size:13px;color:#999999;text-align: center">If you did not make this request, you can ignore this email.</p>
