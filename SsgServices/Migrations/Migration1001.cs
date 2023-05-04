@@ -5,16 +5,16 @@ namespace SsgServices.Migrations;
 
 public class Migration1001 : MigrationBase
 {
-    public class Subscription
+    public class Contact
     {
         [AutoIncrement]
         public int Id { get; set; }
         public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public Source Source { get; set; }
         [FormatEnumFlags(nameof(MailingList))]
         public MailingList MailingLists { get; set; }
-        public MailSource Source { get; set; }
         public string Token { get; set; }
         [Index(Unique = true)]
         public string EmailLower { get; set; }
@@ -33,12 +33,14 @@ public class Migration1001 : MigrationBase
     {
         [AutoIncrement]
         public int Id { get; set; }
+        public string ExternalRef { get; set; }
         public string Email { get; set; }
         public string Layout { get; set; }
         public string Page { get; set; }
         public string Renderer { get; set; }
         public Dictionary<string,object> RendererArgs { get; set; }
         public EmailMessage Message { get; set; }
+        public DateTime CreatedDate { get; set; }
         public DateTime? StartedDate { get; set; }
         public DateTime? CompletedDate { get; set; }
         public string? ErrorCode { get; set; }
@@ -49,6 +51,7 @@ public class Migration1001 : MigrationBase
     {
         [AutoIncrement]
         public int Id { get; set; }
+        public string ExternalRef { get; set; }
         [FormatEnumFlags(nameof(MailingList))]
         public MailingList MailingList { get; set; }
         public string Layout { get; set; }
@@ -62,17 +65,19 @@ public class Migration1001 : MigrationBase
         public int EmailsCount { get; set; }
     }
 
-    [UniqueConstraint(nameof(MailRunId), nameof(SubscriptionId))]
+    [UniqueConstraint(nameof(MailRunId), nameof(ContactId))]
     public class MailMessageRun
     {
         [AutoIncrement]
         public int Id { get; set; }
+        public string ExternalRef { get; set; }
+        [ForeignKey(typeof(MailRun), OnDelete = "CASCADE")]
         public int MailRunId { get; set; }
-        [Ref(Model = nameof(ServiceModel.Subscription), RefId = nameof(ServiceModel.Subscription.Id), RefLabel = nameof(ServiceModel.Subscription.Email))]
-        public int SubscriptionId { get; set; }
+        [Ref(Model = nameof(ServiceModel.Contact), RefId = nameof(ServiceModel.Contact.Id), RefLabel = nameof(ServiceModel.Contact.Email))]
+        public int ContactId { get; set; }
         [Reference]
         [Format(FormatMethods.Hidden)]
-        public Subscription Subscription { get; set; }
+        public Contact Contact { get; set; }
         public string Renderer { get; set; }
         public Dictionary<string,object> RendererArgs { get; set; }
         public EmailMessage Message { get; set; }
@@ -82,7 +87,7 @@ public class Migration1001 : MigrationBase
         public string? ErrorMessage { get; set; }
     }
 
-    public enum MailSource
+    public enum Source
     {
         Unknown,
         UI,
@@ -124,13 +129,43 @@ public class Migration1001 : MigrationBase
         public string? BodyText { get; set; }
     }
 
+    public class Archive
+    {
+        public string Name { get; set; }
+        public int ContactCount { get; set; }
+        public int MailMessageCount { get; set; }
+        public int MailRunCount { get; set; }
+        public int MailMessageRun { get; set; }
+        public DateTime LastUpdated { get; set; }
+    }
+
+    Contact CreateContact(string email, string firstName, string lastName, MailingList mailingList)
+    {
+        return new Contact {
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            EmailLower = email.ToLower(),
+            NameLower = $"{firstName} {lastName}".ToLower(),
+            MailingLists = mailingList,
+            ExternalRef = Guid.NewGuid().ToString("N"),
+            CreatedDate = DateTime.UtcNow,
+            VerifiedDate = DateTime.UtcNow.AddMinutes(1),
+            Source = Source.UI,
+        };
+    }
 
     public override void Up()
     {
-        Db.CreateTable<Subscription>();
+        Db.CreateTable<Archive>();
+        Db.CreateTable<Contact>();
         Db.CreateTable<MailMessage>();
         Db.CreateTable<MailRun>();
         Db.CreateTable<MailMessageRun>();
+        
+        Db.Insert(CreateContact("demis.bellot@gmail.com", "Demis", "Bellot", MailingList.TestGroup | MailingList.MonthlyNewsletter));
+        Db.Insert(CreateContact("team@servicestack.net", "Team", "ServiceStack", MailingList.TestGroup | MailingList.MonthlyNewsletter));
+        Db.Insert(CreateContact("demis@servicestack.com", "Ubixar", "Liquidbit", MailingList.TestGroup | MailingList.YearlyUpdates));
     }
 
     public override void Down()
@@ -138,6 +173,7 @@ public class Migration1001 : MigrationBase
         Db.DropTable<MailMessageRun>();
         Db.DropTable<MailRun>();
         Db.DropTable<MailMessage>();
-        Db.DropTable<Subscription>();
+        Db.DropTable<Contact>();
+        Db.DropTable<Archive>();
     }
 }

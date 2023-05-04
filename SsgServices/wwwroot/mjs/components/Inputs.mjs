@@ -1,6 +1,6 @@
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import { useClient, useUtils } from "@servicestack/vue"
-import { QuerySubscriptions } from "../dtos.mjs"
+import { QueryContacts } from "../dtos.mjs"
 
 const SelectEmail = {
     template:`<div v-if="show" class="relative w-full">
@@ -31,7 +31,7 @@ const SelectEmail = {
 
         async function update() {
             await (async (search) => {
-                const apiSearch = await client.api(new QuerySubscriptions({ search, take:8, orderBy:'nameLower' }))
+                const apiSearch = await client.api(new QueryContacts({ search, take:8, orderBy:'nameLower' }))
                 if (apiSearch.succeeded && search === props.modelValue) {
                     api.value = apiSearch
                     active.value = -1
@@ -40,7 +40,6 @@ const SelectEmail = {
         }
 
         function selectIndex(index) {
-            console.log('selectIndex', index)
             const sub = index >= 0 ? results.value[index] : null
             if (sub) {
                 const setFields = ['email','firstName','lastName']
@@ -50,9 +49,7 @@ const SelectEmail = {
                         el.value = sub[id]
                     }
                 })
-                focusNextElement()
-                focusNextElement()
-                focusNextElement()
+                focusNextElement({ after:props.inputElement.form['lastName'] })
             }
         }
 
@@ -61,10 +58,11 @@ const SelectEmail = {
                 show.value = true
             },
             blur(e) {
-                setTimeout(() => show.value = false, 150)
+                setTimeout(() => show.value = false, 200)
             },
             keydown(e) {
                 if (e.key === 'ArrowDown') {
+                    if (!show.value) show.value = true
                     if (active.value === -1) {
                         active.value = 0
                     } else {
@@ -80,15 +78,16 @@ const SelectEmail = {
                     e.preventDefault()
                     selectIndex(active.value)
                 } else if (e.key === 'Escape') {
-                    show.value = false
-                    e.preventDefault()
-                    e.stopPropagation()
+                    if (show.value) {
+                        show.value = false
+                        e.stopPropagation()
+                    }
                 }
             },
         }
 
         onMounted(() => {
-            client.swr(new QuerySubscriptions({ take:8, orderBy:'nameLower' }), r => api.value = r)
+            client.swr(new QueryContacts({ take:8, orderBy:'nameLower' }), r => api.value = r)
             const el = email.value = document.querySelector('#email')
             el.setAttribute('autocomplete','no-autofill')
             Object.keys(inputEvents).forEach(evt => {
@@ -106,13 +105,6 @@ const SelectEmail = {
         })
         
         watch(() => props.modelValue, update)
-        
-        onMounted(() => {
-            console.log('SelectEmail.onMounted', props.modelValue, props.inputElement)
-        })
-        onUnmounted(() => {
-            console.log('SelectEmail.onUnmounted', props.modelValue, props.inputElement)
-        })
 
         return { show, results, loading, active, selectIndex }
     }

@@ -25,22 +25,41 @@ public class EmailRenderer
         MailData = appHost.Resolve<MailData>();
         MessageService = appHost.Resolve<IMessageService>();
     }
+    
+    public string CreateRef() => Guid.NewGuid().ToString("N");
 
     public Task<MailMessage> SendMessageAsync(IDbConnection db, MailMessage msg) =>
         CreateMessageAsync(db, msg, send: true);
     public async Task<MailMessage> CreateMessageAsync(IDbConnection db, MailMessage msg, bool send = false)
     {
+        msg.CreatedDate = DateTime.UtcNow;
+        msg.ExternalRef ??= CreateRef(); 
         msg.Id = (int) await db.InsertAsync(msg, selectIdentity:true);
         if (send)
+        {
             SendMailMessage(msg.Id);
+            msg.StartedDate = DateTime.UtcNow; //indicate in API Response msg is being sent
+        }
         return msg;
     }
 
-    public async Task<MailMessageRun> CreateMessageRunAsync(IDbConnection db, MailMessageRun msg,
-        MailRun mailRun, Subscription sub)
+    public async Task<MailRun> CreateMailRunAsync(IDbConnection db, MailRun mailRun, object request)
     {
+        if (request is MailRunBase { MailingList: MailingList.None })
+            throw new ArgumentNullException(nameof(MailRunBase.MailingList));
+
+        mailRun.CreatedDate = DateTime.UtcNow;
+        mailRun.ExternalRef ??= CreateRef(); 
+        mailRun.Id = (int) await db.InsertAsync(mailRun.FromRequest(request), selectIdentity:true);
+        return mailRun;
+    }
+
+    public async Task<MailMessageRun> CreateMessageRunAsync(IDbConnection db, MailMessageRun msg,
+        MailRun mailRun, Contact sub)
+    {
+        msg.ExternalRef ??= CreateRef(); 
         msg.MailRunId = mailRun.Id;
-        msg.SubscriptionId = sub.Id;
+        msg.ContactId = sub.Id;
         msg.Id = (int) await db.InsertAsync(msg, selectIdentity:true);
         return msg;
     }
@@ -57,27 +76,29 @@ public class EmailRenderer
         mqProducer.Publish(new SendMessages { MailRunMessageIds = new() { id } });
     }
 
-    public async Task<HttpResult> RenderToHtmlResultAsync(IDbConnection db, ScriptContext context, object request)
+    public async Task<HttpResult> RenderToHtmlResultAsync(IDbConnection db, ScriptContext context, object request,
+        Dictionary<string,object?>? args = null)
     {
-        var htmlEmail = await RenderToHtmlAsync(db, context, request);
+        var htmlEmail = await RenderToHtmlAsync(db, context, request, args);
         return new HttpResult(htmlEmail) {
             ContentType = MimeTypes.Html
         };
     }
 
-    public async Task<string> RenderToHtmlAsync(IDbConnection db, ScriptContext context, object request)
+    public async Task<string> RenderToHtmlAsync(IDbConnection db, ScriptContext context, object request,
+        Dictionary<string,object?>? args = null)
     {
-        // If only partially populated with Email/ExternalRef, load subscription and populate remaining fields
+        // If only partially populated with Email/ExternalRef, load contact and populate remaining fields
         if (request is RenderEmailBase email && (email.Email != null || email.ExternalRef != null))
         {
             var requiresPopulating = email.FirstName == null || email.LastName == null || email.Email == null || email.ExternalRef == null;
             if (requiresPopulating)
             {
                 var sub = email.Email != null 
-                    ? await db.SingleAsync<Subscription>(x => x.EmailLower == email.Email.ToLower())
-                    : await db.SingleAsync<Subscription>(x => x.ExternalRef == email.ExternalRef);
+                    ? await db.SingleAsync<Contact>(x => x.EmailLower == email.Email.ToLower())
+                    : await db.SingleAsync<Contact>(x => x.ExternalRef == email.ExternalRef);
                 if (sub == null)
-                    throw HttpError.NotFound("Subscription was not found");
+                    throw HttpError.NotFound("Contact was not found");
                 request.PopulateWith(sub);
             }
         }
@@ -85,22 +106,13 @@ public class EmailRenderer
         var html = await new PageResult(context.GetPage("content")) {
             Model = request,
             Layout = "layout",
+            Args = args ?? new(),
         }.RenderToStringAsync();
         return html;
     }
 
-    public ScriptContext CreateMailContext(string page, string? layout=null, 
-        Dictionary<string,object?>? args = null, MailData? meta=null)
+    public ScriptContext CreateScriptContext(Dictionary<string, object?>? args=null, MailData? meta=null)
     {
-        if (string.IsNullOrEmpty(page))
-            throw new ArgumentNullException(nameof(page));
-        
-        layout ??= "_layout.html";
-        if (!layout.EndsWith(".html"))
-            layout += ".html";
-        if (!page.EndsWith(".html"))
-            page += ".html";
-        
         var context = new ScriptContext
         {
             PageFormats = { new MarkdownPageFormat() },
@@ -122,7 +134,24 @@ public class EmailRenderer
                 context.Args[entry.Key] = entry.Value;
             }
         }
+
         context.Init();
+        return context;
+    }
+
+    public ScriptContext CreateMailContext(string page, string? layout=null, 
+        Dictionary<string,object?>? args = null, MailData? meta=null)
+    {
+        if (string.IsNullOrEmpty(page))
+            throw new ArgumentNullException(nameof(page));
+        
+        layout ??= "layout.html";
+        if (!layout.EndsWith(".html"))
+            layout += ".html";
+        if (!page.EndsWith(".html"))
+            page += ".html";
+        
+        var context = CreateScriptContext(args, meta);
 
         var emailsDir = VirtualFiles.GetDirectory("emails");
         var sharedDir = VirtualFiles.GetDirectory("emails/shared");
@@ -135,32 +164,30 @@ public class EmailRenderer
         }
 
         return context;
-    }    
+    }
 }
 
 public static class EmailRendererUtils
 {
-    public static async Task UpdateMailRunGeneratedEmailsAsync(this IDbConnection db, MailRun mailRun, int generatedEmails)
+    public static async Task CompletedMailRunAsync(this IDbConnection db, MailRun mailRun, MailRunResponse ret)
+    {
+        ret.Id = mailRun.Id;
+        ret.TimeTaken = DateTime.UtcNow - ret.StartedAt;
+        await db.UpdateMailRunGeneratedEmailsAsync(mailRun.Id, ret.CreatedIds.Count);
+    }
+
+    public static async Task UpdateMailRunGeneratedEmailsAsync(this IDbConnection db, int mailRunId, int generatedEmails)
     {
         await db.UpdateOnlyAsync(() => new MailRun { GeneratedDate = DateTime.UtcNow, EmailsCount = generatedEmails },
-            where: x => x.Id == mailRun.Id);
+            where: x => x.Id == mailRunId);
     }
     
-    public static async Task<MailRun> CreateMailRunAsync(this IDbConnection db, MailRun mailRun, object request)
-    {
-        if (request is MailRunBase { MailingList: MailingList.None })
-            throw new ArgumentNullException(nameof(MailRunBase.MailingList));
-            
-        mailRun.Id = (int) await db.InsertAsync(mailRun.FromRequest(request), selectIdentity:true);
-        return mailRun;
-    }
-    
-    public static async Task<List<Subscription>> GetActiveSubscriptionsAsync(this IDbConnection db, MailingList mailingList)
+    public static async Task<List<Contact>> GetActiveSubscribersAsync(this IDbConnection db, MailingList mailingList)
     {
         if (mailingList == MailingList.None)
             throw new ArgumentNullException(nameof(mailingList));
             
-        return await db.SelectAsync(db.From<Subscription>()
+        return await db.SelectAsync(db.From<Contact>()
             .Where(x => x.DeletedDate == null && x.UnsubscribedDate == null && x.VerifiedDate != null
                         && (mailingList & x.MailingLists) == mailingList));
     }

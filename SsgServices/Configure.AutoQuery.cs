@@ -11,6 +11,11 @@ public class ConfigureAutoQuery : IHostingStartup
             appHost.Plugins.Add(new AutoQueryFeature {
                 MaxLimit = 1000,
                 //IncludeTotal = true,
+                ImplicitConventions =
+                {
+                    {"%HasAll",         "{Value} & {Field} = {Value}"},
+                    {"%HasAny",         "{Value} & {Field} > 0"},
+                }
             });
         });
 }

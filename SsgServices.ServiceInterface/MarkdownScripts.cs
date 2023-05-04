@@ -37,10 +37,16 @@ public class EmailMarkdownScriptBlock : ScriptBlock
     public static Dictionary<string, string> ReplaceTokens { get; } = new()
     {
         ["<h1 "] = "<h1 style=\"padding:3% 0 0 0;margin:0;color:rgb(51,51,51);font-weight:700;font-size:34px;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Arial,sans-serif;line-height:1.1\" ",
-        ["<h2 "] = "<h2 style=\"color:#333;font-size:28px;margin-top:36px;margin-bottom:30px\" ",
-        ["<h3 "] = "<h3 style=\"color:#333;font-size:18px;margin-top:28px;margin-bottom:16px\" ",
+        ["<h2 "] = "<h2 style=\"color:#333;font-size:28px;font-weight:600;margin-top:36px;margin-bottom:30px\" ",
+        ["<h3 "] = "<h3 style=\"color:#333;font-size:22px;font-weight:600;margin-top:28px;margin-bottom:16px\" ",
+        ["<h4 "] = "<h4 style=\"color:#333;font-size:18px;font-weight:600;margin-top:20px;margin-bottom:10px\" ",
+        ["<h5 "] = "<h5 style=\"color:#333;font-size:16px;font-weight:700;margin-top:16px;margin-bottom:8px\" ",
+        ["<h6 "] = "<h6 style=\"color:#333;font-size:16px;font-weight:normal;margin-top:10px;margin-bottom:4px\" ",
         ["<img "] = "<img style=\"max-width:100%\" ",
         ["<p>"] = "<p style=\"margin-bottom:1em;font-size:16px;color:#333333;line-height:1.5em;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif\">",
+        ["<blockquote>"] = "<blockquote style=\"font-style:italic;color:#0f172a;margin:1.6em 0 1.6em 1em;padding:0 0 0 1em;\">",
+        ["<ol>"] = "<ol style=\"list-style:decimal;margin:1em 0 0 1.6em;padding:0;\">",
+        ["<ul>"] = "<ul style=\"list-style:disc;margin:1em 0 0 1.6em;padding:0;\">",
         ["<li>"] = "<li style=\"margin-bottom:1em;font-size:16px;color:#333333;line-height:1.5em;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif\">",
         ["<hr />"] = "<hr style=\"margin-top:40px;margin-bottom:40px;display:block;border:none;border-bottom:1px solid #e4e4e4\">",
     };

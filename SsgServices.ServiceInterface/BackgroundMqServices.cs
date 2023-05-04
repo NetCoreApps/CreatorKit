@@ -16,7 +16,7 @@ public class BackgroundMqServices : Service
     public async Task<object> Any(SendMessages request)
     {
         var ret = new SendMessageResponse();
-        await using var mailServices = HostContext.ResolveService<MailServices>(Request);
+        await using var mailServices = HostContext.ResolveService<MailingServices>(Request);
 
         foreach (var id in request.MailMessageIds.Safe())
         {

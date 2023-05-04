@@ -5,7 +5,7 @@ namespace SsgServices.ServiceModel;
 
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Description("Simple Text Email")]
-public class SimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
+public class SimpleTextMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
 {
     [ValidateNotEmpty]
     [FieldCss(Field = "col-span-12")]
@@ -13,13 +13,12 @@ public class SimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     [ValidateNotEmpty]
     [Input(Type = "textarea"), FieldCss(Field = "col-span-12", Input = "h-36")]
     public string Body { get; set; }
-    public bool? Send { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Icon(Svg = Icons.TextMarkup)]
 [Description("Markdown Email")]
-public class MarkdownEmail : CreateEmailBase, IPost, IReturn<MailMessage>
+public class MarkdownMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
 {
     [ValidateNotEmpty]
     [FieldCss(Field = "col-span-12")]
@@ -27,14 +26,12 @@ public class MarkdownEmail : CreateEmailBase, IPost, IReturn<MailMessage>
 
     [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
     public string? Body { get; set; }
-    
-    public bool? Send { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Icon(Svg = Icons.RichHtml)]
 [Description("Custom HTML Email")]
-public class CustomHtmlEmail : CreateEmailBase, IPost, IReturn<MailMessage>
+public class CustomHtmlMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
 {
     [ValidateNotEmpty]
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
@@ -46,5 +43,14 @@ public class CustomHtmlEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     public string Subject { get; set; }
     [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
     public string? Body { get; set; }
-    public bool? Send { get; set; }
+}
+
+[Tag(Tag.Emails)]
+[ValidateIsAdmin]
+[Description("Generate Newsletter")]
+[Icon(Svg = Icons.Newsletter)]
+public class NewsletterMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
+{
+    public int? Month { get; set; }
+    public int? Year { get; set; }
 }

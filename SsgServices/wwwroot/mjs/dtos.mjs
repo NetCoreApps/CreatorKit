@@ -1,5 +1,5 @@
 /* Options:
-Date: 2023-05-03 00:35:07
+Date: 2023-05-04 17:37:31
 Version: 6.81
 Tip: To override a DTO option, remove "//" prefix before updating
 BaseUrl: https://localhost:5001
@@ -30,15 +30,25 @@ export class MailRunBase {
     /** @type {MailingList} */
     mailingList;
 }
+export class CreateEmailBase {
+    /** @param {{email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+}
 /** @typedef {'Unknown'|'UI'|'Website'} */
-export var MailSource;
-(function (MailSource) {
-    MailSource["Unknown"] = "Unknown"
-    MailSource["UI"] = "UI"
-    MailSource["Website"] = "Website"
-})(MailSource || (MailSource = {}));
-export class Subscription {
-    /** @param {{id?:number,email?:string,firstName?:string,lastName?:string,mailingLists?:MailingList,source?:MailSource,token?:string,emailLower?:string,nameLower?:string,externalRef?:string,appUserId?:number,createdDate?:string,verifiedDate?:string,deletedDate?:string,unsubscribedDate?:string}} [init] */
+export var Source;
+(function (Source) {
+    Source["Unknown"] = "Unknown"
+    Source["UI"] = "UI"
+    Source["Website"] = "Website"
+})(Source || (Source = {}));
+export class Contact {
+    /** @param {{id?:number,email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:MailingList,token?:string,emailLower?:string,nameLower?:string,externalRef?:string,appUserId?:number,createdDate?:string,verifiedDate?:string,deletedDate?:string,unsubscribedDate?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
@@ -48,10 +58,10 @@ export class Subscription {
     firstName;
     /** @type {string} */
     lastName;
+    /** @type {Source} */
+    source;
     /** @type {MailingList} */
     mailingLists;
-    /** @type {MailSource} */
-    source;
     /** @type {string} */
     token;
     /** @type {string} */
@@ -70,16 +80,6 @@ export class Subscription {
     deletedDate;
     /** @type {?string} */
     unsubscribedDate;
-}
-export class CreateEmailBase {
-    /** @param {{email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    firstName;
-    /** @type {string} */
-    lastName;
 }
 export class ThreadLike {
     /** @param {{id?:number,threadId?:number,appUserId?:number,createdDate?:string}} [init] */
@@ -199,10 +199,12 @@ export class EmailMessage {
     bodyText;
 }
 export class MailMessage {
-    /** @param {{id?:number,email?:string,layout?:string,page?:string,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,startedDate?:string,completedDate?:string,errorCode?:string,errorMessage?:string}} [init] */
+    /** @param {{id?:number,externalRef?:string,email?:string,layout?:string,page?:string,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,createdDate?:string,startedDate?:string,completedDate?:string,errorCode?:string,errorMessage?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
+    /** @type {string} */
+    externalRef;
     /** @type {string} */
     email;
     /** @type {string} */
@@ -215,6 +217,8 @@ export class MailMessage {
     rendererArgs;
     /** @type {EmailMessage} */
     message;
+    /** @type {string} */
+    createdDate;
     /** @type {?string} */
     startedDate;
     /** @type {?string} */
@@ -225,20 +229,22 @@ export class MailMessage {
     errorMessage;
 }
 export class MailRun {
-    /** @param {{id?:number,mailingList?:MailingList,layout?:string,page?:string,generator?:string,generatorArgs?:{ [index: string]: Object; },createdDate?:string,generatedDate?:string,sentDate?:string,completedDate?:string,emailsCount?:number}} [init] */
+    /** @param {{id?:number,mailingList?:MailingList,generator?:string,generatorArgs?:{ [index: string]: Object; },layout?:string,page?:string,externalRef?:string,createdDate?:string,generatedDate?:string,sentDate?:string,completedDate?:string,emailsCount?:number}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
     /** @type {MailingList} */
     mailingList;
     /** @type {string} */
+    generator;
+    /** @type {{ [index: string]: Object; }} */
+    generatorArgs;
+    /** @type {string} */
     layout;
     /** @type {string} */
     page;
     /** @type {string} */
-    generator;
-    /** @type {{ [index: string]: Object; }} */
-    generatorArgs;
+    externalRef;
     /** @type {string} */
     createdDate;
     /** @type {?string} */
@@ -251,20 +257,22 @@ export class MailRun {
     emailsCount;
 }
 export class MailMessageRun {
-    /** @param {{id?:number,mailRunId?:number,subscriptionId?:number,subscription?:Subscription,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,startedDate?:string,completedDate?:string,errorCode?:string,errorMessage?:string}} [init] */
+    /** @param {{id?:number,mailRunId?:number,contactId?:number,contact?:Contact,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,startedDate?:string,completedDate?:string,errorCode?:string,errorMessage?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
     /** @type {number} */
     mailRunId;
     /** @type {number} */
-    subscriptionId;
-    /** @type {Subscription} */
-    subscription;
+    contactId;
+    /** @type {Contact} */
+    contact;
     /** @type {string} */
     renderer;
     /** @type {{ [index: string]: Object; }} */
     rendererArgs;
+    /** @type {string} */
+    externalRef;
     /** @type {EmailMessage} */
     message;
     /** @type {?string} */
@@ -401,23 +409,11 @@ export class ViewMqMessagesResponse {
     /** @type {{ [index: string]: IMessage[]; }} */
     messages;
 }
-export class MailResponse {
-    /** @param {{to?:MailTo,subject?:string,sendUrl?:string,viewUrl?:string,responseStatus?:ResponseStatus}} [init] */
+export class MailRunResponse {
+    /** @param {{id?:number,startedAt?:string,timeTaken?:string,createdIds?:number[],responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
-    /** @type {MailTo} */
-    to;
-    /** @type {string} */
-    subject;
-    /** @type {string} */
-    sendUrl;
-    /** @type {string} */
-    viewUrl;
-    /** @type {ResponseStatus} */
-    responseStatus;
-}
-export class CreateNewsletterMailRunResponse {
-    /** @param {{startedAt?:string,timeTaken?:string,createdIds?:number[],responseStatus?:ResponseStatus}} [init] */
-    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
     /** @type {string} */
     startedAt;
     /** @type {string} */
@@ -464,6 +460,20 @@ export class GetThreadResponse {
     constructor(init) { Object.assign(this, init) }
     /** @type {Thread} */
     result;
+    /** @type {ResponseStatus} */
+    responseStatus;
+}
+export class MailResponse {
+    /** @param {{to?:MailTo,subject?:string,sendUrl?:string,viewUrl?:string,responseStatus?:ResponseStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {MailTo} */
+    to;
+    /** @type {string} */
+    subject;
+    /** @type {string} */
+    sendUrl;
+    /** @type {string} */
+    viewUrl;
     /** @type {ResponseStatus} */
     responseStatus;
 }
@@ -564,59 +574,99 @@ export class ViewMqMessages {
     getMethod() { return 'GET' }
     createResponse() { return new ViewMqMessagesResponse() }
 }
-export class MailNewsletter {
-    /** @param {{email?:string,subject?:string,month?:number,year?:number,send?:boolean}} [init] */
-    constructor(init) { Object.assign(this, init) }
+export class SimpleTextMailRun extends MailRunBase {
+    /** @param {{subject?:string,body?:string,mailingList?:MailingList}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
     /** @type {string} */
-    email;
-    /** @type {?string} */
     subject;
-    /** @type {?number} */
-    month;
-    /** @type {?number} */
-    year;
-    /** @type {?boolean} */
-    send;
-    getTypeName() { return 'MailNewsletter' }
-    getMethod() { return 'GET' }
-    createResponse() { return new MailResponse() }
+    /** @type {string} */
+    body;
+    getTypeName() { return 'SimpleTextMailRun' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailRunResponse() }
 }
-export class MailTestMail {
-    /** @param {{email?:string,firstName?:string,lastName?:string,subject?:string,layout?:string,page?:string,title?:string,body?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
+export class MarkdownMailRun extends MailRunBase {
+    /** @param {{subject?:string,body?:string,mailingList?:MailingList}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
     /** @type {string} */
-    email;
-    /** @type {string} */
-    firstName;
-    /** @type {string} */
-    lastName;
-    /** @type {?string} */
     subject;
-    /** @type {?string} */
-    layout;
-    /** @type {?string} */
-    page;
-    /** @type {?string} */
-    title;
     /** @type {?string} */
     body;
-    getTypeName() { return 'MailTestMail' }
+    getTypeName() { return 'MarkdownMailRun' }
     getMethod() { return 'POST' }
-    createResponse() { return new MailResponse() }
+    createResponse() { return new MailRunResponse() }
 }
-export class CreateNewsletterMailRun extends MailRunBase {
+export class CustomHtmlMailRun extends MailRunBase {
+    /** @param {{layout?:string,page?:string,subject?:string,body?:string,mailingList?:MailingList}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    layout;
+    /** @type {string} */
+    page;
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    getTypeName() { return 'CustomHtmlMailRun' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailRunResponse() }
+}
+export class NewsletterMailRun extends MailRunBase {
     /** @param {{month?:number,year?:number,mailingList?:MailingList}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
     /** @type {?number} */
     month;
     /** @type {?number} */
     year;
-    getTypeName() { return 'CreateNewsletterMailRun' }
+    getTypeName() { return 'NewsletterMailRun' }
     getMethod() { return 'POST' }
-    createResponse() { return new CreateNewsletterMailRunResponse() }
+    createResponse() { return new MailRunResponse() }
 }
-export class CreateSubscription {
-    /** @param {{email?:string,firstName?:string,lastName?:string,mailingLists?:string[],source?:MailSource}} [init] */
+export class SimpleTextEmail extends CreateEmailBase {
+    /** @param {{subject?:string,body?:string,send?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    subject;
+    /** @type {string} */
+    body;
+    /** @type {?boolean} */
+    send;
+    getTypeName() { return 'SimpleTextEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class MarkdownEmail extends CreateEmailBase {
+    /** @param {{subject?:string,body?:string,send?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    /** @type {?boolean} */
+    send;
+    getTypeName() { return 'MarkdownEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class CustomHtmlEmail extends CreateEmailBase {
+    /** @param {{layout?:string,page?:string,subject?:string,body?:string,send?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    layout;
+    /** @type {string} */
+    page;
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    /** @type {?boolean} */
+    send;
+    getTypeName() { return 'CustomHtmlEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class SubscribeToMailingList {
+    /** @param {{email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[]}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {string} */
     email;
@@ -624,13 +674,30 @@ export class CreateSubscription {
     firstName;
     /** @type {string} */
     lastName;
+    /** @type {Source} */
+    source;
     /** @type {?string[]} */
     mailingLists;
-    /** @type {MailSource} */
-    source;
-    getTypeName() { return 'CreateSubscription' }
+    getTypeName() { return 'SubscribeToMailingList' }
     getMethod() { return 'POST' }
-    createResponse() { return new Subscription() }
+    createResponse() { }
+}
+export class CreateContact {
+    /** @param {{email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[]}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+    /** @type {Source} */
+    source;
+    /** @type {?string[]} */
+    mailingLists;
+    getTypeName() { return 'CreateContact' }
+    getMethod() { return 'POST' }
+    createResponse() { return new Contact() }
 }
 export class UnsubscribeFromMailingList {
     /** @param {{email?:string,externalRef?:string,mailingLists?:string[]}} [init] */
@@ -703,38 +770,6 @@ export class ViewMailRunInfo {
     getMethod() { return 'GET' }
     createResponse() { return new ViewMailRunInfoResponse() }
 }
-export class CreateSimpleTextEmail extends CreateEmailBase {
-    /** @param {{subject?:string,body?:string,send?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    subject;
-    /** @type {string} */
-    body;
-    /** @type {?boolean} */
-    send;
-    getTypeName() { return 'CreateSimpleTextEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class CreateMarkdownHtmlEmail extends CreateEmailBase {
-    /** @param {{layout?:string,page?:string,title?:string,subject?:string,body?:string,send?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    layout;
-    /** @type {string} */
-    page;
-    /** @type {string} */
-    title;
-    /** @type {string} */
-    subject;
-    /** @type {?string} */
-    body;
-    /** @type {?boolean} */
-    send;
-    getTypeName() { return 'CreateMarkdownHtmlEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
 export class Hello {
     /** @param {{name?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -803,6 +838,44 @@ export class DeleteCommentVote {
     getTypeName() { return 'DeleteCommentVote' }
     getMethod() { return 'DELETE' }
     createResponse() { }
+}
+export class MailNewsletter {
+    /** @param {{email?:string,subject?:string,month?:number,year?:number,send?:boolean}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {?string} */
+    subject;
+    /** @type {?number} */
+    month;
+    /** @type {?number} */
+    year;
+    /** @type {?boolean} */
+    send;
+    getTypeName() { return 'MailNewsletter' }
+    getMethod() { return 'GET' }
+    createResponse() { return new MailResponse() }
+}
+export class MailTestMail {
+    /** @param {{email?:string,firstName?:string,lastName?:string,subject?:string,layout?:string,page?:string,body?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+    /** @type {?string} */
+    subject;
+    /** @type {?string} */
+    layout;
+    /** @type {?string} */
+    page;
+    /** @type {?string} */
+    body;
+    getTypeName() { return 'MailTestMail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailResponse() }
 }
 export class Authenticate {
     /** @param {{provider?:string,state?:string,oauth_token?:string,oauth_verifier?:string,userName?:string,password?:string,rememberMe?:boolean,errorView?:string,nonce?:string,uri?:string,response?:string,qop?:string,nc?:string,cnonce?:string,accessToken?:string,accessTokenSecret?:string,scope?:string,meta?:{ [index: string]: string; }}} [init] */
@@ -906,12 +979,12 @@ export class Register {
     getMethod() { return 'POST' }
     createResponse() { return new RegisterResponse() }
 }
-export class QuerySubscriptions extends QueryDb_1 {
+export class QueryContacts extends QueryDb_1 {
     /** @param {{search?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
     /** @type {?string} */
     search;
-    getTypeName() { return 'QuerySubscriptions' }
+    getTypeName() { return 'QueryContacts' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
@@ -965,8 +1038,8 @@ export class QueryThreads extends QueryDb_1 {
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
-export class UpdateSubscription {
-    /** @param {{id?:number,email?:string,firstName?:string,lastName?:string,source?:MailSource,mailingLists?:string[],externalRef?:string,appUserId?:number,createdDate?:string,verifiedDate?:string,deletedDate?:string,unsubscribedDate?:string}} [init] */
+export class UpdateContact {
+    /** @param {{id?:number,email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[],externalRef?:string,appUserId?:number,createdDate?:string,verifiedDate?:string,deletedDate?:string,unsubscribedDate?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
@@ -976,7 +1049,7 @@ export class UpdateSubscription {
     firstName;
     /** @type {?string} */
     lastName;
-    /** @type {?MailSource} */
+    /** @type {?Source} */
     source;
     /** @type {?string[]} */
     mailingLists;
@@ -992,21 +1065,21 @@ export class UpdateSubscription {
     deletedDate;
     /** @type {?string} */
     unsubscribedDate;
-    getTypeName() { return 'UpdateSubscription' }
+    getTypeName() { return 'UpdateContact' }
     getMethod() { return 'PATCH' }
-    createResponse() { return new Subscription() }
+    createResponse() { return new Contact() }
 }
-export class DeleteSubscription {
+export class DeleteContact {
     /** @param {{id?:number}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
-    getTypeName() { return 'DeleteSubscription' }
+    getTypeName() { return 'DeleteContact' }
     getMethod() { return 'DELETE' }
     createResponse() { }
 }
 export class UpdateMailMessage {
-    /** @param {{id?:number,email?:string,layout?:string,page?:string,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,completedDate?:string,errorCode?:string,errorMessage?:string}} [init] */
+    /** @param {{id?:number,email?:string,layout?:string,page?:string,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,completedDate?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
@@ -1024,10 +1097,6 @@ export class UpdateMailMessage {
     message;
     /** @type {?string} */
     completedDate;
-    /** @type {?string} */
-    errorCode;
-    /** @type {?string} */
-    errorMessage;
     getTypeName() { return 'UpdateMailMessage' }
     getMethod() { return 'PATCH' }
     createResponse() { return new MailMessage() }
@@ -1097,14 +1166,14 @@ export class DeleteMailRun {
     createResponse() { }
 }
 export class UpdateMailRunMessage {
-    /** @param {{id?:number,mailRunId?:number,subscriptionId?:number,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,startedDate?:string,completedDate?:string,errorCode?:string,errorMessage?:string}} [init] */
+    /** @param {{id?:number,mailRunId?:number,contactId?:number,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,startedDate?:string,completedDate?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
     /** @type {number} */
     mailRunId;
     /** @type {number} */
-    subscriptionId;
+    contactId;
     /** @type {string} */
     renderer;
     /** @type {{ [index: string]: Object; }} */
@@ -1115,10 +1184,6 @@ export class UpdateMailRunMessage {
     startedDate;
     /** @type {?string} */
     completedDate;
-    /** @type {?string} */
-    errorCode;
-    /** @type {?string} */
-    errorMessage;
     getTypeName() { return 'UpdateMailRunMessage' }
     getMethod() { return 'PATCH' }
     createResponse() { return new MailMessageRun() }

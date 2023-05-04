@@ -8,26 +8,31 @@ using SsgServices.ServiceModel;
 
 namespace SsgServices.ServiceInterface;
 
-public class MailServices : Service
+public class MailingServices : Service
 {
     public EmailProvider EmailProvider { get; set; }
     public EmailRenderer Renderer { get; set; }
     public MailData MailData { get; set; }
 
-    public async Task<object> Any(CreateSubscription request)
+    public async Task Any(SubscribeToMailingList request)
+    {
+        await Any(request.ConvertTo<CreateContact>());
+    }
+    
+    public async Task<object> Any(CreateContact request)
     {
         var mailingList = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
-        var sub = await Db.SingleAsync<Subscription>(x => x.EmailLower == request.Email.ToLower());
-        if (sub != null)
+        var contact = await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
+        if (contact != null)
         {
-            sub.FirstName = request.FirstName;
-            sub.LastName = request.LastName;
-            sub.MailingLists |= mailingList;
-            await Db.UpdateAsync(sub);
+            contact.FirstName = request.FirstName;
+            contact.LastName = request.LastName;
+            contact.MailingLists |= mailingList;
+            await Db.UpdateAsync(contact);
         }
         else
         {
-            sub = new Subscription
+            contact = new Contact
             {
                 Email = request.Email,
                 FirstName = request.FirstName,
@@ -35,42 +40,40 @@ public class MailServices : Service
                 MailingLists = mailingList,
                 EmailLower = request.Email.ToLower(),
                 NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
-                ExternalRef = Guid.NewGuid().ToString(),
+                ExternalRef = Renderer.CreateRef(),
                 CreatedDate = DateTime.UtcNow,
             };
-            sub.Id = (int) await Db.InsertAsync(sub, selectIdentity: true);
+            contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
             
-            var viewRequest = new ViewMail { Layout = "layout-marketing", Page = "verify-email" }.FromSub(sub);
+            var viewRequest = new RenderCustomHtml { Layout = "layout-marketing", Page = "verify-email" }.FromSub(contact);
             var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
-            var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
+            var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, contact);
             await Renderer.SendMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage
                 {
-                    To = sub.ToMailTos(),
+                    To = contact.ToMailTos(),
                     Subject = $"Verify Email Address for {MailInfo.Instance.Company}",
                     BodyHtml = bodyHtml,
                 }
             }.FromRequest(viewRequest));
         }
-        return sub;
+        return contact;
     }
 
-    public async Task<object> Any(UnsubscribeFromMailingList request)
+    public async Task Any(UnsubscribeFromMailingList request)
     {
         var mailingList = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
         var existing = request.ExternalRef != null
-            ? await Db.SingleAsync<Subscription>(x => x.ExternalRef == request.ExternalRef)
+            ? await Db.SingleAsync<Contact>(x => x.ExternalRef == request.ExternalRef)
             : request.Email != null
-                ? await Db.SingleAsync<Subscription>(x => x.EmailLower == request.Email.ToLower())
+                ? await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower())
                 : null;
         if (existing == null)
             throw HttpError.NotFound("Mail subscription not found");
 
         var remainingList = existing.MailingLists & ~mailingList;
-        await Db.UpdateOnlyAsync(() => new Subscription { MailingLists = remainingList },
+        await Db.UpdateOnlyAsync(() => new Contact { MailingLists = remainingList },
             where: x => x.Id == existing.Id);
-
-        return new UnsubscribeToMailingListResponse();
     }
 
     public async Task<object> Any(ViewMailMessage request)
@@ -165,13 +168,13 @@ public class MailServices : Service
 
     public async Task<object> Any(VerifyEmailAddress request)
     {
-        var rowsAffected = await Db.UpdateOnlyAsync(() => new Subscription { VerifiedDate = DateTime.UtcNow },
+        var rowsAffected = await Db.UpdateOnlyAsync(() => new Contact { VerifiedDate = DateTime.UtcNow },
             where: x => x.ExternalRef == request.ExternalRef);
 
-        var sub = await Db.SingleAsync<Subscription>(x => x.ExternalRef == request.ExternalRef);
+        var sub = await Db.SingleAsync<Contact>(x => x.ExternalRef == request.ExternalRef);
         if (sub != null)
         {
-            var viewRequest = new ViewMail { Layout = "layout-marketing", Page = "newsletter-welcome" }.FromSub(sub);
+            var viewRequest = new RenderCustomHtml { Layout = "layout-marketing", Page = "newsletter-welcome" }.FromSub(sub);
             var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
             await Renderer.SendMessageAsync(Db, new MailMessage {
@@ -184,13 +187,6 @@ public class MailServices : Service
         }
 
         return HttpResult.Redirect(MailLinks.Instance.SignupConfirmed);
-    }
-
-    public async Task<object> Any(ViewMail request)
-    {
-        var context = Renderer.CreateMailContext(layout:request.Layout, page:request.Page);
-        
-        return await Renderer.RenderToHtmlResultAsync(Db, context, request);
     }
 
     public async Task Any(SendMailRun request)
@@ -225,59 +221,24 @@ public class MailServices : Service
             TotalMessages = results.Item2,
         };
     }
-    
-    public async Task<object> Any(CreateSimpleTextEmail request)
-    {
-        var sub = await Db.GetOrCreateSubscription(request);
-        var email = await Renderer.CreateMessageAsync(Db, new MailMessage
-        {
-            Message = new EmailMessage
-            {
-                To = sub.ToMailTos(),
-                Subject = request.Subject,
-                BodyText = request.Body,
-            },
-        }.FromRequest(request), send:request.Send == true);
-        return email;
-    }
-
-    public async Task<object> Any(CreateMarkdownHtmlEmail request)
-    {
-        var context = Renderer.CreateMailContext(layout:request.Layout, page:request.Page,
-            args: new() {
-                ["title"] = request.Title,
-                ["body"] = request.Body,
-            });
-        var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, request);
-        var sub = await Db.GetOrCreateSubscription(request);
-        var email = await Renderer.CreateMessageAsync(Db, new MailMessage
-        {
-            Message = new EmailMessage
-            {
-                To = sub.ToMailTos(),
-                Subject = request.Subject,
-                BodyHtml = bodyHtml,
-            },
-        }.FromRequest(request), send:request.Send == true);
-        return email;
-    }
 }
 
 public static class MailMessageExtensions
 {
-    public static async Task<Subscription> GetOrCreateSubscription(this IDbConnection db, CreateEmailBase request)
+    public static async Task<Contact> GetOrCreateContact(this IDbConnection db, CreateEmailBase request)
     {
-        var sub = await db.SingleAsync<Subscription>(x => x.EmailLower == request.Email.ToLower());
+        var sub = await db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
         if (sub == null)
         {
-            sub = new Subscription
+            sub = new Contact
             {
                 Email = request.Email,
-                EmailLower = request.Email.ToLower(),
                 FirstName = request.FirstName,
                 LastName = request.LastName,
+                EmailLower = request.Email.ToLower(),
+                NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
                 MailingLists = MailingList.None,
-                ExternalRef = Guid.NewGuid().ToString(),
+                ExternalRef = Guid.NewGuid().ToString("N"),
                 CreatedDate = DateTime.UtcNow,
             };
             sub.Id = (int) await db.InsertAsync(sub, selectIdentity: true);
@@ -285,7 +246,7 @@ public static class MailMessageExtensions
         return sub;
     }
 
-    public static T FromSub<T>(this T request, Subscription sub) where T : RenderEmailBase
+    public static T FromSub<T>(this T request, Contact sub) where T : RenderEmailBase
     {
         request.Email = sub.Email;
         request.FirstName = sub.FirstName;

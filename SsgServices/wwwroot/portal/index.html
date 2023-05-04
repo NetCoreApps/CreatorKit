@@ -149,10 +149,16 @@
 
 <script type="module">
 import { mount } from "/mjs/app.mjs"
-import { SendMailRun, ViewMailRunInfo, QuerySubscriptions, SendMailMessage, SendMailMessageRun } from "/mjs/dtos.mjs"
+import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun } from "/mjs/dtos.mjs"
 import { leftPart, rightPart, appendQueryString, queryString, on } from "@servicestack/client"
 import { useAuth, useClient, useMetadata, useUtils } from "@servicestack/vue"
 import { ref, computed, onMounted, shallowRef, nextTick, onUnmounted } from "vue"
+
+// Order all tables descending so latest appears first
+const idColumns = ['MailRun.Id','MailMessageRun.Id','MailMessage.Id','Contact.Id'].map(x => 'Column/AutoQueryGrid:' + x)
+if (!idColumns.some(id => !!localStorage.getItem(id))) {
+    idColumns.forEach(id => localStorage.setItem(id,'{"filters":[],"sort":"DESC"}'))
+}
 
 const { loadMetadata, metadataApi, typeOf } = useMetadata()
 await loadMetadata({
@@ -178,10 +184,10 @@ const Dashboard = {
         return {}
     }
 }
-const Subscriptions = {
+const Contacts = {
     template:`
-      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Subscriptions</h1>
-      <AutoQueryGrid type="Subscription" selectedColumns="id,email,firstName,lastName,mailinglists,source,createdDate" />
+      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Contacts</h1>
+      <AutoQueryGrid type="Contact" hide="copyApiUrl" selectedColumns="id,email,firstName,lastName,mailinglists,source,createdDate" />
     `,
     emits: ['nav'],
     setup(props) {
@@ -233,10 +239,10 @@ const MailRuns = {
           </div>
         </template>
       </AutoQueryGrid>
-      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" @save="save" @done="done" />
+      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done" />
     `,
     emits: ['nav'],
-    setup(props) {
+    setup(props, { emit }) {
         const client = useClient()
         const mailRunApis = metadataApi.value.operations.filter(x => x.request.inherits?.name === 'MailRunBase')
             .map(x => x.request)
@@ -249,8 +255,23 @@ const MailRuns = {
         }
         
         function done() { selectOp(null) }
-        function save() {
-            grid.value?.editSave()
+        function save(model) {
+            grid.value?.createSave()
+            emit('nav','mailruns', { edit:model.id })
+        }
+
+        /** @type {InputInfo[]} inputs */
+        function configureFormLayout(inputs) {
+            // reorder props to move base props first
+            const propsOrder = typeOf('MailRunBase').properties.map(x => x.name.toLowerCase())
+            inputs.forEach(x => {
+                if (!propsOrder.includes(x.name)) propsOrder.push(x.id.toLowerCase())
+            })
+            inputs.sort((a,b) => {
+                return a.name === b.name ? 0 : propsOrder.indexOf(a.id.toLowerCase()) > propsOrder.indexOf(b.id.toLowerCase())
+                    ? 1
+                    : -1
+            })
         }
         
         async function sendMailRun(model) {
@@ -262,7 +283,7 @@ const MailRuns = {
             }
         }
         
-        return { css, mailRunApis, grid, selectOp, selectedOp, done, save, sendMailRun }
+        return { css, mailRunApis, grid, selectOp, selectedOp, done, save, configureFormLayout, sendMailRun }
     }
 }
 
@@ -297,7 +318,7 @@ const MessageView = {
                         </div>
                         <div>
                           <div v-if="msg.bodyHtml" v-html="msg.bodyHtml"></div>
-                          <div v-else-if="msg.bodyText">{{ msg.bodyText }}</div>
+                          <div v-else-if="msg.bodyText" class="whitespace-pre-wrap">{{ msg.bodyText }}</div>
                         </div>
                       </div>
                     `,
@@ -334,7 +355,7 @@ const Messages = {
             {{op.description || op.name}}
           </button>
       </div>
-      <AutoQueryGrid ref="grid" type="MailMessage" selected-columns="id,email,layout,page,renderer,rendererArgs,completedDate">
+      <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" selected-columns="id,email,layout,page,renderer,rendererArgs,completedDate">
         <template #formfooter="{ id, model }">
           <div v-if="!model.completedDate" class="py-3 flex justify-center">
             <PrimaryButton :disabled="sending" @click="sendMessage(model)" type="button">{{ sending ? 'Sending...' : 'Send Email' }}</PrimaryButton>
@@ -342,10 +363,7 @@ const Messages = {
           <MessageView :model="model" />
         </template>
       </AutoQueryGrid>
-      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done">
-        <template #footer="{ model, formInstance }">
-        </template>
-      </AutoCreateForm>
+      <AutoCreateForm v-if="selectedOp" :type="selectedOp?.name" :configureFormLayout="configureFormLayout" @save="save" @done="done" />
     `,
     emits: ['nav'],
     setup(props, { emit }) {
@@ -361,10 +379,14 @@ const Messages = {
             selectedOp.value = op
         }
         function done() { selectOp(null) }
+        
+        /** @param {MailMessage} model */
         async function save(model) {
             await grid.value?.createSave()
             done()
-            emit('nav','messages', { edit:model.id })
+            if (!model.startedDate) {
+                emit('nav','messages', { edit:model.id })
+            }
         }
         
         /** @type {InputInfo[]} inputs */
@@ -398,7 +420,7 @@ const MailRunMessages = {
     components: { MessageView },
     template:`
       <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Mail Run Messages</h1>
-      <AutoQueryGrid ref="grid" type="MailMessageRun" selected-columns="id,mailRunId,subscriptionId,subscription,renderer,rendererArgs,completedDate">
+      <AutoQueryGrid ref="grid" type="MailMessageRun" hide="copyApiUrl,downloadCsv" selected-columns="id,mailRunId,contactId,contact,renderer,rendererArgs,completedDate">
         <template #formfooter="{ id, model }">
           <MessageView :model="model" />
         </template>
@@ -419,10 +441,10 @@ const sections = {
         component: Dashboard,
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>`,
     },
-    subscriptions: {
-        id: 'subscriptions',
-        label: 'Subscriptions',
-        component: Subscriptions,
+    contacts: {
+        id: 'contacts',
+        label: 'Contacts',
+        component: Contacts,
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='currentColor' d='M5 3a3 3 0 1 1 6 0a3 3 0 0 1-6 0zm7.001 4h-.553l-3.111 6.316L9.5 7.5L8 6L6.5 7.5l1.163 5.816L4.552 7h-.554c-1.999 0-1.999 1.344-1.999 3v5h12v-5c0-1.656 0-3-1.999-3z'/></svg>`,
     },
     messages: {
