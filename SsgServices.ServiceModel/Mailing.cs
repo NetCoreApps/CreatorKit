@@ -21,10 +21,10 @@ public abstract class CreateEmailBase
     [Input(Type="EmailInput")]
     public string Email { get; set; }
     [ValidateNotEmpty]
-    [FieldCss(Field = "col-span-3")]
+    [FieldCss(Field = "col-span-6 lg:col-span-3")]
     public string FirstName { get; set; }
     [ValidateNotEmpty]
-    [FieldCss(Field = "col-span-3")]
+    [FieldCss(Field = "col-span-6 lg:col-span-3")]
     public string LastName { get; set; }
 }
 

@@ -19,7 +19,7 @@
 <body class="h-full">
 <div id="app" v-cloak>
     <!-- Off-canvas menu for mobile, show/hide based on off-canvas menu state. -->
-    <div class="relative z-10 lg:hidden" role="dialog" aria-modal="true">
+    <div v-if="toggleState" class="relative z-10 lg:hidden" role="dialog" aria-modal="true">
         <!--
           Off-canvas menu backdrop, show/hide based on off-canvas menu state.
     
@@ -30,7 +30,7 @@
             From: "opacity-100"
             To: "opacity-0"
         -->
-        <div class="fixed inset-0 bg-gray-900/80"></div>
+        <div :class="['fixed inset-0 bg-gray-900/80', transition1]"></div>
 
         <div class="fixed inset-0 flex">
             <!--
@@ -43,7 +43,7 @@
                 From: "translate-x-0"
                 To: "-translate-x-full"
             -->
-            <div class="relative mr-16 flex w-full max-w-xs flex-1">
+            <div :class="['relative mr-16 flex w-full max-w-xs flex-1', transition2]">
                 <!--
                   Close button, show/hide based on off-canvas menu state.
         
@@ -54,8 +54,8 @@
                     From: "opacity-100"
                     To: "opacity-0"
                 -->
-                <div class="absolute left-full top-0 flex w-16 justify-center pt-5">
-                    <button type="button" class="-m-2.5 p-2.5">
+                <div :class="['absolute left-full top-0 flex w-16 justify-center pt-5', transition3]">
+                    <button type="button" @click="toggle(false)" class="-m-2.5 p-2.5">
                         <span class="sr-only">Close sidebar</span>
                         <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -124,21 +124,21 @@
         </div>
     </div>
 
-    <div class="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
-        <button type="button" class="-m-2.5 p-2.5 text-gray-700 lg:hidden">
+    <div :class="['sticky top-0 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden']">
+        <button type="button" @click="toggle(true)" class="-m-2.5 p-2.5 text-gray-700 lg:hidden">
             <span class="sr-only">Open sidebar</span>
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
         </button>
-        <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">Dashboard</div>
+        <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.label }}</div>
         <span v-if="user">
             <span class="sr-only">Your profile</span>
             <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
         </span>
     </div>
 
-    <main class="py-10 lg:pl-72">
+    <main class="lg:py-10 lg:pl-72">
         <div class="px-4 sm:px-6 lg:px-8">
             <!-- Your content -->
             <sign-in v-if="!user"></sign-in>
@@ -228,7 +228,7 @@ const EmailPreview = {
 
 const Dashboard = {
     template:`
-      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Dashboard</h1>
+      <h1 class="hidden lg:block mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Dashboard</h1>
     `,
     emits: ['nav'],
     setup(props) {
@@ -237,7 +237,7 @@ const Dashboard = {
 }
 const Contacts = {
     template:`
-      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Contacts</h1>
+      <h1 class="hidden lg:block mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Contacts</h1>
       <AutoQueryGrid type="Contact" hide="copyApiUrl" selectedColumns="id,email,firstName,lastName,mailinglists,source,createdDate" />
     `,
     emits: ['nav'],
@@ -274,7 +274,7 @@ const MailRunInfo = {
 const MailRuns = {
     components: { MailRunInfo, EmailPreview },
     template:`
-      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Mail Runs</h1>
+      <h1 class="hidden lg:block mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Mail Runs</h1>
       <div class="py-4 flex flex-wrap gap-3">
           <button v-for="op in mailRunApis" @click="selectOp(op)" :class="css.dialogButton">
             <Icon v-if="op.icon" :image="op.icon" class="mr-2 w-6 h-6" />
@@ -403,7 +403,7 @@ const MessageView = {
 const Messages = {
     components: { MessageView, EmailPreview },
     template:`
-      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Messages</h1>
+      <h1 class="hidden lg:block mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Messages</h1>
       <div class="py-4 flex flex-wrap gap-3">
           <button v-for="op in createMsgApis" @click="selectOp(op)" :class="css.dialogButton">
             <Icon v-if="op.icon" :image="op.icon" class="mr-2 w-6 h-6" />
@@ -487,7 +487,7 @@ const Messages = {
 const MailRunMessages = {
     components: { MessageView },
     template:`
-      <h1 class="mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Mail Run Messages</h1>
+      <h1 class="hidden lg:block mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">Mail Run Messages</h1>
       <AutoQueryGrid ref="grid" type="MailMessageRun" hide="copyApiUrl,downloadCsv" selected-columns="id,mailRunId,contactId,contact,renderer,rendererArgs,completedDate">
         <template #formfooter="{ id, model }">
           <MessageView :model="model" />
@@ -537,9 +537,36 @@ const sections = {
 
 const App = {
     setup() {
-        const { pushState } = useUtils()
+        const { transition } = useUtils()
         const { user } = useAuth()
         const refreshKey = ref(1)
+
+        const toggleState = ref(true)
+        const transition1 = ref('')
+        const rule1 = {
+            entering: { cls:'transition-opacity ease-linear duration-300', from:'opacity-0',   to:'opacity-100'},
+            leaving:  { cls:'transition-opacity ease-linear duration-300', from:'opacity-100', to:'opacity-0'}
+        }
+
+        const transition2 = ref('')
+        const rule2 = {
+            entering: { cls:'transition ease-in-out duration-300 transform', from:'-translate-x-full', to:'translate-x-0'},
+            leaving:  { cls:'transition ease-in-out duration-300 transform', from:'translate-x-0',     to:'-translate-x-full'}
+        }
+
+        const transition3 = ref('')
+        const rule3 = {
+            entering: { cls:'ease-in-out duration-300', from:'opacity-0',   to:'opacity-100'},
+            leaving:  { cls:'ease-in-out duration-300', from:'opacity-100', to:'opacity-0'}
+        }
+
+        function toggle(show) {
+            transition(rule1, transition1, show)
+            transition(rule2, transition2, show)
+            transition(rule3, transition3, show)
+            setTimeout(() => toggleState.value = show, 300)
+        }
+        
         function qs() {
             return queryString(location.href)
         }
@@ -552,9 +579,11 @@ const App = {
             activeSection.value = sections[section] || sections.dashboard
             console.log('navTo', { section, ...args }, appendQueryString(`#${section}`, args))
             history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
+            toggle(false)
         }
         
-        return { user, sections, activeSection, navTo, refreshKey, qs }
+        return { transition1, transition2, transition3, toggleState, toggle, 
+            user, sections, activeSection, navTo, refreshKey, qs }
     }
 }
 mount('#app', App)
