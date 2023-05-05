@@ -7,6 +7,7 @@ using ServiceStack;
 using ServiceStack.Html;
 using ServiceStack.IO;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 

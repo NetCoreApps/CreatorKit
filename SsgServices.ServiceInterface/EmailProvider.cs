@@ -4,6 +4,7 @@ using System.Net.Mail;
 using System.Net.Mime;
 using ServiceStack;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 

@@ -6,6 +6,7 @@ using ServiceStack;
 using ServiceStack.Messaging;
 using ServiceStack.OrmLite;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 

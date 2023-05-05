@@ -192,7 +192,7 @@ const EmailPreview = {
         const api = ref(new ApiResult())
         const hadSuccess = ref(false)
 
-        async function update() {
+        const update = createDebounce(async () => {
             const requestArgs = Object.assign({}, props.modelValue)
             Object.keys(requestArgs).forEach(k => {
                 // unwrap dropdown values '{ key, value }' to just use key  
@@ -206,7 +206,18 @@ const EmailPreview = {
             })
             api.value = await client.api(request)
             if (api.value.succeeded) hadSuccess.value = true
+        })
+
+        function createDebounce(fnc, delayMs) {
+            let timeout = null;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    fnc(...args);
+                }, delayMs || 250);
+            };
         }
+
 
         watch(() => props.modelValue, update, { deep: true })
         onMounted(update)
@@ -406,7 +417,10 @@ const Messages = {
         </template>
         <template #formfooter="{ id, model }">
           <div v-if="!model.completedDate" class="py-3 flex justify-center">
-            <PrimaryButton :disabled="sending" @click="sendMessage(model)" type="button">{{ sending ? 'Sending...' : 'Send Email' }}</PrimaryButton>
+            <PrimaryButton :disabled="sending" @click="sendMessage(model)" type="button">
+              <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M27.71 4.29a1 1 0 0 0-1.05-.23l-22 8a1 1 0 0 0 0 1.87l8.59 3.43L19.59 11L21 12.41l-6.37 6.37l3.44 8.59A1 1 0 0 0 19 28a1 1 0 0 0 .92-.66l8-22a1 1 0 0 0-.21-1.05Z"/></svg>
+              {{ sending ? 'Sending...' : 'Send' }}
+            </PrimaryButton>
           </div>
           <MessageView :model="model" />
         </template>

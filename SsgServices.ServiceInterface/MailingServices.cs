@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.OrmLite;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 
@@ -48,7 +49,7 @@ public class MailingServices : Service
             var viewRequest = new RenderCustomHtml { Layout = "marketing", Page = "verify-email" }.FromContact(contact);
             var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, contact);
-            await Renderer.SendMessageAsync(Db, new MailMessage {
+            await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage
                 {
                     To = contact.ToMailTos(),
@@ -91,7 +92,7 @@ public class MailingServices : Service
             throw new Exception($"Message {request.Id} has already been sent");
 
         // ensure message is only sent once
-        if (await Db.UpdateOnlyAsync(() => new MailMessage { StartedDate = DateTime.UtcNow },
+        if (await Db.UpdateOnlyAsync(() => new MailMessage { StartedDate = DateTime.UtcNow, Draft = false },
                 where: x => x.Id == request.Id && (x.StartedDate == null || request.Force == true)) == 1)
         {
             try
@@ -177,7 +178,7 @@ public class MailingServices : Service
             var viewRequest = new RenderCustomHtml { Layout = "marketing", Page = "newsletter-welcome" }.FromContact(sub);
             var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
-            await Renderer.SendMessageAsync(Db, new MailMessage {
+            await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage {
                     To = sub.ToMailTos(),
                     Subject = $"{sub.FirstName}, welcome to {MailInfo.Instance.Company}!",

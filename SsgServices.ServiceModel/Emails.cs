@@ -1,5 +1,6 @@
 ﻿using ServiceStack;
 using ServiceStack.DataAnnotations;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceModel;
 
@@ -11,10 +12,11 @@ public class SimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     [ValidateNotEmpty]
     [FieldCss(Field = "col-span-12")]
     public string Subject { get; set; }
+
     [ValidateNotEmpty]
     [Input(Type = "textarea"), FieldCss(Field = "col-span-12", Input = "h-36")]
     public string Body { get; set; }
-    public bool? Send { get; set; }
+    public bool? Draft { get; set; }
 }
 
 [Renderer(typeof(RenderCustomHtml), Layout = "layout", Page="markdown")]
@@ -27,10 +29,10 @@ public class MarkdownEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     [FieldCss(Field = "col-span-12")]
     public string Subject { get; set; }
 
-    [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
+    [ValidateNotEmpty]
+    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
-    
-    public bool? Send { get; set; }
+    public bool? Draft { get; set; }
 }
 
 [Renderer(typeof(RenderCustomHtml))]
@@ -42,12 +44,16 @@ public class CustomHtmlEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     [ValidateNotEmpty]
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
     public string Layout { get; set; }
+    
     [ValidateNotEmpty]
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
     public string Page { get; set; }
+    
     [ValidateNotEmpty]
+    [FieldCss(Field = "col-span-12")]
     public string Subject { get; set; }
-    [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
+
+    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
-    public bool? Send { get; set; }
+    public bool? Draft { get; set; }
 }

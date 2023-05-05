@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.RenderTree;
 using ServiceStack;
-using ServiceStack.Script;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 
@@ -20,13 +19,14 @@ public class EmailServices : Service
         
         var email = await Renderer.CreateMessageAsync(Db, new MailMessage
         {
+            Draft = request.Draft ?? false,
             Message = new EmailMessage
             {
                 To = contact.ToMailTos(),
                 Subject = request.Subject,
                 BodyText = bodyText,
             },
-        }.FromRequest(request), send:request.Send == true);
+        }.FromRequest(request));
         return email;
     }
 
@@ -40,13 +40,14 @@ public class EmailServices : Service
 
         var email = await Renderer.CreateMessageAsync(Db, new MailMessage
         {
+            Draft = request.Draft ?? false,
             Message = new EmailMessage
             {
                 To = contact.ToMailTos(),
                 Subject = request.Subject,
                 BodyHtml = bodyHtml,
             },
-        }.FromRequest(viewRequest), send:request.Send == true);
+        }.FromRequest(viewRequest));
         return email;
     }
 
@@ -58,13 +59,14 @@ public class EmailServices : Service
 
         var email = await Renderer.CreateMessageAsync(Db, new MailMessage
         {
+            Draft = request.Draft ?? false,
             Message = new EmailMessage
             {
                 To = contact.ToMailTos(),
                 Subject = request.Subject,
                 BodyHtml = bodyHtml,
             },
-        }.FromRequest(viewRequest), send:request.Send == true);
+        }.FromRequest(viewRequest));
         return email;
     }    
 }

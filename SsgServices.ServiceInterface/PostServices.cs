@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.OrmLite;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 

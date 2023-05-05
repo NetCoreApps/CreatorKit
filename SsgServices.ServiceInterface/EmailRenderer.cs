@@ -8,6 +8,7 @@ using ServiceStack.Messaging;
 using ServiceStack.OrmLite;
 using ServiceStack.Script;
 using SsgServices.ServiceModel;
+using SsgServices.ServiceModel.Types;
 
 namespace SsgServices.ServiceInterface;
 
@@ -28,14 +29,12 @@ public class EmailRenderer
     
     public string CreateRef() => Guid.NewGuid().ToString("N");
 
-    public Task<MailMessage> SendMessageAsync(IDbConnection db, MailMessage msg) =>
-        CreateMessageAsync(db, msg, send: true);
-    public async Task<MailMessage> CreateMessageAsync(IDbConnection db, MailMessage msg, bool send = false)
+    public async Task<MailMessage> CreateMessageAsync(IDbConnection db, MailMessage msg)
     {
         msg.CreatedDate = DateTime.UtcNow;
         msg.ExternalRef ??= CreateRef(); 
         msg.Id = (int) await db.InsertAsync(msg, selectIdentity:true);
-        if (send)
+        if (!msg.Draft)
         {
             SendMailMessage(msg.Id);
             msg.StartedDate = DateTime.UtcNow; //indicate in API Response msg is being sent
