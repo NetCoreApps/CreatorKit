@@ -31,5 +31,5 @@ jobs:
             echo TESTS FAILED
             exit 1
           fi
-        working-directory: ./SsgServices.Tests
+        working-directory: ./CreatorKit.Tests
 

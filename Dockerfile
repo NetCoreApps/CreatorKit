@@ -4,10 +4,10 @@ WORKDIR /app
 COPY . .
 RUN dotnet restore
 
-WORKDIR /app/SsgServices
+WORKDIR /app/CreatorKit
 RUN dotnet publish -c release -o /out --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS runtime
 WORKDIR /app
 COPY --from=build /out .
-ENTRYPOINT ["dotnet", "SsgServices.dll"]
+ENTRYPOINT ["dotnet", "CreatorKit.dll"]

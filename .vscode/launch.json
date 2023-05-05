@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/SsgServices/bin/Debug/net6.0/SsgServices.dll",
+            "program": "${workspaceFolder}/CreatorKit/bin/Debug/net6.0/CreatorKit.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/SsgServices",
+            "cwd": "${workspaceFolder}/CreatorKit",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
