@@ -14,16 +14,19 @@ public class AppHost : AppHostBase, IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
         .ConfigureServices((context,services) => {
-            // Configure ASP.NET Core IOC Dependencies
-            MailData.Instance = new MailData
+            var publicApiBaseUrl = "https://" + (Environment.GetEnvironmentVariable("DEPLOY_HOST") ??
+                                   "ssg-services.servicestack.net");
+            AppData.Set(new AppData
             {
                 BaseUrl = context.HostingEnvironment.IsDevelopment()
                     ? "https://localhost:5002"
                     : "https://servicestack.net",
                 AppBaseUrl = context.HostingEnvironment.IsDevelopment()
                     ? "https://localhost:5001"
-                    : "https://" + Environment.GetEnvironmentVariable("DEPLOY_HOST")
-            };
+                    : publicApiBaseUrl,
+                PublicApiBaseUrl = publicApiBaseUrl,
+            });
+
             services.AddSingleton(MailData.Instance);
             services.AddSingleton(AppData.Instance);
             services.AddSingleton(EmailRenderer.Instance);
@@ -57,9 +60,10 @@ public class AppHost : AppHostBase, IHostingStartup
 
     public async Task LoadAsync(Container container)
     {
-        container.Resolve<MailData>().LoadAsync().GetAwaiter().GetResult();
         container.Resolve<EmailRenderer>().Init(this);
-        container.Resolve<AppData>().LoadAsync(this, ContentRootDirectory.GetDirectory("emails")).GetAwaiter().GetResult();
+        await container.Resolve<MailData>().LoadAsync();
+        await container.Resolve<AppData>().LoadAsync(this, 
+            ContentRootDirectory.GetDirectory("emails"), RootDirectory.GetDirectory("img/mail"));
         ScriptContext.ScriptAssemblies.Add(typeof(Hello).Assembly);
         ScriptContext.Args[nameof(AppData)] = AppData.Instance;
     }

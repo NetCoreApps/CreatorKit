@@ -1,8 +1,8 @@
 {{#capture markdown}}
 Welcome to the {{info.Company}} newsletter. The team is busy working on the next edition, and it will be in your email soon.
 
-In the meanwhile, make sure you check out our [YouTube Videos]({{links.YouTube}}) and
-the [servicestack.net]({{links.Website}}) website to find out more about building beautiful,
+In the meanwhile, make sure you check out our [YouTube Videos]({{urls.YouTube}}) and
+the [servicestack.net]({{urls.Website}}) website to find out more about building beautiful,
 applications for mobile, web, and desktop from a single codebase.
 
 <p>&nbsp;</p>
@@ -12,7 +12,7 @@ Thank you, <br>
 {{/capture}}
 
 <h1 style="padding:20px;margin:0;color:rgb(51,51,51);font-weight:700;font-size:34px;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Arial,sans-serif;line-height:1.1">Welcome to {{info.Company}}</h1>
-<img src="{{images.Welcome}}" width="650" height="487">
+<img src="{{images.welcome_650x487}}" width="650" height="487">
 <div style="padding:10px 30px">
     {{markdown |> emailmarkdown}}
 </div>

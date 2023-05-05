@@ -53,7 +53,7 @@ public class MailingServices : Service
                 Message = new EmailMessage
                 {
                     To = contact.ToMailTos(),
-                    Subject = $"Verify Email Address for {MailInfo.Instance.Company}",
+                    Subject = $"Verify Email Address for {AppData.Info.Company}",
                     BodyHtml = bodyHtml,
                 }
             }.FromRequest(viewRequest));
@@ -181,13 +181,13 @@ public class MailingServices : Service
             await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage {
                     To = sub.ToMailTos(),
-                    Subject = $"{sub.FirstName}, welcome to {MailInfo.Instance.Company}!",
+                    Subject = $"{sub.FirstName}, welcome to {AppData.Info.Company}!",
                     BodyHtml = bodyHtml,
                 }
             }.FromRequest(viewRequest));
         }
 
-        return HttpResult.Redirect(MailLinks.Instance.SignupConfirmed);
+        return HttpResult.Redirect(AppData.Urls.SignupConfirmed);
     }
 
     public async Task Any(SendMailRun request)
@@ -220,6 +220,17 @@ public class MailingServices : Service
         {
             MessagesSent = results.Item1,
             TotalMessages = results.Item2,
+        };
+    }
+
+    public async Task<object> Any(ViewAppData request)
+    {
+        var appData = AppData.Instance;
+        return new ViewAppDataResponse
+        {
+            BaseUrl = appData.BaseUrl,
+            AppBaseUrl = appData.AppBaseUrl,
+            Vars = appData.Vars,
         };
     }
 }

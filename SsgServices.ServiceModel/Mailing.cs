@@ -231,6 +231,17 @@ public class DeleteMailRunMessage : IDeleteDb<MailMessageRun>, IReturnVoid
     public int Id { get; set; }
 }
 
+[Tag(Tag.Mail), ValidateIsAdmin]
+[Route("/mail/vars")]
+public class ViewAppData : IGet, IReturn<ViewAppDataResponse> {}
+public class ViewAppDataResponse
+{
+    public string BaseUrl { get; set; }
+    public string AppBaseUrl { get; set; }
+    public Dictionary<string, Dictionary<string, string>> Vars { get; set; }
+    public ResponseStatus ResponseStatus { get; set; }
+}
+
 public static class MailingExtensions
 {
     public static MailTo ToMailTo(this Contact sub) => new()

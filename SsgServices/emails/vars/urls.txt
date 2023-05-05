@@ -1,0 +1,11 @@
+BaseUrl           {{BaseUrl}}
+AppBaseUrl        {{AppBaseUrl}}
+PublicApiBaseUrl  {{PublicApiBaseUrl}}
+Website           {{BaseUrl}}
+MailPreferences   {{BaseUrl}}/mailpreferences
+Unsubscribe       {{BaseUrl}}/unsubscribe
+Privacy           {{BaseUrl}}/privacy
+Contact           {{BaseUrl}}/#contact
+SignupConfirmed   {{BaseUrl}}/signup-confirmed
+Twitter           https://twitter.com/ServiceStack
+YouTube           https://www.youtube.com/channel/UC0kXKGVU4NHcwNdDdRiAJSA

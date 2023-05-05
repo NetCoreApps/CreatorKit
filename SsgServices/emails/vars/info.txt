@@ -10,3 +10,5 @@ OurAddress        Our mailing address:
 MailReason        You received this email because you are subscribed to ServiceStack news and announcements.
 SignOffTeam       The ServiceStack Team
 NewsletterFmt     ServiceStack Newsletter, {0}
+SocialUrls        Website,Twitter,YouTube
+SocialImages      website_24x24,twitter_24x24,youtube_24x24

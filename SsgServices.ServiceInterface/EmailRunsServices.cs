@@ -102,7 +102,7 @@ public class EmailRunsServices : Service
                 Message = new EmailMessage
                 {
                     To = sub.ToMailTos(),
-                    Subject = string.Format(MailInfo.Instance.NewsletterFmt, $"{fromDate:MMMM} {fromDate:yyyy}"),
+                    Subject = string.Format(AppData.Info.NewsletterFmt, $"{fromDate:MMMM} {fromDate:yyyy}"),
                     BodyHtml = bodyHtml,
                 }
             }.FromRequest(viewRequest), mailRun, sub));

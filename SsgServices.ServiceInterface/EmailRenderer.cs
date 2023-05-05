@@ -117,15 +117,15 @@ public class EmailRenderer
             PageFormats = { new MarkdownPageFormat() },
             ScriptBlocks = { new EmailMarkdownScriptBlock() },
             ScriptMethods = { new EmailMarkdownScriptMethods() },
-            Args =
-            {
+            Args = {
                 [nameof(AppData)] = AppData.Instance,
                 ["meta"] = meta ?? MailData,
-                ["info"] = MailInfo.Instance,
-                ["links"] = MailLinks.Instance,
-                ["images"] = MailImages.Instance,
             }
         };
+        foreach (var entry in AppData.Instance.Vars)
+        {
+            context.Args[entry.Key] = entry.Value;
+        }
         if (args != null)
         {
             foreach (var entry in args)

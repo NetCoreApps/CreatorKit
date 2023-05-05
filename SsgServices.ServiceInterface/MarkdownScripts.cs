@@ -15,8 +15,6 @@ public class EmailMarkdownScriptMethods : ScriptMethods
     public IRawString emailmarkdown(string? markdown) => markdown != null 
         ? EmailMarkdownScriptBlock.Transform(markdown).ToRawString() 
         : RawString.Empty;
-
-    public string imgMail(string fileName) => MailData.Instance.AppBaseUrl.CombineWith(fileName);
 }
 
 
