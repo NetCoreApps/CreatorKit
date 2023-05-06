@@ -1,5 +1,5 @@
 /* Options:
-Date: 2023-05-06 17:56:05
+Date: 2023-05-07 01:16:09
 Version: 6.81
 Tip: To override a DTO option, remove "//" prefix before updating
 BaseUrl: https://localhost:5001
@@ -251,7 +251,7 @@ export class ArchiveRun extends MailRun {
     constructor(init) { super(init); Object.assign(this, init) }
 }
 export class ArchiveMessageRun {
-    /** @param {{id?:number,mailRunId?:number,contactId?:number,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
+    /** @param {{id?:number,mailRunId?:number,contactId?:number,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,createdDate?:string,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
@@ -267,6 +267,8 @@ export class ArchiveMessageRun {
     externalRef;
     /** @type {EmailMessage} */
     message;
+    /** @type {string} */
+    createdDate;
     /** @type {?string} */
     startedDate;
     /** @type {?string} */
@@ -317,7 +319,7 @@ export class CommentResult {
     modifiedDate;
 }
 export class MailMessageRun {
-    /** @param {{id?:number,mailRunId?:number,contactId?:number,contact?:Contact,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
+    /** @param {{id?:number,mailRunId?:number,contactId?:number,contact?:Contact,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,createdDate?:string,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
@@ -335,6 +337,8 @@ export class MailMessageRun {
     externalRef;
     /** @type {EmailMessage} */
     message;
+    /** @type {string} */
+    createdDate;
     /** @type {?string} */
     startedDate;
     /** @type {?string} */
@@ -476,6 +480,16 @@ export class ViewAppDataResponse {
     appBaseUrl;
     /** @type {{ [index: string]: { [index:string]: string; }; }} */
     vars;
+    /** @type {ResponseStatus} */
+    responseStatus;
+}
+export class ViewAppStatsResponse {
+    /** @param {{totals?:{ [index: string]: number; },last30DayTotals?:{ [index: string]: number; },responseStatus?:ResponseStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {{ [index: string]: number; }} */
+    totals;
+    /** @type {{ [index: string]: number; }} */
+    last30DayTotals;
     /** @type {ResponseStatus} */
     responseStatus;
 }
@@ -851,6 +865,12 @@ export class ViewAppData {
     getTypeName() { return 'ViewAppData' }
     getMethod() { return 'GET' }
     createResponse() { return new ViewAppDataResponse() }
+}
+export class ViewAppStats {
+    constructor(init) { Object.assign(this, init) }
+    getTypeName() { return 'ViewAppStats' }
+    getMethod() { return 'GET' }
+    createResponse() { return new ViewAppStatsResponse() }
 }
 export class ArchiveMail {
     /** @param {{messages?:boolean,mailRuns?:boolean,olderThanDays?:number}} [init] */

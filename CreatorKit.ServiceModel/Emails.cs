@@ -30,7 +30,7 @@ public class MarkdownEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     public string Subject { get; set; }
 
     [ValidateNotEmpty]
-    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
+    [Input(Type = "MarkdownEmailInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
     public bool? Draft { get; set; }
 }
@@ -53,7 +53,7 @@ public class CustomHtmlEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     [FieldCss(Field = "col-span-12")]
     public string Subject { get; set; }
 
-    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
+    [Input(Type = "MarkdownEmailInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
     public bool? Draft { get; set; }
 }

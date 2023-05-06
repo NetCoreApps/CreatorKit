@@ -27,7 +27,7 @@ public class MarkdownMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
     public string Subject { get; set; }
 
     [ValidateNotEmpty]
-    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
+    [Input(Type = "MarkdownEmailInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
 }
 
@@ -46,7 +46,7 @@ public class CustomHtmlMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
     [ValidateNotEmpty]
     public string Subject { get; set; }
     [ValidateNotEmpty]
-    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
+    [Input(Type = "MarkdownEmailInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
 }
 
