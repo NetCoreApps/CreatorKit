@@ -121,8 +121,9 @@
 
 <script type="module">
 import { mount } from "/mjs/app.mjs"
-import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun, PreviewEmail, ArchiveMail } from "/mjs/dtos.mjs"
-import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult } from "@servicestack/client"
+import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun, PreviewEmail, ArchiveMail, 
+         ViewAppStats } from "/mjs/dtos.mjs"
+import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult, humanize } from "@servicestack/client"
 import { useAuth, useClient, useMetadata, useUtils, useFormatters, css } from "@servicestack/vue"
 import { ref, computed, onMounted, onUnmounted, shallowRef, watch, nextTick } from "vue"
 
@@ -260,11 +261,75 @@ const ArchiveButton = {
 
 const Dashboard = {
     template:`
-      TODO
-    `,
+      <div class="mt-10">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">Last 30 days</h3>
+      <dl class="mt-5 grid grid-cols-1 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div v-for="stat in last30Days" class="px-4 py-5 sm:p-6">
+          <dt class="text-base font-normal text-gray-900">{{stat.label}}</dt>
+          <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
+            <div class="flex items-baseline text-2xl font-semibold text-indigo-600">
+              {{stat.total}}
+              <span class="ml-2 text-sm font-medium text-gray-500">from {{stat.before30DayTotal}}</span>
+            </div>
+            <div class="inline-flex items-baseline rounded-full px-2.5 py-0.5 text-sm font-medium bg-green-100 text-green-800 md:mt-2 lg:mt-0">
+              <svg class="-ml-1 mr-0.5 h-5 w-5 flex-shrink-0 self-center text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd" />
+              </svg>
+              <span class="sr-only"> Increased by </span>
+              {{stat.total - stat.before30DayTotal}}
+            </div>
+          </dd>
+        </div>
+      </dl>
+
+      <div class="mt-10">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Totals</h3>
+        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div v-for="stat in totals" class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">{{stat.label}}</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{stat.total}}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="mt-10">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Archived Totals</h3>
+        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div v-for="stat in archivedTotals" class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <dt class="truncate text-sm font-medium text-gray-500">{{stat.label}}</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{stat.total}}</dd>
+          </div>
+        </dl>
+      </div>
+      
+    </div>`,
     emits: ['nav'],
     setup(props) {
-        return {}
+        const client = useClient()
+        const api = ref(new ApiResult())
+        const last30Days = computed(() => ['Contacts','Comments','Users']
+            .map(x => ({ 
+                label:`Total ${x === 'Contacts' ? 'Subscribers' : humanize(x)}`, 
+                total: api.value.response?.totals[x] || 0,
+                before30DayTotal: api.value.response?.before30DayTotals[x] || 0,
+                last30DayTotal: api.value.response?.last30DayTotals[x] || 0,
+            })))
+
+        const totals = computed(() => ['Messages','MailRuns','MailRunMessages','Threads','CommentVotes','CommentReports']
+            .map(x => ({
+                label:`Total ${humanize(x)}`,
+                total: api.value.response?.totals[x] || 0,
+            })))
+
+        const archivedTotals = computed(() => ['Messages','MailRuns','MailRunMessages']
+            .map(x => ({
+                label:`Total ${humanize(x)}`,
+                total: api.value.response?.archivedTotals[x] || 0,
+            })))
+
+        onMounted(async () => await client.swr(new ViewAppStats(), r => api.value = r))
+        
+        return { last30Days, totals, archivedTotals }
     }
 }
 const Contacts = {

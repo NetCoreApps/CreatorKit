@@ -232,6 +232,58 @@ public class MailingServices : Service
         };
     }
 
+    public async Task<object> Any(ViewAppStats request)
+    {
+        var tables = new[] {
+            ("Users", nameof(AppUser)),
+            ("Contacts", nameof(Contact)),
+            ("Messages", nameof(MailMessage)),
+            ("MailRuns", nameof(MailRun)),
+            ("MailRunMessages", nameof(MailMessageRun)),
+            ("Threads", nameof(Thread)),
+            ("Comments", nameof(Comment)),
+            ("CommentReports", nameof(CommentReport)),
+            ("CommentVotes", nameof(CommentVote)),
+        };
+
+        var totalSql = tables
+            .Map(x => $"SELECT '{x.Item1}' AS Name, (SELECT COUNT(*) FROM {x.Item2}) AS Total")
+            .Join(" UNION ");
+        var totals = await Db.DictionaryAsync<string, int>(totalSql);
+        
+        var last30DayTotalSql = tables
+            .Map(x => $"SELECT '{x.Item1}' AS Name, (SELECT COUNT(*) FROM {x.Item2} WHERE CreatedDate < @period) AS Total")
+            .Join(" UNION ");
+        var before30DayTotals = await Db.DictionaryAsync<string, int>(last30DayTotalSql, 
+            new { period = DateTime.UtcNow.AddDays(-30) });
+
+        var last30DayTotals = new Dictionary<string, int>();
+        foreach (var entry in tables)
+        {
+            var key = entry.Item1;
+            last30DayTotals[key] = totals[key] - before30DayTotals[key];
+        }
+
+        var archivedTables = new[] {
+            ("ArchivedMessages", nameof(ArchiveMessage)),
+            ("ArchivedMailRuns", nameof(ArchiveRun)),
+            ("ArchivedMailRunMessages", nameof(ArchiveMessageRun)),
+        };
+        var archivedTotalSql = archivedTables
+            .Map(x => $"SELECT '{x.Item1}' AS Name, (SELECT COUNT(*) FROM {x.Item2}) AS Total")
+            .Join(" UNION ");
+        using var dbArchive = await DbFactory.OpenAsync("archive");
+        var archivedTotals = await dbArchive.DictionaryAsync<string, int>(archivedTotalSql);
+
+        return new ViewAppStatsResponse
+        {
+            Totals = totals,
+            Before30DayTotals = before30DayTotals,
+            Last30DayTotals = last30DayTotals,
+            ArchivedTotals = archivedTotals,
+        };
+    }
+
     public IDbConnectionFactory DbFactory { get; set; }
     public async Task<object> Any(ArchiveMail request)
     {

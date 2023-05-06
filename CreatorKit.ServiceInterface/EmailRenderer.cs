@@ -56,7 +56,8 @@ public class EmailRenderer
     public async Task<MailMessageRun> CreateMessageRunAsync(IDbConnection db, MailMessageRun msg,
         MailRun mailRun, Contact sub)
     {
-        msg.ExternalRef ??= CreateRef(); 
+        msg.ExternalRef ??= CreateRef();
+        msg.CreatedDate = DateTime.UtcNow;
         msg.MailRunId = mailRun.Id;
         msg.ContactId = sub.Id;
         msg.Id = (int) await db.InsertAsync(msg, selectIdentity:true);

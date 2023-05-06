@@ -85,6 +85,7 @@ public class MailMessageRun
     public Dictionary<string,object> RendererArgs { get; set; }
     public string ExternalRef { get; set; }
     public EmailMessage Message { get; set; }
+    public DateTime CreatedDate { get; set; }
     public DateTime? StartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public ResponseStatus? Error { get; set; }
@@ -110,6 +111,7 @@ public class ArchiveMessageRun
     public Dictionary<string,object> RendererArgs { get; set; }
     public string ExternalRef { get; set; }
     public EmailMessage Message { get; set; }
+    public DateTime CreatedDate { get; set; }
     public DateTime? StartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public ResponseStatus? Error { get; set; }

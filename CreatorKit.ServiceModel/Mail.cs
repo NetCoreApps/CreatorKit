@@ -269,6 +269,18 @@ public class ViewAppDataResponse
     public ResponseStatus ResponseStatus { get; set; }
 }
 
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class ViewAppStats : IGet, IReturn<ViewAppStatsResponse> {}
+public class ViewAppStatsResponse
+{
+    public Dictionary<string, int> Totals { get; set; }
+    public Dictionary<string, int> Before30DayTotals { get; set; }
+    public Dictionary<string, int> Last30DayTotals { get; set; }
+    public Dictionary<string, int> ArchivedTotals { get; set; }
+    public ResponseStatus ResponseStatus { get; set; }
+}
+
+
 public class ArchiveMail : IPost, IReturn<ArchiveMailResponse>
 {
     public bool? Messages { get; set; }
