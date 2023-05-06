@@ -131,12 +131,39 @@ public class UpdateMailMessage : IPatchDb<MailMessage>, IReturn<MailMessage>
     public string? Email { get; set; }
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
     public string? Layout { get; set; }
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
-    public string? Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string? Template { get; set; }
     public string? Renderer { get; set; }
     public Dictionary<string,object>? RendererArgs { get; set; }
     public EmailMessage? Message { get; set; }
     public DateTime? CompletedDate { get; set; }
+}
+
+[Tag(Tag.Mail), ValidateIsAdmin]
+public class UpdateMailMessageDraft : IReturn<MailMessage>
+{
+    [Input(Type = "hidden")]
+    public int Id { get; set; }
+    
+    [Input(Type = "text", ReadOnly = true)]
+    public string Email { get; set; }
+
+    [Input(Type = "text", ReadOnly = true)]
+    public string Renderer { get; set; }
+
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
+    public string? Layout { get; set; }
+    
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string? Template { get; set; }
+    
+    [ValidateNotEmpty]
+    [FieldCss(Field = "col-span-12")]
+    public string Subject { get; set; }
+    [Input(Type = "MarkdownEmailInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
+    public string? Body { get; set; }
+    [Input(Type = "hidden")]
+    public bool? Send { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
@@ -159,8 +186,8 @@ public class CreateMailRun : ICreateDb<MailRun>, IReturn<MailRun>
     public MailingList MailingList { get; set; }
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
     public string Layout { get; set; }
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
-    public string Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string Template { get; set; }
     [Input(Type = "combobox", EvalAllowableValues = "AppData.MailRunGeneratorApis")]
     public string Generator { get; set; }
     public Dictionary<string,object> GeneratorArgs { get; set; }
@@ -173,8 +200,8 @@ public class UpdateMailRun : IUpdateDb<MailRun>, IReturn<MailRun>
     public MailingList? MailingList { get; set; }
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
     public string? Layout { get; set; }
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
-    public string? Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string? Template { get; set; }
     [Input(Type = "combobox", EvalAllowableValues = "AppData.MailRunGeneratorApis")]
     public string? Generator { get; set; }
     public Dictionary<string,object>? GeneratorArgs { get; set; }
@@ -241,6 +268,24 @@ public class ViewAppDataResponse
     public Dictionary<string, Dictionary<string, string>> Vars { get; set; }
     public ResponseStatus ResponseStatus { get; set; }
 }
+
+public class ArchiveMail : IPost, IReturn<ArchiveMailResponse>
+{
+    public bool? Messages { get; set; }
+    public bool? MailRuns { get; set; }
+    [ValidateNotNull]
+    public int? OlderThanDays { get; set; }
+}
+public class ArchiveMailResponse
+{
+    public List<int> ArchivedMessageIds { get; set; }
+    public List<int> ArchivedMailRunIds { get; set; }
+    public ResponseStatus ResponseStatus { get; set; }
+}
+
+public class QueryArchiveMessages : QueryDb<ArchiveMessage> {}
+public class QueryArchiveRuns : QueryDb<ArchiveRun> {}
+public class QueryArchiveMessageRuns : QueryDb<ArchiveMessageRun> {}
 
 public static class MailingExtensions
 {

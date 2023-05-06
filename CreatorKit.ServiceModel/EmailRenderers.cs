@@ -8,8 +8,8 @@ namespace CreatorKit.ServiceModel;
 [Tag(Tag.Mail), ValidateIsAdmin]
 public class PreviewEmail : IPost, IReturn<string>
 {
-    [ValidateNotEmpty]
-    public string Request { get; set; }
+    public string? Request { get; set; }
+    public string? Renderer { get; set; }
     [ValidateNotNull]
     public Dictionary<string,object> RequestArgs { get; set; }
 }
@@ -26,8 +26,8 @@ public class RendererAttribute : AttributeBase
         Type = type;
     }
 
-    public string Layout { get; set; } = "layout";
-    public string Page { get; set; }
+    public string Layout { get; set; } = "basic";
+    public string Template { get; set; }
 }
 
 
@@ -41,12 +41,12 @@ public class RenderSimpleText : RenderEmailBase, IGet, IReturn<string>
 public class RenderCustomHtml : RenderEmailBase, IGet, IReturn<string>
 {
     [ValidateNotEmpty]
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
     public string Layout { get; set; }
 
     [ValidateNotEmpty]
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
-    public string Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string Template { get; set; }
     
     public string Body { get; set; }
 }

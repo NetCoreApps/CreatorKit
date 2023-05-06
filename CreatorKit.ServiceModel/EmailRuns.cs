@@ -16,7 +16,7 @@ public class SimpleTextMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
     public string Body { get; set; }
 }
 
-[Renderer(typeof(RenderCustomHtml), Layout = "layout", Page="markdown")]
+[Renderer(typeof(RenderCustomHtml), Layout = "basic", Template="empty")]
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Icon(Svg = Icons.TextMarkup)]
 [Description("Markdown Email")]
@@ -26,7 +26,8 @@ public class MarkdownMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
     [FieldCss(Field = "col-span-12")]
     public string Subject { get; set; }
 
-    [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
+    [ValidateNotEmpty]
+    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
 }
 
@@ -40,11 +41,12 @@ public class CustomHtmlMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
     [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailLayoutOptions")]
     public string Layout { get; set; }
     [ValidateNotEmpty]
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
-    public string Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string Template { get; set; }
     [ValidateNotEmpty]
     public string Subject { get; set; }
-    [Input(Type = "textarea", Label = "Body (markdown)"), FieldCss(Field = "col-span-12", Input = "h-36")]
+    [ValidateNotEmpty]
+    [Input(Type = "MarkdownInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
 }
 

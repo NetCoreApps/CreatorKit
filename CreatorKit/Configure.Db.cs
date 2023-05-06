@@ -11,15 +11,16 @@ namespace CreatorKit;
 public class ConfigureDb : IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
-        .ConfigureServices((context, services) => {
-            services.AddSingleton<IDbConnectionFactory>(new OrmLiteConnectionFactory(
-                "App_Data/db.sqlite",
-                SqliteDialect.Provider));
+        .ConfigureServices((context, services) =>
+        {
+            var dialect = SqliteDialect.Instance;
+            var dbFactory = new OrmLiteConnectionFactory("App_Data/db.sqlite", dialect);
+            dbFactory.RegisterConnection("archive", "App_Data/archive.sqlite", dialect);
+            services.AddSingleton<IDbConnectionFactory>(dbFactory);
 
-            var sqliteDialect = SqliteDialect.Instance;
-            sqliteDialect.StringSerializer = new JsonStringSerializer();
-            sqliteDialect.EnableForeignKeys = true;
-            ((DateTimeConverter)sqliteDialect.GetConverter<DateTime>()).DateStyle = DateTimeKind.Utc;
+            dialect.StringSerializer = new JsonStringSerializer();
+            dialect.EnableForeignKeys = true;
+            ((DateTimeConverter)dialect.GetConverter<DateTime>()).DateStyle = DateTimeKind.Utc;
         })
         .ConfigureAppHost(appHost => {
             // Enable built-in Database Admin UI at /admin-ui/database

@@ -36,19 +36,18 @@ public class Migration1001 : MigrationBase
     {
         [AutoIncrement]
         public int Id { get; set; }
-        public string ExternalRef { get; set; }
         public string Email { get; set; }
-        public string Layout { get; set; }
-        public string Page { get; set; }
+        public string? Layout { get; set; }
+        public string? Template { get; set; }
         public string Renderer { get; set; }
         public Dictionary<string,object> RendererArgs { get; set; }
         public EmailMessage Message { get; set; }
         public bool Draft { get; set; }
+        public string ExternalRef { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? StartedDate { get; set; }
         public DateTime? CompletedDate { get; set; }
-        public string? ErrorCode { get; set; }
-        public string? ErrorMessage { get; set; }
+        public ResponseStatus? Error { get; set; }
     }
 
     [Icon(Svg = Icons.MailRun)]
@@ -61,7 +60,7 @@ public class Migration1001 : MigrationBase
         public string Generator { get; set; }
         public Dictionary<string,object> GeneratorArgs { get; set; }
         public string Layout { get; set; }
-        public string Page { get; set; }
+        public string Template { get; set; }
         public string ExternalRef { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? GeneratedDate { get; set; }
@@ -89,8 +88,32 @@ public class Migration1001 : MigrationBase
         public EmailMessage Message { get; set; }
         public DateTime? StartedDate { get; set; }
         public DateTime? CompletedDate { get; set; }
-        public string? ErrorCode { get; set; }
-        public string? ErrorMessage { get; set; }
+        public ResponseStatus? Error { get; set; }
+    }
+
+    [Icon(Svg = Icons.Mail)]
+    [NamedConnection("archive")]
+    public class ArchiveMessage : MailMessage {}
+
+    [Icon(Svg = Icons.MailRun)]
+    [NamedConnection("archive")]
+    public class ArchiveRun : MailRun {}
+
+    [Icon(Svg = Icons.Mail)]
+    [NamedConnection("archive")]
+    public class ArchiveMessageRun
+    {
+        [AutoIncrement]
+        public int Id { get; set; }
+        public int MailRunId { get; set; }
+        public int ContactId { get; set; }
+        public string Renderer { get; set; }
+        public Dictionary<string,object> RendererArgs { get; set; }
+        public string ExternalRef { get; set; }
+        public EmailMessage Message { get; set; }
+        public DateTime? StartedDate { get; set; }
+        public DateTime? CompletedDate { get; set; }
+        public ResponseStatus? Error { get; set; }
     }
 
     public enum Source
@@ -130,18 +153,9 @@ public class Migration1001 : MigrationBase
         public List<MailTo> Bcc { get; set; }
         public MailTo? From { get; set; }
         public string Subject { get; set; }
+        public string? Body { get; set; }
         public string? BodyHtml { get; set; }
         public string? BodyText { get; set; }
-    }
-
-    public class Archive
-    {
-        public string Name { get; set; }
-        public int ContactCount { get; set; }
-        public int MailMessageCount { get; set; }
-        public int MailRunCount { get; set; }
-        public int MailMessageRun { get; set; }
-        public DateTime LastUpdated { get; set; }
     }
 
 
@@ -163,7 +177,6 @@ public class Migration1001 : MigrationBase
 
     public override void Up()
     {
-        Db.CreateTable<Archive>();
         Db.CreateTable<Contact>();
         Db.CreateTable<MailMessage>();
         Db.CreateTable<MailRun>();
@@ -172,6 +185,11 @@ public class Migration1001 : MigrationBase
         Db.Insert(CreateContact("demis.bellot@gmail.com", "Demis", "Bellot", MailingList.TestGroup | MailingList.MonthlyNewsletter));
         Db.Insert(CreateContact("team@servicestack.net", "Team", "ServiceStack", MailingList.MonthlyNewsletter));
         Db.Insert(CreateContact("demis@servicestack.com", "Ubixar", "Liquidbit", MailingList.TestGroup | MailingList.YearlyUpdates));
+
+        using var dbArchive = DbFactory.Open("archive");
+        dbArchive.CreateTable<ArchiveMessage>();
+        dbArchive.CreateTable<ArchiveRun>();
+        dbArchive.CreateTable<ArchiveMessageRun>();
     }
 
     public override void Down()
@@ -180,6 +198,10 @@ public class Migration1001 : MigrationBase
         Db.DropTable<MailRun>();
         Db.DropTable<MailMessage>();
         Db.DropTable<Contact>();
-        Db.DropTable<Archive>();
+
+        using var dbArchive = DbFactory.Open("archive");
+        dbArchive.DropTable<ArchiveMessageRun>();
+        dbArchive.DropTable<ArchiveRun>();
+        dbArchive.DropTable<ArchiveMessage>();
     }
 }

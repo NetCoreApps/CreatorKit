@@ -191,4 +191,12 @@ public static class EmailRendererUtils
             .Where(x => x.DeletedDate == null && x.UnsubscribedDate == null && x.VerifiedDate != null
                         && (mailingList & x.MailingLists) == mailingList));
     }
+
+    public static void Set(this Dictionary<string, object> map, string name, object? value)
+    {
+        if (value == null)
+            map.Remove(name);
+        else
+            map[name] = value;
+    }
 }

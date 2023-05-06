@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using ServiceStack;
 using ServiceStack.OrmLite;
 using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
+using ServiceStack.Data;
 
 namespace CreatorKit.ServiceInterface;
 
@@ -46,8 +48,8 @@ public class MailingServices : Service
             };
             contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
             
-            var viewRequest = new RenderCustomHtml { Layout = "marketing", Page = "verify-email" }.FromContact(contact);
-            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
+            var viewRequest = new RenderCustomHtml { Layout = "marketing", Template = "verify-email" }.FromContact(contact);
+            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, contact);
             await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage
@@ -101,10 +103,8 @@ public class MailingServices : Service
             }
             catch (Exception e)
             {
-                await Db.UpdateOnlyAsync(() => new MailMessage {
-                        ErrorCode = e.GetType().Name,
-                        ErrorMessage = e.Message,
-                    },
+                var error = e.ToResponseStatus();
+                await Db.UpdateOnlyAsync(() => new MailMessage { Error = error },
                     where: x => x.Id == request.Id);
                 throw;
             }
@@ -132,10 +132,8 @@ public class MailingServices : Service
             }
             catch (Exception e)
             {
-                await Db.UpdateOnlyAsync(() => new MailMessageRun {
-                        ErrorCode = e.GetType().Name,
-                        ErrorMessage = e.Message,
-                    },
+                var error = e.ToResponseStatus();
+                await Db.UpdateOnlyAsync(() => new MailMessageRun { Error = error },
                     where: x => x.Id == request.Id);
                 throw;
             }
@@ -175,8 +173,8 @@ public class MailingServices : Service
         var sub = await Db.SingleAsync<Contact>(x => x.ExternalRef == request.ExternalRef);
         if (sub != null)
         {
-            var viewRequest = new RenderCustomHtml { Layout = "marketing", Page = "newsletter-welcome" }.FromContact(sub);
-            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Page, meta: MailData);
+            var viewRequest = new RenderCustomHtml { Layout = "marketing", Template = "newsletter-welcome" }.FromContact(sub);
+            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template, meta: MailData);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
             await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage {
@@ -233,10 +231,77 @@ public class MailingServices : Service
             Vars = appData.Vars,
         };
     }
+
+    public IDbConnectionFactory DbFactory { get; set; }
+    public async Task<object> Any(ArchiveMail request)
+    {
+        var messageIdsToDelete = new List<int>();
+        var mailRunIdsToDelete = new List<int>();
+        
+        var createdBefore = DateTime.UtcNow.AddDays(request.OlderThanDays!.Value * -1);
+        if (request.Messages == true)
+        {
+            var messages = await Db.SelectAsync<MailMessage>(x => x.CompletedDate != null && x.CreatedDate < createdBefore);
+            try
+            {
+                using var dbArchive = await DbFactory.OpenAsync("archive");
+                foreach (var message in messages)
+                {
+                    var archiveMessage = message.ConvertTo<ArchiveMessage>();
+                    await dbArchive.InsertAsync(archiveMessage);
+                    messageIdsToDelete.Add(message.Id);
+                }
+            }
+            finally
+            {
+                await Db.DeleteByIdsAsync<MailMessage>(messageIdsToDelete);
+            }
+        }
+        if (request.MailRuns == true)
+        {
+            var mailRuns = await Db.SelectAsync<MailRun>(x =>x.CompletedDate != null && x.CreatedDate < createdBefore);
+            try
+            {
+                using var dbArchive = await DbFactory.OpenAsync("archive");
+                foreach (var mailRun in mailRuns)
+                {
+                    var archiveMailRun = mailRun.ConvertTo<ArchiveRun>();
+                    var archiveId = (int) await dbArchive.InsertAsync(archiveMailRun, selectIdentity:true);
+                    var mailRunMessages = await Db.SelectAsync<MailMessageRun>(x => x.MailRunId == mailRun.Id);
+                    foreach (var message in mailRunMessages)
+                    {
+                        var archiveMessage = message.ConvertTo<ArchiveMessageRun>();
+                        archiveMessage.MailRunId = archiveId;
+                        await dbArchive.InsertAsync(archiveMessage);
+                    }
+                    mailRunIdsToDelete.Add(mailRun.Id);
+                }
+            }
+            finally
+            {
+                await Db.DeleteByIdsAsync<MailRun>(mailRunIdsToDelete);
+            }
+        }
+
+        return new ArchiveMailResponse
+        {
+            ArchivedMessageIds = messageIdsToDelete,
+            ArchivedMailRunIds = mailRunIdsToDelete,
+        };
+    }
+    
 }
 
 public static class MailMessageExtensions
 {
+    public static async Task<Contact> GetContactByEmail(this IDbConnection db, string email)
+    {
+        var contact = await db.SingleAsync<Contact>(x => x.EmailLower == email.ToLower());
+        if (contact == null)
+            throw HttpError.NotFound("Contact not found");
+        return contact;
+    }
+    
     public static async Task<Contact> GetOrCreateContact(this IDbConnection db, CreateEmailBase request)
     {
         var sub = await db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
@@ -276,8 +341,8 @@ public static class MailMessageExtensions
             msg.Email = email;
         if (msg.RendererArgs.TryGetValue(nameof(msg.Layout), out var oLayout) && oLayout is string layout)
             msg.Layout = layout;
-        if (msg.RendererArgs.TryGetValue(nameof(msg.Page), out var oPage) && oPage is string page)
-            msg.Page = page;
+        if (msg.RendererArgs.TryGetValue(nameof(msg.Template), out var oPage) && oPage is string page)
+            msg.Template = page;
         
         return msg;
     }
@@ -292,8 +357,8 @@ public static class MailMessageExtensions
             mailRun.MailingList = mailingList;
         if (mailRun.GeneratorArgs.TryGetValue(nameof(mailRun.Layout), out var oLayout) && oLayout is string layout)
             mailRun.Layout = layout;
-        if (mailRun.GeneratorArgs.TryGetValue(nameof(mailRun.Page), out var oPage) && oPage is string page)
-            mailRun.Page = page;
+        if (mailRun.GeneratorArgs.TryGetValue(nameof(mailRun.Template), out var oPage) && oPage is string page)
+            mailRun.Template = page;
         
         return mailRun;
     }

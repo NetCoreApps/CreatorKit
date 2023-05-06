@@ -34,11 +34,11 @@ public class AppData
     public TimeSpan PeriodicTasksInterval { get; set; } = TimeSpan.FromMinutes(10);
     public List<string> EmailLayouts { get; set; } = new();
     public List<string> EmailPartials { get; set; } = new();
-    public List<string> EmailPages { get; set; } = new();
+    public List<string> EmailTemplates { get; set; } = new();
     public List<string> EmailVars { get; set; } = new();
 
     public List<string> EmailLayoutOptions => EmailLayouts.Map(x => x.WithoutExtension());
-    public List<string> EmailPageOptions => EmailPages.Map(x => x.WithoutExtension());
+    public List<string> EmailTemplateOptions => EmailTemplates.Map(x => x.WithoutExtension());
     public List<string> RenderEmailApis { get; set; } = new();
     public List<string> MailRunGeneratorApis { get; set; } = new();
     public KeyValuePair<string, string>[] MailingListOptions => Input.GetEnumEntries(typeof(MailingList));
@@ -59,12 +59,12 @@ public class AppData
         
         EmailLayouts.Clear();
         EmailPartials.Clear();
-        EmailPages.Clear();
+        EmailTemplates.Clear();
         
         var files = emailsDir.GetFiles();
         foreach (var file in files.Where(x => x.Name.EndsWith(".html")))
         {
-            EmailPages.Add(file.Name);
+            EmailTemplates.Add(file.Name);
         }
         foreach (var file in emailsDir.GetDirectory("layouts").GetFiles().Where(x => x.Name.EndsWith(".html")))
         {

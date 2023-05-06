@@ -29,14 +29,21 @@ public class EmailRenderersServices : Service
             args.TryAdd(entry.Key, entry.Value);
         }
 
-        var requestType = HostContext.Metadata.GetRequestType(request.Request);
-        var rendererAttr = requestType.FirstAttribute<RendererAttribute>();
-        var renderRequestType = rendererAttr?.Type ?? typeof(RenderSimpleText);
+        var renderRequestType = request.Renderer != null
+            ? HostContext.Metadata.GetRequestType(request.Renderer)
+            : null;
 
-        if (rendererAttr?.Layout != null)
-            args.TryAdd(nameof(RenderCustomHtml.Layout), rendererAttr.Layout);
-        if (rendererAttr?.Page != null)
-            args.TryAdd(nameof(RenderCustomHtml.Page), rendererAttr.Page);
+        if (renderRequestType == null && request.Request != null)
+        {
+            var requestType = HostContext.Metadata.GetRequestType(request.Request);
+            var rendererAttr = requestType.FirstAttribute<RendererAttribute>();
+            renderRequestType = rendererAttr?.Type;
+            if (rendererAttr?.Layout != null)
+                args.TryAdd(nameof(RenderCustomHtml.Layout), rendererAttr.Layout);
+            if (rendererAttr?.Template != null)
+                args.TryAdd(nameof(RenderCustomHtml.Template), rendererAttr.Template);
+        }
+        renderRequestType ??= typeof(RenderSimpleText);
 
         var renderRequest = args.FromObjectDictionary(renderRequestType);
         var response = await HostContext.ServiceController.ExecuteAsync(renderRequest, Request);
@@ -52,7 +59,7 @@ public class EmailRenderersServices : Service
 
     public async Task<object> Any(RenderCustomHtml request)
     {
-        var context = Renderer.CreateMailContext(layout:request.Layout, page:request.Page);
+        var context = Renderer.CreateMailContext(layout:request.Layout, page:request.Template);
         var evalBody = !string.IsNullOrEmpty(request.Body) 
             ? await context.RenderScriptAsync(request.Body, request.ToObjectDictionary())
             : string.Empty;

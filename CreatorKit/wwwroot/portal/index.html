@@ -20,40 +20,10 @@
 <div id="app" v-cloak>
     <!-- Off-canvas menu for mobile, show/hide based on off-canvas menu state. -->
     <div v-if="toggleState" class="relative z-10 lg:hidden" role="dialog" aria-modal="true">
-        <!--
-          Off-canvas menu backdrop, show/hide based on off-canvas menu state.
-    
-          Entering: "transition-opacity ease-linear duration-300"
-            From: "opacity-0"
-            To: "opacity-100"
-          Leaving: "transition-opacity ease-linear duration-300"
-            From: "opacity-100"
-            To: "opacity-0"
-        -->
         <div :class="['fixed inset-0 bg-gray-900/80', transition1]"></div>
 
         <div class="fixed inset-0 flex">
-            <!--
-              Off-canvas menu, show/hide based on off-canvas menu state.
-      
-              Entering: "transition ease-in-out duration-300 transform"
-                From: "-translate-x-full"
-                To: "translate-x-0"
-              Leaving: "transition ease-in-out duration-300 transform"
-                From: "translate-x-0"
-                To: "-translate-x-full"
-            -->
             <div :class="['relative mr-16 flex w-full max-w-xs flex-1', transition2]">
-                <!--
-                  Close button, show/hide based on off-canvas menu state.
-        
-                  Entering: "ease-in-out duration-300"
-                    From: "opacity-0"
-                    To: "opacity-100"
-                  Leaving: "ease-in-out duration-300"
-                    From: "opacity-100"
-                    To: "opacity-0"
-                -->
                 <div :class="['absolute left-full top-0 flex w-16 justify-center pt-5', transition3]">
                     <button type="button" @click="toggle(false)" class="-m-2.5 p-2.5">
                         <span class="sr-only">Close sidebar</span>
@@ -63,7 +33,6 @@
                     </button>
                 </div>
 
-                <!-- Sidebar component, swap this element with another sidebar if you like -->
                 <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
                     <div class="flex h-16 shrink-0 items-center">
                         <a href="/portal/">
@@ -142,18 +111,20 @@
         <div class="px-4 sm:px-6 lg:px-8">
             <!-- Your content -->
             <sign-in v-if="!user"></sign-in>
-            <h1 class="hidden lg:block mt-10 mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">{{ activeSection.label }}</h1>
-            <component v-else :key="refreshKey" :is="activeSection.component" @nav="navTo"></component>
+            <div v-else>
+                <h1 class="hidden lg:block pt-4 mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">{{ activeSection.label }}</h1>
+                <component :key="refreshKey" :is="activeSection.component" @nav="navTo"></component>
+            </div>
         </div>
     </main>
 </div>
 
 <script type="module">
 import { mount } from "/mjs/app.mjs"
-import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun, PreviewEmail } from "/mjs/dtos.mjs"
+import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun, PreviewEmail, ArchiveMail } from "/mjs/dtos.mjs"
 import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult } from "@servicestack/client"
-import { useAuth, useClient, useMetadata, useUtils, useFormatters } from "@servicestack/vue"
-import { ref, computed, onMounted, onUnmounted, shallowRef, watch } from "vue"
+import { useAuth, useClient, useMetadata, useUtils, useFormatters, css } from "@servicestack/vue"
+import { ref, computed, onMounted, onUnmounted, shallowRef, watch, nextTick } from "vue"
 
 // Order all tables descending so latest appears first
 const idColumns = ['MailRun.Id','MailMessageRun.Id','MailMessage.Id','Contact.Id'].map(x => 'Column/AutoQueryGrid:' + x)
@@ -166,7 +137,7 @@ await loadMetadata({
     olderThan: window.Server ? null : location.search.includes('clear=metadata') ? 0 : 60 * 60 * 1000 //1hr 
 })
 
-const css = {
+const styles = {
     dialogButton: "inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm md:text-lg font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
 }
 
@@ -186,7 +157,7 @@ const EmailPreview = {
         <div :class="['border-t border-gray-200 pt-4 px-4', isHtml(api.response) ? '' : 'whitespace-pre-wrap']" v-html="api.response"></div>
     </div>
     `,
-    props:['type','modelValue'],
+    props:['renderer','type','modelValue'],
     setup(props) {
 
         const client = useClient()
@@ -202,6 +173,7 @@ const EmailPreview = {
             })
 
             const request = new PreviewEmail({
+                renderer: props.renderer,
                 request: props.type,
                 requestArgs,
             })
@@ -224,6 +196,65 @@ const EmailPreview = {
         onMounted(update)
 
         return { api, hadSuccess, isHtml }
+    }
+}
+
+const ArchiveButton = {
+    template:`<div class="relative inline-block text-left">
+    <div>
+      <button @click="toggle()" type="button" :class="[css.grid.toolbarButtonClass,'justify-center gap-x-1.5']" 
+              aria-expanded="true" aria-haspopup="true">
+        Archive
+        <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <div :class="['absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none', transition1]" role="menu" 
+         aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+      <div class="py-1" role="none">
+        <!-- Active: "bg-gray-100 text-gray-900", Not Active: "text-gray-700" -->
+        <span v-for="(days,label) in durations" @click="archive(days)" class="cursor-pointer text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50" role="menuitem" tabindex="-1" id="menu-item-0">{{label}}</span>
+      </div>
+    </div>
+    </div>`,
+    emits:['done'],
+    props:['type'],
+    setup(props, { emit }) {
+        const client = useClient()
+        const { transition } = useUtils()
+
+        const toggleState = ref(false)
+        const transition1 = ref('hidden')
+        const rule1 = {
+            entering: { cls:'transition ease-out duration-100', from:'transform opacity-0 scale-95',    to:'transform opacity-100 scale-100'},
+            leaving:  { cls:'transition ease-in duration-75',   from:'transform opacity-100 scale-100', to:'transform opacity-0 scale-95'}
+        }
+        function toggle(show) {
+            toggleState.value = show != null ? show : !toggleState.value
+            transition(rule1, transition1, toggleState.value)
+        }
+        
+        const durations = {
+            'All Completed': 0,
+            'Older than a day': 1,
+            'Older than a week': 7,
+            'Older than a month': 30,
+            'Older than 6 months': 183,
+            'Older than a year': 365,
+        }
+        
+        async function archive(olderThanDays) {
+            toggle(false)
+            
+            const api = await client.api(new ArchiveMail({ 
+                [props.type]: true,
+                olderThanDays,
+            }))
+            emit('done')
+        }
+        
+        return { css, durations, transition1, toggle, archive }
     }
 }
 
@@ -272,19 +303,27 @@ const MailRunInfo = {
 }
 
 const MailRuns = {
-    components: { MailRunInfo, EmailPreview },
+    components: { MailRunInfo, EmailPreview, ArchiveButton },
     template:`
       <div class="py-4 flex flex-wrap gap-3">
-          <button v-for="op in mailRunApis" @click="selectOp(op)" :class="css.dialogButton">
+          <button v-for="op in mailRunApis" @click="selectOp(op)" :class="styles.dialogButton">
             <Icon v-if="op.icon" :image="op.icon" class="mr-2 w-6 h-6" />
             {{op.description || op.name}}
           </button>      
       </div>
       <AutoQueryGrid ref="grid" type="MailRun" hide="newItem,copyApiUrl" selected-columns="id,mailingList,layout,page,generator,emailsCount,createdDate,sentDate">
+        <template #toolbarbuttons>
+          <div class="pl-2 mt-1">
+            <ArchiveButton type="mailRuns" @done="grid.update()" />
+          </div>
+        </template>
         <template #formfooter="{ model }">
           <div class="p-6 flex items-center">
             <SecondaryButton class="mr-3" @click="$emit('nav','mailrunmsgs',{mailRunId:model.id})">View Messages</SecondaryButton>
-            <PrimaryButton type="button" class="mr-3" :disabled="model.sentDate" @click="sendMailRun(model)">Send Messages</PrimaryButton>
+            <PrimaryButton type="button" color="red" class="mr-3" :disabled="model.sentDate" @click="sendMailRun(model)">
+                <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M27.71 4.29a1 1 0 0 0-1.05-.23l-22 8a1 1 0 0 0 0 1.87l8.59 3.43L19.59 11L21 12.41l-6.37 6.37l3.44 8.59A1 1 0 0 0 19 28a1 1 0 0 0 .92-.66l8-22a1 1 0 0 0-.21-1.05Z"/></svg>
+                Send Messages
+            </PrimaryButton>
             <MailRunInfo :id="model.id" />
           </div>
         </template>
@@ -337,7 +376,7 @@ const MailRuns = {
             }
         }
         
-        return { css, mailRunApis, grid, selectOp, selectedOp, done, save, configureFormLayout, sendMailRun }
+        return { styles, mailRunApis, grid, selectOp, selectedOp, done, save, configureFormLayout, sendMailRun }
     }
 }
 
@@ -400,22 +439,27 @@ const MessageView = {
 }
 
 const Messages = {
-    components: { MessageView, EmailPreview },
+    components: { MessageView, EmailPreview, ArchiveButton },
     template:`
       <div class="py-4 flex flex-wrap gap-3">
-          <button v-for="op in createMsgApis" @click="selectOp(op)" :class="css.dialogButton">
+          <button v-for="op in createMsgApis" @click="selectOp(op)" :class="styles.dialogButton">
             <Icon v-if="op.icon" :image="op.icon" class="mr-2 w-6 h-6" />
             {{op.description || op.name}}
           </button>
       </div>
       <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
                      selectedColumns="id,email,layout,page,renderer,rendererArgs,completedDate">
+        <template #toolbarbuttons>
+          <div class="pl-2 mt-1">
+            <ArchiveButton type="messages" @done="grid.update()" />
+          </div>
+        </template>
         <template #renderer="{ renderer, rendererArgs }">
           <span :title="indentJson(rendererArgs)">{{renderer}}</span>
         </template>
         <template #formfooter="{ id, model }">
           <div v-if="!model.completedDate" class="py-3 flex justify-center">
-            <PrimaryButton :disabled="sending" @click="sendMessage(model)" type="button">
+            <PrimaryButton color="red" :disabled="sending" @click="sendMessage(model)" type="button">
               <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M27.71 4.29a1 1 0 0 0-1.05-.23l-22 8a1 1 0 0 0 0 1.87l8.59 3.43L19.59 11L21 12.41l-6.37 6.37l3.44 8.59A1 1 0 0 0 19 28a1 1 0 0 0 .92-.66l8-22a1 1 0 0 0-.21-1.05Z"/></svg>
               {{ sending ? 'Sending...' : 'Send' }}
             </PrimaryButton>
@@ -449,9 +493,6 @@ const Messages = {
         async function save(model) {
             await grid.value?.createSave()
             done()
-            if (!model.startedDate) {
-                emit('nav','messages', { edit:model.id })
-            }
         }
         
         /** @type {InputInfo[]} inputs */
@@ -477,7 +518,7 @@ const Messages = {
             }
         }
         
-        return { css, grid, createMsgApis, selectOp, selectedOp, done, save, configureFormLayout, sendMessage, 
+        return { styles, grid, createMsgApis, selectOp, selectedOp, done, save, configureFormLayout, sendMessage, 
                  sending, indentJson }
     }
 }
@@ -496,6 +537,105 @@ const MailRunMessages = {
     setup(props) {
         const grid = ref()
         return { grid }
+    }
+}
+
+const Drafts = {
+    components: { MessageView, EmailPreview, ArchiveButton },
+    template:`
+      <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
+                     :filters="{ completedDateIsNull:'',draft:true }"
+                     selectedColumns="id,email,layout,page,renderer,rendererArgs,createdDate">
+        <template #renderer="{ renderer, rendererArgs }">
+          <span :title="indentJson(rendererArgs)">{{renderer}}</span>
+        </template>
+        <template #editform="{ model, save, done }">
+          <AutoForm type="UpdateMailMessageDraft" formStyle="slideOver" :modelValue="updateModel(model)" :configureFormLayout="configureFormLayout" 
+                    submitLabel="Save" @success="save" @done="done">
+            <template #footer="{ model }">
+              <EmailPreview :renderer="model.renderer" :modelValue="model" />
+            </template>
+            <template #leftbuttons="{ instance }">
+              <PrimaryButton type="button" @click="submitForm(instance)" color="red">
+                <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M27.71 4.29a1 1 0 0 0-1.05-.23l-22 8a1 1 0 0 0 0 1.87l8.59 3.43L19.59 11L21 12.41l-6.37 6.37l3.44 8.59A1 1 0 0 0 19 28a1 1 0 0 0 .92-.66l8-22a1 1 0 0 0-.21-1.05Z"/></svg>
+                Send
+              </PrimaryButton>
+            </template>
+          </AutoForm>
+        </template>
+      </AutoQueryGrid>
+    `,
+    emits: ['nav'],
+    setup(props, { emit }) {
+        const client = useClient()
+        const { indentJson } = useFormatters()
+        const createMsgApis = metadataApi.value.operations.filter(x => x.request.inherits?.name === 'CreateEmailBase')
+            .map(x => x.request)
+        const grid = ref()
+        const selectedOp = ref()
+        const sending = ref(false)
+
+        /** @type {InputInfo[]} inputs */
+        function configureFormLayout(inputs) {
+            // reorder props to move base props first
+            const propsOrder = typeOf('CreateEmailBase').properties.map(x => x.name.toLowerCase())
+            inputs.forEach(x => {
+                if (!propsOrder.includes(x.name)) propsOrder.push(x.id.toLowerCase())
+            })
+            inputs.sort((a,b) => {
+                return a.name === b.name ? 0 : propsOrder.indexOf(a.id.toLowerCase()) > propsOrder.indexOf(b.id.toLowerCase())
+                    ? 1
+                    : -1
+            })
+        }
+
+        async function sendMessage(model) {
+            sending.value = true
+            const api = await client.api(new SendMailMessage({ id:model.id, force:true }))
+            if (api.succeeded) {
+                sending.value = false
+                grid.value?.editSave()
+            }
+        }
+        
+        function updateModel(model) {
+            model.subject = model.message?.subject
+            model.body = model.message?.body
+            return model
+        }
+        
+        async function submitForm(instance) {
+            await instance.setModel({ send: true })
+            instance.submit()
+        }
+        
+        return { styles, grid, createMsgApis, selectedOp, configureFormLayout, sendMessage, sending, indentJson, 
+                 updateModel, submitForm }
+    }
+}
+
+const ArchiveMessages = {
+    template:`<AutoQueryGrid ref="grid" type="ArchiveMessage" ></AutoQueryGrid>`,
+}
+const ArchiveMailRuns = {
+    template:`<AutoQueryGrid ref="grid" type="ArchiveRun" ></AutoQueryGrid>`,
+}
+const ArchiveMessageRuns = {
+    template:`<AutoQueryGrid ref="grid" type="ArchiveMessageRun" ></AutoQueryGrid>`,
+}
+const ArchiveTabs = {
+    ArchiveMessages,
+    ArchiveMailRuns,
+    ArchiveMessageRuns,
+}
+
+const Archive = {
+    components: { ...ArchiveTabs },
+    template:`
+      <tabs :tabs="ArchiveTabs"></tabs>
+    `,
+    setup(props) {
+        return { ArchiveTabs }
     }
 }
 
@@ -518,6 +658,12 @@ const sections = {
         component: Messages,
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,
     },
+    drafts: {
+        id: 'drafts',
+        label: 'Drafts',
+        component: Drafts,
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2a1 1 0 0 1 1 1v3.757l-2 2V4H5v16h14v-2.758l2-2V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16Zm1.778 6.808l1.414 1.414L15.414 18l-1.416-.002l.002-1.412l7.778-7.778ZM13 12v2H8v-2h5Zm3-4v2H8V8h8Z"/></svg>`,
+    },
     mailruns: {
         id: 'mailruns',
         label: 'Mail Runs',
@@ -530,6 +676,12 @@ const sections = {
         component: MailRunMessages,
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,
     },
+    archive: {
+        id: 'archive',
+        label: 'Archive',
+        component: Archive,
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.413-.588T3 19V6.5q0-.375.125-.675t.325-.575l1.4-1.7q.2-.275.5-.413T6 3h12q.35 0 .65.137t.5.413l1.4 1.7q.2.275.325.575T21 6.5V19q0 .825-.588 1.413T19 21H5Zm.4-15h13.2l-.85-1H6.25L5.4 6ZM5 8v11h14V8H5Zm7 10l4-4l-1.4-1.4l-1.6 1.6V10h-2v4.2l-1.6-1.6L8 14l4 4Zm-7 1h14H5Z"/></svg>`,
+    }
 }
 
 const App = {

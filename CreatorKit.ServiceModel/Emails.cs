@@ -19,7 +19,7 @@ public class SimpleTextEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     public bool? Draft { get; set; }
 }
 
-[Renderer(typeof(RenderCustomHtml), Layout = "layout", Page="markdown")]
+[Renderer(typeof(RenderCustomHtml), Layout = "basic", Template="empty")]
 [Tag(Tag.Mail), ValidateIsAdmin]
 [Icon(Svg = Icons.TextMarkup)]
 [Description("Markdown Email")]
@@ -46,8 +46,8 @@ public class CustomHtmlEmail : CreateEmailBase, IPost, IReturn<MailMessage>
     public string Layout { get; set; }
     
     [ValidateNotEmpty]
-    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailPageOptions")]
-    public string Page { get; set; }
+    [Input(Type = "combobox", EvalAllowableValues = "AppData.EmailTemplateOptions")]
+    public string Template { get; set; }
     
     [ValidateNotEmpty]
     [FieldCss(Field = "col-span-12")]

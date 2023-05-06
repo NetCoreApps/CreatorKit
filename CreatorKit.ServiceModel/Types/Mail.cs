@@ -35,19 +35,18 @@ public class MailMessage
 {
     [AutoIncrement]
     public int Id { get; set; }
-    public string ExternalRef { get; set; }
     public string Email { get; set; }
-    public string Layout { get; set; }
-    public string Page { get; set; }
+    public string? Layout { get; set; }
+    public string? Template { get; set; }
     public string Renderer { get; set; }
     public Dictionary<string,object> RendererArgs { get; set; }
     public EmailMessage Message { get; set; }
     public bool Draft { get; set; }
+    public string ExternalRef { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? StartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
-    public string? ErrorCode { get; set; }
-    public string? ErrorMessage { get; set; }
+    public ResponseStatus? Error { get; set; }
 }
 
 [Icon(Svg = Icons.MailRun)]
@@ -60,7 +59,7 @@ public class MailRun
     public string Generator { get; set; }
     public Dictionary<string,object> GeneratorArgs { get; set; }
     public string Layout { get; set; }
-    public string Page { get; set; }
+    public string Template { get; set; }
     public string ExternalRef { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? GeneratedDate { get; set; }
@@ -88,8 +87,32 @@ public class MailMessageRun
     public EmailMessage Message { get; set; }
     public DateTime? StartedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
-    public string? ErrorCode { get; set; }
-    public string? ErrorMessage { get; set; }
+    public ResponseStatus? Error { get; set; }
+}
+
+[Icon(Svg = Icons.Mail)]
+[NamedConnection("archive")]
+public class ArchiveMessage : MailMessage {}
+
+[Icon(Svg = Icons.MailRun)]
+[NamedConnection("archive")]
+public class ArchiveRun : MailRun {}
+
+[Icon(Svg = Icons.Mail)]
+[NamedConnection("archive")]
+public class ArchiveMessageRun
+{
+    [AutoIncrement]
+    public int Id { get; set; }
+    public int MailRunId { get; set; }
+    public int ContactId { get; set; }
+    public string Renderer { get; set; }
+    public Dictionary<string,object> RendererArgs { get; set; }
+    public string ExternalRef { get; set; }
+    public EmailMessage Message { get; set; }
+    public DateTime? StartedDate { get; set; }
+    public DateTime? CompletedDate { get; set; }
+    public ResponseStatus? Error { get; set; }
 }
 
 public enum Source
@@ -129,17 +152,7 @@ public class EmailMessage
     public List<MailTo> Bcc { get; set; }
     public MailTo? From { get; set; }
     public string Subject { get; set; }
+    public string? Body { get; set; }
     public string? BodyHtml { get; set; }
     public string? BodyText { get; set; }
 }
-
-public class Archive
-{
-    public string Name { get; set; }
-    public int ContactCount { get; set; }
-    public int MailMessageCount { get; set; }
-    public int MailRunCount { get; set; }
-    public int MailMessageRun { get; set; }
-    public DateTime LastUpdated { get; set; }
-}
-

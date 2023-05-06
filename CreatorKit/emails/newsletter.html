@@ -19,5 +19,12 @@
             {{/each}}
         </td>
     </tr>
+    {{#if body}}
+    <tr>
+        <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
+            {{ body |> emailmarkdown }}
+        </td>
+    </tr>
+    {{/if}}
     </tbody>
 </table>

@@ -34,6 +34,7 @@ public class EmailRunsServices : Service
                 {
                     To = sub.ToMailTos(),
                     Subject = request.Subject,
+                    Body = request.Body,
                     BodyText = bodyHtml,
                 }
             }, mailRun, sub));
@@ -46,8 +47,8 @@ public class EmailRunsServices : Service
     public async Task<object> Any(MarkdownMailRun request)
     {
         var to = request.ConvertTo<CustomHtmlMailRun>();
-        to.Layout = "layout";
-        to.Page = "markdown";
+        to.Layout = "basic";
+        to.Template = "empty";
         return await Any(to);
     }
 
@@ -57,7 +58,7 @@ public class EmailRunsServices : Service
         
         var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun {
             Layout = request.Layout,
-            Page = request.Page,
+            Template = request.Template,
         }, request);
         
         foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
@@ -71,6 +72,7 @@ public class EmailRunsServices : Service
                 {
                     To = sub.ToMailTos(),
                     Subject = request.Subject,
+                    Body = request.Body,
                     BodyHtml = bodyHtml,
                 }
             }.FromRequest(viewRequest), mailRun, sub));
@@ -92,7 +94,7 @@ public class EmailRunsServices : Service
 
         var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun {
             Layout = "marketing",
-            Page = "newsletter",
+            Template = "newsletter",
         }, request);
         
         foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))

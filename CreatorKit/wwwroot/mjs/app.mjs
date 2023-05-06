@@ -2,7 +2,7 @@ import { createApp, nextTick, reactive } from "vue"
 import { JsonApiClient, $1, $$ } from "@servicestack/client"
 import ServiceStackVue, { useAuth } from "@servicestack/vue"
 import { Authenticate } from "./dtos.mjs"
-import { EmailInput } from "./components/Inputs.mjs"
+import { EmailInput, MarkdownEmailInput } from "./components/Inputs.mjs"
 
 let client = null, Apps = []
 let AppData = {
@@ -36,7 +36,8 @@ export function mount(sel, component, props) {
     app.mount(el)
     Apps.push(app)
     // Register custom input components
-    ServiceStackVue.component('EmailInput', EmailInput) 
+    ServiceStackVue.component('EmailInput', EmailInput)
+    ServiceStackVue.component('MarkdownEmailInput', MarkdownEmailInput)
     return app
 }
 
