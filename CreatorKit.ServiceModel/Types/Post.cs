@@ -63,6 +63,7 @@ public class CommentVote
     [AutoIncrement]
     public long Id { get; set; }
 
+    [Ref(None = true)]
     [References(typeof(Comment))]
     public int CommentId { get; set; }
     [References(typeof(AppUser))]

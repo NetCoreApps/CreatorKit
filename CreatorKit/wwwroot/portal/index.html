@@ -827,7 +827,8 @@ const postSections = {
         label: 'Threads',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'><path d='M3 21c-.667-.667 3.262-6.236 11.785-16.709a3.5 3.5 0 1 1 5.078 4.791C9.288 17.694 3.667 21.667 3 21zM17.5 6.5l-1 1'/><path d='M17 7c-2.333-2.667-3.5-4-5-4s-2 1-2 2c0 4 8.161 8.406 6 11c-1.056 1.268-3.363 1.285-5.75.808m-4.511-1.383C4.346 14.86 2 13.5 2 12m17.5-2.5L21 11'/></g></svg>`,
         component: {
-            template:`<AutoQueryGrid type="Thread" selectedColumns="id,url,description,viewCount,likesCount,commentsCount,createdDate" />`,
+            template:`<AutoQueryGrid type="Thread" apis="AdminQueryThreads,AdminUpdateThread,AdminDeleteThread" 
+                selectedColumns="id,url,description,viewCount,likesCount,commentsCount,createdDate" />`,
         },
     },
     comments: {
@@ -836,7 +837,8 @@ const postSections = {
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linejoin="round"><path stroke-linecap="round" stroke-width="1.5" d="M12 21a9 9 0 1 0-8-4.873L3 21l4.873-1c1.236.639 2.64 1 4.127 1Z"/><path stroke-width="2.25" d="M7.5 12h.01v.01H7.5zm4.5 0h.01v.01H12zm4.5 0h.01v.01h-.01z"/></g></svg>`,
         component: {
             template:`
-                <AutoQueryGrid type="Comment" selectedColumns="id,threadId,replyId,content,upVotes,downVotes,flagReason,appUserId,displayName,profileUrl,createdId"
+                <AutoQueryGrid type="Comment" apis="AdminQueryComments,AdminUpdateComment,AdminDeleteComment" 
+                    selectedColumns="id,threadId,replyId,content,upVotes,downVotes,flagReason,appUserId,displayName,profileUrl,createdId"
                     :headerTitles="{ threadId:'Thread', replyId:'Reply', profileUrl:'Profile', appUserId:'User' }" 
                     :visibleFrom="{ displayName:'never',profileUrl:'never' }">
                   <template #appUserId="{ appUserId, displayName, profileUrl }">
@@ -853,7 +855,7 @@ const postSections = {
         label: 'Votes',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M12.781 2.375c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 0 0 4 14h4v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-7h4a1.001 1.001 0 0 0 .781-1.625l-8-10zM15 12h-1v8h-4v-8H6.081L12 4.601L17.919 12H15z'/></svg>`,
         component: {
-            template:`<AutoQueryGrid type="CommentVote" />`,
+            template:`<AutoQueryGrid type="CommentVote" apis="AdminQueryCommentVotes,AdminUpdateCommentVote,AdminDeleteCommentVote" />`,
         },
     },
     reports: {
