@@ -18,107 +18,55 @@
 </head>
 <body class="h-full">
 <div id="app" v-cloak>
-    <!-- Off-canvas menu for mobile, show/hide based on off-canvas menu state. -->
-    <div v-if="toggleState" class="relative z-10 lg:hidden" role="dialog" aria-modal="true">
-        <div :class="['fixed inset-0 bg-gray-900/80', transition1]"></div>
-
-        <div class="fixed inset-0 flex">
-            <div :class="['relative mr-16 flex w-full max-w-xs flex-1', transition2]">
-                <div :class="['absolute left-full top-0 flex w-16 justify-center pt-5', transition3]">
-                    <button type="button" @click="toggle(false)" class="-m-2.5 p-2.5">
-                        <span class="sr-only">Close sidebar</span>
-                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
-                    <div class="flex h-16 shrink-0 items-center">
-                        <a href="/portal/">
-                            <svg class="h-10 w-auto text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M10 6c1.544 1.76 2.276 4.15 2.217 6.61c3.968 1.67 9.924 6.12 11.181 12.39H28C26.051 14.31 14.918 6.77 10 6zm-2 7c4.67 4.913.81 11.582-4 12h18.97C21.5 18.289 11.95 13.533 8 13z"/></svg>
-                        </a>
-                    </div>
-                    <nav class="flex flex-1 flex-col">
-                        <ul role="list" class="flex flex-1 flex-col gap-y-7">
-                            <li>
-                                <ul role="list" class="-mx-2 space-y-1">
-                                    <li v-for="section in sections">
-                                        <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
-                                        <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']">
-                                            <div v-html="section.icon"></div>
-                                            {{section.label}}
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
+    <sidebar-layout ref="sidebar">
+        <div class="flex h-16 shrink-0 items-center">
+            <a href="/portal/">
+                <svg class="h-10 w-auto text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M10 6c1.544 1.76 2.276 4.15 2.217 6.61c3.968 1.67 9.924 6.12 11.181 12.39H28C26.051 14.31 14.918 6.77 10 6zm-2 7c4.67 4.913.81 11.582-4 12h18.97C21.5 18.289 11.95 13.533 8 13z"/></svg>
+            </a>
         </div>
-    </div>
-    
-    <!-- Static sidebar for desktop -->
-    <div class="hidden lg:fixed lg:inset-y-0 lg:z-10 lg:flex lg:w-72 lg:flex-col">
-        <!-- Sidebar component, swap this element with another sidebar if you like -->
-        <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-            <div class="flex h-16 shrink-0 items-center">
-                <a href="/portal/">
-                    <svg class="h-10 w-auto text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M10 6c1.544 1.76 2.276 4.15 2.217 6.61c3.968 1.67 9.924 6.12 11.181 12.39H28C26.051 14.31 14.918 6.77 10 6zm-2 7c4.67 4.913.81 11.582-4 12h18.97C21.5 18.289 11.95 13.533 8 13z"/></svg>
-                </a>
-            </div>
-            <nav class="flex flex-1 flex-col">
-                <ul role="list" class="flex flex-1 flex-col gap-y-7">
-                    <li>
-                        <ul role="list" class="-mx-2 space-y-1">
-                            <li v-for="section in sections">
-                                <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
-                                <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
-                                    <div v-html="section.icon"></div>
-                                    {{section.label}}
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <div class="text-sm font-semibold leading-6 text-gray-400">Manage Posts</div>
-                        <ul role="list" class="-mx-2 space-y-1">
-                            <li v-for="section in postSections">
-                                <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
-                                <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
-                                    <div v-html="section.icon"></div>
-                                    {{section.label}}
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="-mx-6 mt-auto">
-                        <span v-if="user" class="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">
-                            <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
-                            <span class="sr-only">Your profile</span>
-                            <span aria-hidden="true">{{user.displayName}}</span>
-                        </span>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-
-    <div :class="['sticky top-0 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden']">
-        <button type="button" @click="toggle(true)" class="-m-2.5 p-2.5 text-gray-700 lg:hidden">
-            <span class="sr-only">Open sidebar</span>
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-        </button>
-        <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.label }}</div>
-        <span v-if="user">
+        <nav class="flex flex-1 flex-col">
+            <ul role="list" class="flex flex-1 flex-col gap-y-7">
+                <li>
+                    <ul role="list" class="-mx-2 space-y-1">
+                        <li v-for="section in sections">
+                            <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
+                            <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
+                                <div v-html="section.icon"></div>
+                                {{section.label}}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <div class="text-sm font-semibold leading-6 text-gray-400">Manage Posts</div>
+                    <ul role="list" class="-mx-2 space-y-1">
+                        <li v-for="section in postSections">
+                            <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
+                            <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
+                                <div v-html="section.icon"></div>
+                                {{section.label}}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="-mx-6 mt-auto">
+                    <span v-if="user" class="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">
+                        <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
+                        <span class="sr-only">Your profile</span>
+                        <span aria-hidden="true">{{user.displayName}}</span>
+                    </span>
+                </li>
+            </ul>
+        </nav>
+        <template #mobiletitlebar>
+            <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.label }}</div>
+            <span v-if="user">
             <span class="sr-only">Your profile</span>
-            <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
-        </span>
-    </div>
-
+                <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
+            </span>
+        </template>
+    </sidebar-layout>    
+    
     <main class="lg:pl-72">
         <div class="px-4 sm:px-6 lg:px-8">
             <!-- Your content -->
@@ -169,10 +117,6 @@ function formatEmails(emails) {
     return to.join(', ')
 }
 
-function isHtml(s) {
-    return typeof s == 'string' && (s.trimStart().startsWith('<') || s.includes('style="'))
-}
-
 const EmailPreview = {
     template:`<div class="w-full">
         <ErrorSummary v-if="hadSuccess" />
@@ -212,7 +156,7 @@ const EmailPreview = {
                 }, delayMs || 250);
             };
         }
-
+        const isHtml = s => typeof s == 'string' && (s.trimStart().startsWith('<') || s.includes('style="')) 
 
         watch(() => props.modelValue, update, { deep: true })
         onMounted(update)
@@ -285,7 +229,7 @@ const Dashboard = {
       <div class="mt-10">
       <h3 class="text-base font-semibold leading-6 text-gray-900">Last 30 days</h3>
       <dl class="mt-5 grid grid-cols-1 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow md:grid-cols-3 md:divide-x md:divide-y-0">
-        <div v-for="stat in last30Days" class="cursor-pointer px-4 py-5 sm:p-6" @click="$emit('nav',stat.section)">
+        <div v-for="stat in last30Days" class="hover:bg-gray-50 cursor-pointer px-4 py-5 sm:p-6" @click="$emit('nav',stat.section)">
           <dt class="text-base font-normal text-gray-900">{{stat.label}}</dt>
           <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
             <div class="flex items-baseline text-2xl font-semibold text-indigo-600">
@@ -306,7 +250,7 @@ const Dashboard = {
       <div class="mt-10">
         <h3 class="text-base font-semibold leading-6 text-gray-900">Totals</h3>
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div v-for="stat in totals" class="cursor-pointer overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6" @click="$emit('nav',stat.section)">
+          <div v-for="stat in totals" class="hover:bg-gray-50 cursor-pointer overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6" @click="$emit('nav',stat.section)">
             <dt class="truncate text-sm font-medium text-gray-500">{{stat.label}}</dt>
             <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{stat.total}}</dd>
           </div>
@@ -316,7 +260,7 @@ const Dashboard = {
       <div class="mt-10">
         <h3 class="text-base font-semibold leading-6 text-gray-900">Archived Totals</h3>
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div v-for="stat in archivedTotals" class="cursor-pointer overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6" @click="$emit('nav',stat.section,stat.sectionArgs)">
+          <div v-for="stat in archivedTotals" class="hover:bg-gray-50 cursor-pointer overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6" @click="$emit('nav',stat.section,stat.sectionArgs)">
             <dt class="truncate text-sm font-medium text-gray-500">{{stat.label}}</dt>
             <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{stat.total}}</dd>
           </div>
@@ -726,11 +670,7 @@ const ArchiveMailRuns = {
 const ArchiveMailRunMessages = {
     template:`<AutoQueryGrid ref="grid" type="ArchiveMessageRun" ></AutoQueryGrid>`,
 }
-const ArchiveTabs = {
-    ArchiveMessages,
-    ArchiveMailRuns,
-    ArchiveMailRunMessages,
-}
+const ArchiveTabs = { ArchiveMessages, ArchiveMailRuns, ArchiveMailRunMessages }
 
 const Archive = {
     components: { ...ArchiveTabs },
@@ -874,39 +814,9 @@ const postSections = {
 
 const App = {
     setup() {
-        const { transition } = useUtils()
         const { user } = useAuth()
+        const sidebar = ref()
         const refreshKey = ref(1)
-
-        const toggleState = ref(true)
-        const transition1 = ref('')
-        const rule1 = {
-            entering: { cls:'transition-opacity ease-linear duration-300', from:'opacity-0',   to:'opacity-100'},
-            leaving:  { cls:'transition-opacity ease-linear duration-300', from:'opacity-100', to:'opacity-0'}
-        }
-
-        const transition2 = ref('')
-        const rule2 = {
-            entering: { cls:'transition ease-in-out duration-300 transform', from:'-translate-x-full', to:'translate-x-0'},
-            leaving:  { cls:'transition ease-in-out duration-300 transform', from:'translate-x-0',     to:'-translate-x-full'}
-        }
-
-        const transition3 = ref('')
-        const rule3 = {
-            entering: { cls:'ease-in-out duration-300', from:'opacity-0',   to:'opacity-100'},
-            leaving:  { cls:'ease-in-out duration-300', from:'opacity-100', to:'opacity-0'}
-        }
-
-        function toggle(show) {
-            transition(rule1, transition1, show)
-            transition(rule2, transition2, show)
-            transition(rule3, transition3, show)
-            setTimeout(() => toggleState.value = show, 300)
-        }
-        
-        function qs() {
-            return queryString(location.href)
-        }
         const allSections = { ...sections, ...postSections }
         const activeSection = shallowRef(allSections[rightPart(leftPart(location.hash,'?'), '#')] || sections.dashboard)
         
@@ -916,7 +826,7 @@ const App = {
             activeSection.value = allSections[section] || sections.dashboard
             console.log('navTo', { section, ...args }, appendQueryString(`#${section}`, args))
             if (pushState) history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
-            toggle(false)
+            sidebar.value.toggle(false)
         }
         
         onMounted(() => {
@@ -925,8 +835,7 @@ const App = {
             })
         })
         
-        return { transition1, transition2, transition3, toggleState, toggle, 
-            user, sections, postSections, activeSection, navTo, refreshKey, qs }
+        return { sidebar, user, sections, postSections, activeSection, navTo, refreshKey }
     }
 }
 mount('#app', App)
