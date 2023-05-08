@@ -31,7 +31,8 @@ public class ActiveUserValidator : TypeValidator, IAuthTypeValidator
         
         var session = await request.SessionAsAsync<CustomUserSession>();
         var userId = session.UserAuthId.ToInt();
-        var checkDb = AppData.Instance.BannedUsersMap.ContainsKey(userId) || session.LockedDate != null ||
+        var appData = request.TryResolve<AppData>();
+        var checkDb = appData.BannedUsersMap.ContainsKey(userId) || session.LockedDate != null ||
                       (session.BanUntilDate != null && session.BanUntilDate > DateTime.UtcNow);
         if (checkDb)
         {
@@ -47,7 +48,7 @@ public class ActiveUserValidator : TypeValidator, IAuthTypeValidator
             if (user.LockedDate != null)
                 throw new HttpError(ResolveStatusCode(), ResolveErrorCode(), ResolveErrorMessage(request, dto));
 
-            AppData.Instance.BannedUsersMap.TryRemove(userId, out _);
+            appData.BannedUsersMap.TryRemove(userId, out _);
         }
     }
 }

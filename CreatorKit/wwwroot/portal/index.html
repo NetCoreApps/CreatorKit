@@ -50,7 +50,10 @@
                     </ul>
                 </li>
                 <li class="-mx-6 mt-auto">
-                    <span v-if="user" class="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">
+                    <div v-if="showUserMenu" class="font-normal absolute z-10 -mt-10 left-6 w-60 origin-top-right rounded-md bg-white dark:bg-black py-1 shadow-lg ring-1 ring-black dark:ring-gray-600 ring-opacity-5 focus:outline-none right-2" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                        <a href="/auth/logout" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800" role="menuitem" tabindex="-1">Logout</a>
+                    </div>
+                    <span v-if="user" @click="showUserMenu=!showUserMenu" class="flex cursor-pointer bg-gray-50 items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">
                         <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
                         <span class="sr-only">Your profile</span>
                         <span aria-hidden="true">{{user.displayName}}</span>
@@ -60,8 +63,8 @@
         </nav>
         <template #mobiletitlebar>
             <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.label }}</div>
-            <span v-if="user">
-            <span class="sr-only">Your profile</span>
+            <span v-if="user" class="cursor-pointer bg-gray-50">
+                <span class="sr-only">Your profile</span>
                 <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
             </span>
         </template>
@@ -817,6 +820,7 @@ const App = {
         const { user } = useAuth()
         const sidebar = ref()
         const refreshKey = ref(1)
+        const showUserMenu = ref(false)
         const allSections = { ...sections, ...postSections }
         const activeSection = shallowRef(allSections[rightPart(leftPart(location.hash,'?'), '#')] || sections.dashboard)
         
@@ -835,7 +839,7 @@ const App = {
             })
         })
         
-        return { sidebar, user, sections, postSections, activeSection, navTo, refreshKey }
+        return { sidebar, user, sections, postSections, activeSection, navTo, refreshKey, showUserMenu }
     }
 }
 mount('#app', App)
