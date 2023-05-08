@@ -41,7 +41,8 @@ public class ActiveUserValidator : TypeValidator, IAuthTypeValidator
                 throw new HttpError(ResolveStatusCode(), ResolveErrorCode(), "Your account no longer exists");
             
             if (user.BanUntilDate != null && user.BanUntilDate > DateTime.UtcNow)
-                throw new HttpError(ResolveStatusCode(), ResolveErrorCode(), $"Your account will be unbanned in {(user.BanUntilDate.Value - DateTime.UtcNow).Humanize()}");
+                throw new HttpError(ResolveStatusCode(), ResolveErrorCode(), 
+                    $"Your account will be unbanned in {(user.BanUntilDate.Value - DateTime.UtcNow).Humanize()}");
 
             if (user.LockedDate != null)
                 throw new HttpError(ResolveStatusCode(), ResolveErrorCode(), ResolveErrorMessage(request, dto));
@@ -49,24 +50,4 @@ public class ActiveUserValidator : TypeValidator, IAuthTypeValidator
             AppData.Instance.BannedUsersMap.TryRemove(userId, out _);
         }
     }
-}
-
-public static class TimeSpanExtensions
-{
-    // TODO remove in v6.8.1+
-    public static string Humanize(this TimeSpan span)
-    {
-        var duration = span.Duration();
-        var secs = duration.Seconds > 0
-            ? $"{span.Seconds:0} second{(span.Seconds == 1 ? string.Empty : "s")}"
-            : string.Empty;
-        
-        var formatted = string.Format("{0}{1}{2}{3}",
-            duration.Days > 0 ? $"{span.Days:0} day{(span.Days == 1 ? string.Empty : "s")}, " : string.Empty,
-            duration.Hours > 0 ? $"{span.Hours:0} hour{(span.Hours == 1 ? string.Empty : "s")}, " : string.Empty,
-            duration.Minutes > 0 ? $"{span.Minutes:0} minute{(span.Minutes == 1 ? string.Empty : "s")}" : string.Empty,
-            secs != string.Empty ? ", " + secs : string.Empty);
-
-        return formatted;
-    }    
 }
