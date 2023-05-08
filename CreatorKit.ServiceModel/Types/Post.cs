@@ -71,6 +71,7 @@ public class CommentVote
     public DateTime CreatedDate { get; set; }
 }
 
+[Icon(Svg = Icons.Report)]
 public class CommentReport
 {
     [AutoIncrement]
@@ -78,11 +79,19 @@ public class CommentReport
 
     [References(typeof(Comment))]
     public int CommentId { get; set; }
+    
+    [Reference]
+    public Comment Comment { get; set; }
+    
     [References(typeof(AppUser))]
     public int AppUserId { get; set; }
+    
     public PostReport PostReport { get; set; }
     public string Description { get; set; }
+
     public DateTime CreatedDate { get; set; }
+    public ModerationDecision Moderation { get; set; }
+    public string? Notes { get; set; }
 }
 
 public enum PostReport
@@ -92,6 +101,25 @@ public enum PostReport
     Nudity,
     Illegal,
     Other,
+}
+
+public enum ModerationDecision
+{
+    None,
+    [Description("Allow Comment")]
+    Allow,
+    [Description("Flag Comment")]
+    Flag,
+    [Description("Delete Comment")]
+    Delete,
+    [Description("Ban User for a day")]
+    Ban1Day,
+    [Description("Ban User for a week")]
+    Ban1Week,
+    [Description("Ban User for a month")]
+    Ban1Month,
+    [Description("Permanently Ban User")]
+    PermanentBan,
 }
 
 public class CommentResult

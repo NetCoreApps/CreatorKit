@@ -60,6 +60,7 @@ public class Migration1000 : MigrationBase
         public DateTime ModifiedDate { get; set; }
     }
     
+    [Icon(Svg = Icons.Thread)]
     [AutoPopulate(nameof(ExternalRef), Eval = "nguid")]
     public class Thread
     {
@@ -70,6 +71,7 @@ public class Migration1000 : MigrationBase
         public string Description { get; set; }
         public string ExternalRef { get; set; }
         public int ViewCount { get; set; }
+        [Default(1)]
         public long LikesCount { get; set; }
         public long CommentsCount { get; set; }
         public long? RefId { get; set; }
@@ -79,6 +81,7 @@ public class Migration1000 : MigrationBase
         public DateTime? DeletedDate { get; set; }
     }
 
+    [Icon(Svg = Icons.Comment)]
     public class Comment : AuditBase
     {
         [AutoIncrement]
@@ -90,7 +93,6 @@ public class Migration1000 : MigrationBase
         public int UpVotes { get; set; }
         [Default(0)]
         public int DownVotes { get; set; }
-        [Default(0)]
         public int Votes { get; set; }
         public string? FlagReason { get; set; }
         public string? Notes { get; set; }
@@ -110,6 +112,7 @@ public class Migration1000 : MigrationBase
         public DateTime CreatedDate { get; set; }
     }
 
+    [Icon(Svg = Icons.Vote)]
     [UniqueConstraint(nameof(CommentId), nameof(AppUserId))]
     public class CommentVote
     {
@@ -124,6 +127,7 @@ public class Migration1000 : MigrationBase
         public DateTime CreatedDate { get; set; }
     }
 
+    [Icon(Svg = Icons.Report)]
     public class CommentReport
     {
         [AutoIncrement]
@@ -131,11 +135,19 @@ public class Migration1000 : MigrationBase
 
         [References(typeof(Comment))]
         public int CommentId { get; set; }
+    
+        [Reference]
+        public Comment Comment { get; set; }
+    
         [References(typeof(AppUser))]
         public int AppUserId { get; set; }
+    
         public PostReport PostReport { get; set; }
         public string Description { get; set; }
+
         public DateTime CreatedDate { get; set; }
+        public ModerationDecision Moderation { get; set; }
+        public string? Notes { get; set; }
     }
 
     public enum PostReport
@@ -147,6 +159,23 @@ public class Migration1000 : MigrationBase
         Other,
     }
 
+    public enum ModerationDecision
+    {
+        [Description("Allow Comment")]
+        Allow,
+        [Description("Flag Comment")]
+        Flag,
+        [Description("Delete Comment")]
+        Delete,
+        [Description("Ban User for a day")]
+        Ban1Day,
+        [Description("Ban User for a week")]
+        Ban1Week,
+        [Description("Ban User for a month")]
+        Ban1Month,
+        [Description("Permanently Ban User")]
+        PermanentBan,
+    }
 
     OrmLiteAuthRepository<AppUser, UserAuthDetails> CreateAuthRepo() => new(DbFactory) { UseDistinctRoleTables = true };
 

@@ -229,6 +229,7 @@ public class MailingServices : Service
             BaseUrl = appData.BaseUrl,
             AppBaseUrl = appData.AppBaseUrl,
             Vars = appData.Vars,
+            BannedUserIds = appData.BannedUsersMap.Keys.ToList(),
         };
     }
 
@@ -265,9 +266,9 @@ public class MailingServices : Service
         }
 
         var archivedTables = new[] {
-            ("ArchivedMessages", nameof(ArchiveMessage)),
-            ("ArchivedMailRuns", nameof(ArchiveRun)),
-            ("ArchivedMailRunMessages", nameof(ArchiveMessageRun)),
+            ("Messages", nameof(ArchiveMessage)),
+            ("MailRuns", nameof(ArchiveRun)),
+            ("MailRunMessages", nameof(ArchiveMessageRun)),
         };
         var archivedTotalSql = archivedTables
             .Map(x => $"SELECT '{x.Item1}' AS Name, (SELECT COUNT(*) FROM {x.Item2}) AS Total")

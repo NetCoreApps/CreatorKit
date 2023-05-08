@@ -65,6 +65,7 @@ public class AppHost : AppHostBase, IHostingStartup
         await container.Resolve<AppData>().LoadAsync(this, 
             ContentRootDirectory.GetDirectory("emails"), RootDirectory.GetDirectory("img/mail"));
         ScriptContext.ScriptAssemblies.Add(typeof(Hello).Assembly);
+        ScriptContext.ScriptMethods.Add(new ValidationScripts());
         ScriptContext.Args[nameof(AppData)] = AppData.Instance;
     }
 

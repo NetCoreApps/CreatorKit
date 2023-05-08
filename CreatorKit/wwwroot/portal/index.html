@@ -81,6 +81,18 @@
                             </li>
                         </ul>
                     </li>
+                    <li>
+                        <div class="text-sm font-semibold leading-6 text-gray-400">Manage Posts</div>
+                        <ul role="list" class="-mx-2 space-y-1">
+                            <li v-for="section in postSections">
+                                <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
+                                <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
+                                    <div v-html="section.icon"></div>
+                                    {{section.label}}
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="-mx-6 mt-auto">
                         <span v-if="user" class="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">
                             <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
@@ -128,10 +140,19 @@ import { useAuth, useClient, useMetadata, useUtils, useFormatters, css } from "@
 import { ref, computed, onMounted, onUnmounted, shallowRef, watch, nextTick } from "vue"
 
 // Order all tables descending so latest appears first
-const idColumns = ['MailRun.Id','MailMessageRun.Id','MailMessage.Id','Contact.Id'].map(x => 'Column/AutoQueryGrid:' + x)
+const idColumns = ['MailRun.Id','MailMessageRun.Id','MailMessage.Id','Contact.Id','AppUser.Id','Thread.Id','Comment.Id','CommentVote.Id','CommentReport.Id']
+    .map(x => 'Column/AutoQueryGrid:' + x)
 if (!idColumns.some(id => !!localStorage.getItem(id))) {
     idColumns.forEach(id => localStorage.setItem(id,'{"filters":[],"sort":"DESC"}'))
 }
+const defaultFilters = {
+    'Column/AutoQueryGrid:CommentReport.Moderation': '{"filters":[{"key":"%In","name":"In","value":"None"}]}'
+}
+Object.keys(defaultFilters).forEach(field => {
+    if (!localStorage.getItem(field)) {
+        localStorage.setItem(field, defaultFilters[field])
+    }
+})
 
 const { loadMetadata, metadataApi, typeOf } = useMetadata()
 await loadMetadata({
@@ -264,7 +285,7 @@ const Dashboard = {
       <div class="mt-10">
       <h3 class="text-base font-semibold leading-6 text-gray-900">Last 30 days</h3>
       <dl class="mt-5 grid grid-cols-1 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow md:grid-cols-3 md:divide-x md:divide-y-0">
-        <div v-for="stat in last30Days" class="px-4 py-5 sm:p-6">
+        <div v-for="stat in last30Days" class="cursor-pointer px-4 py-5 sm:p-6" @click="$emit('nav',stat.section)">
           <dt class="text-base font-normal text-gray-900">{{stat.label}}</dt>
           <dd class="mt-1 flex items-baseline justify-between md:block lg:flex">
             <div class="flex items-baseline text-2xl font-semibold text-indigo-600">
@@ -285,7 +306,7 @@ const Dashboard = {
       <div class="mt-10">
         <h3 class="text-base font-semibold leading-6 text-gray-900">Totals</h3>
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div v-for="stat in totals" class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+          <div v-for="stat in totals" class="cursor-pointer overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6" @click="$emit('nav',stat.section)">
             <dt class="truncate text-sm font-medium text-gray-500">{{stat.label}}</dt>
             <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{stat.total}}</dd>
           </div>
@@ -295,7 +316,7 @@ const Dashboard = {
       <div class="mt-10">
         <h3 class="text-base font-semibold leading-6 text-gray-900">Archived Totals</h3>
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div v-for="stat in archivedTotals" class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+          <div v-for="stat in archivedTotals" class="cursor-pointer overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6" @click="$emit('nav',stat.section,stat.sectionArgs)">
             <dt class="truncate text-sm font-medium text-gray-500">{{stat.label}}</dt>
             <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{stat.total}}</dd>
           </div>
@@ -304,27 +325,44 @@ const Dashboard = {
       
     </div>`,
     emits: ['nav'],
-    setup(props) {
+    setup(props, { emit }) {
         const client = useClient()
         const api = ref(new ApiResult())
+        
+        const tableSections = {
+            Contacts: 'contacts',
+            Comments: 'comments',
+            Users: 'users',
+            Messages: 'messages',
+            MailRuns: 'mailruns',
+            MailRunMessages: 'mailrunmsgs',
+            Threads: 'threads',
+            CommentVotes: 'votes',
+            CommentReports: 'reports',
+        }
+        
         const last30Days = computed(() => ['Contacts','Comments','Users']
             .map(x => ({ 
                 label:`Total ${x === 'Contacts' ? 'Subscribers' : humanize(x)}`, 
                 total: api.value.response?.totals[x] || 0,
                 before30DayTotal: api.value.response?.before30DayTotals[x] || 0,
                 last30DayTotal: api.value.response?.last30DayTotals[x] || 0,
+                section: tableSections[x],
             })))
-
+        
         const totals = computed(() => ['Messages','MailRuns','MailRunMessages','Threads','CommentVotes','CommentReports']
             .map(x => ({
                 label:`Total ${humanize(x)}`,
                 total: api.value.response?.totals[x] || 0,
+                section: tableSections[x],
             })))
 
         const archivedTotals = computed(() => ['Messages','MailRuns','MailRunMessages']
             .map(x => ({
                 label:`Total ${humanize(x)}`,
                 total: api.value.response?.archivedTotals[x] || 0,
+                section: 'archive',
+                sectionArgs: { tab:`Archive${x}` }
             })))
 
         onMounted(async () => await client.swr(new ViewAppStats(), r => api.value = r))
@@ -685,22 +723,29 @@ const ArchiveMessages = {
 const ArchiveMailRuns = {
     template:`<AutoQueryGrid ref="grid" type="ArchiveRun" ></AutoQueryGrid>`,
 }
-const ArchiveMessageRuns = {
+const ArchiveMailRunMessages = {
     template:`<AutoQueryGrid ref="grid" type="ArchiveMessageRun" ></AutoQueryGrid>`,
 }
 const ArchiveTabs = {
     ArchiveMessages,
     ArchiveMailRuns,
-    ArchiveMessageRuns,
+    ArchiveMailRunMessages,
 }
 
 const Archive = {
     components: { ...ArchiveTabs },
     template:`
-      <tabs :tabs="ArchiveTabs"></tabs>
+      <Tabs :tabs="ArchiveTabs" :selected="selected"></Tabs>
     `,
     setup(props) {
-        return { ArchiveTabs }
+        const selected = ref('')
+        
+        onMounted(() => {
+            const qs = queryString(location.href)
+            selected.value = qs.tab
+        })
+        
+        return { ArchiveTabs, selected }
     }
 }
 
@@ -749,6 +794,82 @@ const sections = {
     }
 }
 
+const postSections = {
+    users: {
+        id: 'users',
+        label: 'Users',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 22h-2v-2a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v2H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2Zm-8-9a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-2a4 4 0 1 0 0-8a4 4 0 0 0 0 8Z"/></svg>`,
+        component: {
+            template:`<AutoQueryGrid type="AppUser" hide="copyApiUrl" @rowSelected="view" 
+                         selectedColumns="id,profileUrl,email,displayName,handle,lastLoginIp,lastLoginDate,createdDate"
+                         :headerTitles="{ profileUrl:'Profile' }">
+                <template #toolbarbuttons>
+                    <div class="pl-2 mt-1">
+                      <a href="/admin-ui/users" :class="[css.grid.toolbarButtonClass,'justify-center gap-x-1.5']">
+                        Manage Users
+                      </a>
+                    </div>
+                </template>
+              <template #profileUrl="{ displayName, profileUrl }">
+                <img v-if="profileUrl" class="w-6 h-6" :src="profileUrl" :alt="displayName + 'Profile Image'">
+              </template>
+            </AutoQueryGrid>`,
+            setup() {
+                function view(model) {
+                    location.href = `/admin-ui/users?edit=${model.id}`
+                }
+                return { css, view }
+            }
+        },
+    },
+    threads: {
+        id: 'threads',
+        label: 'Threads',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'><path d='M3 21c-.667-.667 3.262-6.236 11.785-16.709a3.5 3.5 0 1 1 5.078 4.791C9.288 17.694 3.667 21.667 3 21zM17.5 6.5l-1 1'/><path d='M17 7c-2.333-2.667-3.5-4-5-4s-2 1-2 2c0 4 8.161 8.406 6 11c-1.056 1.268-3.363 1.285-5.75.808m-4.511-1.383C4.346 14.86 2 13.5 2 12m17.5-2.5L21 11'/></g></svg>`,
+        component: {
+            template:`<AutoQueryGrid type="Thread" selectedColumns="id,url,description,viewCount,likesCount,commentsCount,createdDate" />`,
+        },
+    },
+    comments: {
+        id: 'comments',
+        label: 'Comments',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linejoin="round"><path stroke-linecap="round" stroke-width="1.5" d="M12 21a9 9 0 1 0-8-4.873L3 21l4.873-1c1.236.639 2.64 1 4.127 1Z"/><path stroke-width="2.25" d="M7.5 12h.01v.01H7.5zm4.5 0h.01v.01H12zm4.5 0h.01v.01h-.01z"/></g></svg>`,
+        component: {
+            template:`
+                <AutoQueryGrid type="Comment" selectedColumns="id,threadId,replyId,content,upVotes,downVotes,flagReason,appUserId,displayName,profileUrl,createdId"
+                    :headerTitles="{ threadId:'Thread', replyId:'Reply', profileUrl:'Profile', appUserId:'User' }" 
+                    :visibleFrom="{ displayName:'never',profileUrl:'never' }">
+                  <template #appUserId="{ appUserId, displayName, profileUrl }">
+                    <a :href="'/admin-ui/users?edit=' + appUserId" class="flex">
+                        <img v-if="profileUrl" class="w-5 h-5 mr-2" :src="profileUrl" :alt="displayName + 'Profile Image'">
+                        <span>{{ displayName }}</span>
+                    </a>
+                  </template>
+                </AutoQueryGrid>`,
+        },
+    },
+    votes: {
+        id: 'votes',
+        label: 'Votes',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M12.781 2.375c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 0 0 4 14h4v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-7h4a1.001 1.001 0 0 0 .781-1.625l-8-10zM15 12h-1v8h-4v-8H6.081L12 4.601L17.919 12H15z'/></svg>`,
+        component: {
+            template:`<AutoQueryGrid type="CommentVote" />`,
+        },
+    },
+    reports: {
+        id: 'reports',
+        label: 'Reports',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"></path></svg>`,
+        component: {
+            template:`<AutoQueryGrid type="CommentReport" apis="AdminQueryCommentReports,AdminUpdateCommentReport,AdminDeleteCommentReport">
+                <template #formfooter="{ commendId }">
+                    
+                </template>
+            </AutoQueryGrid>`,
+        },
+    },
+}
+
 const App = {
     setup() {
         const { transition } = useUtils()
@@ -784,20 +905,26 @@ const App = {
         function qs() {
             return queryString(location.href)
         }
+        const allSections = { ...sections, ...postSections }
+        const activeSection = shallowRef(allSections[rightPart(leftPart(location.hash,'?'), '#')] || sections.dashboard)
         
-        const activeSection = shallowRef(sections[rightPart(leftPart(location.hash,'?'), '#')] || sections.dashboard)
-        
-        function navTo(section, args) {
+        function navTo(section, args, pushState=true) {
             if (!args) args = {}
             refreshKey.value++
-            activeSection.value = sections[section] || sections.dashboard
+            activeSection.value = allSections[section] || sections.dashboard
             console.log('navTo', { section, ...args }, appendQueryString(`#${section}`, args))
-            history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
+            if (pushState) history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
             toggle(false)
         }
         
+        onMounted(() => {
+            window.addEventListener('popstate', event => {
+                navTo(event.state?.section, {}, false)
+            })
+        })
+        
         return { transition1, transition2, transition3, toggleState, toggle, 
-            user, sections, activeSection, navTo, refreshKey, qs }
+            user, sections, postSections, activeSection, navTo, refreshKey, qs }
     }
 }
 mount('#app', App)

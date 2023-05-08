@@ -11,6 +11,8 @@ public class AppUser : IUserAuth
 {
     [AutoIncrement]
     public int Id { get; set; }
+    [Index]
+    public string Email { get; set; }
     public string UserName { get; set; }
     public string DisplayName { get; set; }
     public string FirstName { get; set; }
@@ -18,8 +20,6 @@ public class AppUser : IUserAuth
     [Index(Unique = true)]
     public string? Handle { get; set; }
     public string Company { get; set; }
-    [Index]
-    public string Email { get; set; }
     public string? ProfileUrl { get; set; }
     [Input(Type="file"), UploadTo("avatars")]
     public string? Avatar { get; set; } //overrides ProfileUrl
@@ -55,6 +55,7 @@ public class AppUser : IUserAuth
     public int InvalidLoginAttempts { get; set; }
     public DateTime? LastLoginAttempt { get; set; }
     public DateTime? LockedDate { get; set; }
+    public DateTime? BanUntilDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
 }

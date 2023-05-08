@@ -1,3 +1,4 @@
+using System;
 using ServiceStack;
 using CreatorKit.ServiceModel.Types;
 
@@ -8,6 +9,8 @@ public class CustomUserSession : AuthUserSession
 {
     public string Handle { get; set; }
     public string Avatar { get; set; }
+    public DateTime? LockedDate { get; set; }
+    public DateTime? BanUntilDate { get; set; }
 
     public int GetUserId() => UserAuthId.ToInt();
 }

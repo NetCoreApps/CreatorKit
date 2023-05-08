@@ -14,23 +14,6 @@ public class PreviewEmail : IPost, IReturn<string>
     public Dictionary<string,object> RequestArgs { get; set; }
 }
 
-/// <summary>
-/// Specify which renderer should be used to render emails
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class RendererAttribute : AttributeBase
-{
-    public Type Type { get; set; }
-    public RendererAttribute(Type type)
-    {
-        Type = type;
-    }
-
-    public string Layout { get; set; } = "basic";
-    public string Template { get; set; }
-}
-
-
 [Tag(Tag.Mail), ValidateIsAdmin, ExcludeMetadata]
 public class RenderSimpleText : RenderEmailBase, IGet, IReturn<string>
 {
@@ -56,5 +39,22 @@ public class RenderNewsletter : RenderEmailBase, IGet, IReturn<string>
 {
     public int? Month { get; set; }
     public int? Year { get; set; }
+}
+
+
+/// <summary>
+/// Specify which renderer should be used to render emails
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class RendererAttribute : AttributeBase
+{
+    public Type Type { get; set; }
+    public RendererAttribute(Type type)
+    {
+        Type = type;
+    }
+
+    public string Layout { get; set; } = "basic";
+    public string Template { get; set; }
 }
 

@@ -27,7 +27,7 @@ public class GetThreadUserDataResponse
 public class QueryComments : QueryDb<Comment, CommentResult>,
     IJoin<Comment,AppUser>
 {
-    public int ThreadId { get; set; }
+    public int? ThreadId { get; set; }
 }
 
 [Tag(Tag.Posts)]
@@ -43,7 +43,7 @@ public class GetThreadResponse
 }
 
 [Tag(Tag.Posts)]
-[ValidateIsAuthenticated]
+[ValidateIsAuthenticated, ValidateActiveUser]
 [AutoApply(Behavior.AuditCreate)]
 [AutoPopulate(nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
 [AutoPopulate(nameof(Comment.Votes), Value = 1)]
@@ -56,7 +56,7 @@ public class CreateComment : ICreateDb<Comment>, IReturn<Comment>
 }
 
 [Tag(Tag.Posts)]
-[ValidateIsAuthenticated]
+[ValidateIsAuthenticated, ValidateActiveUser]
 [AutoApply(Behavior.AuditModify)]
 [AutoFilter(QueryTerm.Ensure, nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
 public class UpdateComment : IPatchDb<Comment>, IReturn<Comment>
@@ -66,7 +66,7 @@ public class UpdateComment : IPatchDb<Comment>, IReturn<Comment>
 }
 
 [Tag(Tag.Posts)]
-[ValidateIsAuthenticated]
+[ValidateIsAuthenticated, ValidateActiveUser]
 [AutoApply(Behavior.AuditSoftDelete)]
 [AutoFilter(QueryTerm.Ensure, nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
 public class DeleteComment : IDeleteDb<Comment>, IReturnVoid
@@ -121,9 +121,10 @@ public class DeleteCommentVote : IDeleteDb<CommentVote>, IReturnVoid
 }
 
 [Tag(Tag.Posts)]
-[ValidateIsAuthenticated]
+[ValidateIsAuthenticated, ValidateActiveUser]
 [AutoApply(Behavior.AuditCreate)]
-[AutoPopulate(nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
+[AutoPopulate(nameof(CommentReport.AppUserId), Eval = "userAuthIntId()")]
+[AutoPopulate(nameof(CommentReport.Moderation), Value = ModerationDecision.None)]
 public class CreateCommentReport : ICreateDb<CommentReport>, IReturnVoid
 {
     public int CommentId { get; set; }
@@ -131,40 +132,8 @@ public class CreateCommentReport : ICreateDb<CommentReport>, IReturnVoid
     public string? Description { get; set; }
 }
 
-[Tag(Tag.Posts)]
-[ValidateIsAuthenticated]
-[AutoFilter(QueryTerm.Ensure, nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
-public class DeleteCommentReport : IDeleteDb<CommentReport>, IReturnVoid
-{
-    public int Id { get; set; }
-}
 
-
-[Tag(Tag.Posts)]
-[ValidateIsAdmin]
-[AutoApply(Behavior.AuditQuery)]
-public class QueryThreads : QueryDb<Thread>
+public class ValidateActiveUserAttribute : ValidateRequestAttribute
 {
-    public int? Id { get; set; }
-}
-[Tag(Tag.Posts)]
-[ValidateIsAdmin]
-[AutoApply(Behavior.AuditModify)]
-public class UpdateThread : IPatchDb<Thread>, IReturn<Thread>
-{
-    public int Id { get; set; }
-    public string Url { get; set; }
-    public string Description { get; set; }
-    public string ExternalRef { get; set; }
-    public long? RefId { get; set; }
-    public string RefIdStr { get; set; }
-    public DateTime CreatedDate { get; set; }
-    public DateTime? ClosedDate { get; set; }
-    public DateTime? DeletedDate { get; set; }
-}
-[Tag(Tag.Posts)]
-[ValidateIsAdmin]
-public class DeleteThread : IDeleteDb<Thread>, IReturnVoid
-{
-    public int Id { get; set; }
+    public ValidateActiveUserAttribute() : base("ActiveUser()") { }
 }

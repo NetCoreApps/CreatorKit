@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using ServiceStack.Html;
 using ServiceStack.IO;
 using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
+using ServiceStack.Auth;
 
 namespace CreatorKit.ServiceInterface;
 
@@ -45,7 +47,9 @@ public class AppData
     public string[]? MailingListValues => Input.GetEnumValues(typeof(MailingList));
 
     public Dictionary<string, Dictionary<string, string>> Vars { get; set; } = new();
-    
+
+    public ConcurrentDictionary<int, DateTime> BannedUsersMap { get; set; } = new();
+
     public IVirtualDirectory EmailsDir { get; set; }
     public IVirtualDirectory EmailImagesDir { get; set; }
 

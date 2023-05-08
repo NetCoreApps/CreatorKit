@@ -266,6 +266,7 @@ public class ViewAppDataResponse
     public string BaseUrl { get; set; }
     public string AppBaseUrl { get; set; }
     public Dictionary<string, Dictionary<string, string>> Vars { get; set; }
+    public List<int> BannedUserIds { get; set; }
     public ResponseStatus ResponseStatus { get; set; }
 }
 
