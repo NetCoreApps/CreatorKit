@@ -1,5 +1,5 @@
 /* Options:
-Date: 2023-05-07 01:16:09
+Date: 2023-05-08 18:45:27
 Version: 6.81
 Tip: To override a DTO option, remove "//" prefix before updating
 BaseUrl: https://localhost:5001
@@ -13,6 +13,89 @@ BaseUrl: https://localhost:5001
 */
 
 "use strict";
+/** @typedef {'Offensive'|'Spam'|'Nudity'|'Illegal'|'Other'} */
+export var PostReport;
+(function (PostReport) {
+    PostReport["Offensive"] = "Offensive"
+    PostReport["Spam"] = "Spam"
+    PostReport["Nudity"] = "Nudity"
+    PostReport["Illegal"] = "Illegal"
+    PostReport["Other"] = "Other"
+})(PostReport || (PostReport = {}));
+/** @typedef {'None'|'Allow'|'Flag'|'Delete'|'Ban1Day'|'Ban1Week'|'Ban1Month'|'PermanentBan'} */
+export var ModerationDecision;
+(function (ModerationDecision) {
+    ModerationDecision["None"] = "None"
+    ModerationDecision["Allow"] = "Allow"
+    ModerationDecision["Flag"] = "Flag"
+    ModerationDecision["Delete"] = "Delete"
+    ModerationDecision["Ban1Day"] = "Ban1Day"
+    ModerationDecision["Ban1Week"] = "Ban1Week"
+    ModerationDecision["Ban1Month"] = "Ban1Month"
+    ModerationDecision["PermanentBan"] = "PermanentBan"
+})(ModerationDecision || (ModerationDecision = {}));
+export class AuditBase {
+    /** @param {{createdDate?:string,createdBy?:string,modifiedDate?:string,modifiedBy?:string,deletedDate?:string,deletedBy?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    createdDate;
+    /** @type {string} */
+    createdBy;
+    /** @type {string} */
+    modifiedDate;
+    /** @type {string} */
+    modifiedBy;
+    /** @type {?string} */
+    deletedDate;
+    /** @type {string} */
+    deletedBy;
+}
+export class Comment extends AuditBase {
+    /** @param {{id?:number,threadId?:number,replyId?:number,content?:string,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,createdDate?:string,createdBy?:string,modifiedDate?:string,modifiedBy?:string,deletedDate?:string,deletedBy?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {number} */
+    threadId;
+    /** @type {?number} */
+    replyId;
+    /** @type {string} */
+    content;
+    /** @type {number} */
+    upVotes;
+    /** @type {number} */
+    downVotes;
+    /** @type {number} */
+    votes;
+    /** @type {?string} */
+    flagReason;
+    /** @type {?string} */
+    notes;
+    /** @type {number} */
+    appUserId;
+}
+export class CommentReport {
+    /** @param {{id?:number,commentId?:number,comment?:Comment,appUserId?:number,postReport?:PostReport,description?:string,createdDate?:string,moderation?:ModerationDecision,notes?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {number} */
+    commentId;
+    /** @type {Comment} */
+    comment;
+    /** @type {number} */
+    appUserId;
+    /** @type {PostReport} */
+    postReport;
+    /** @type {string} */
+    description;
+    /** @type {string} */
+    createdDate;
+    /** @type {ModerationDecision} */
+    moderation;
+    /** @type {?string} */
+    notes;
+}
 /** @typedef {number} */
 export var MailingList;
 (function (MailingList) {
@@ -318,6 +401,94 @@ export class CommentResult {
     /** @type {string} */
     modifiedDate;
 }
+export class AppUser {
+    /** @param {{id?:number,email?:string,userName?:string,displayName?:string,firstName?:string,lastName?:string,handle?:string,company?:string,profileUrl?:string,avatar?:string,lastLoginIp?:string,isArchived?:boolean,archivedDate?:string,lastLoginDate?:string,phoneNumber?:string,birthDate?:string,birthDateRaw?:string,address?:string,address2?:string,city?:string,state?:string,country?:string,culture?:string,fullName?:string,gender?:string,language?:string,mailAddress?:string,nickname?:string,postalCode?:string,timeZone?:string,meta?:{ [index: string]: string; },primaryEmail?:string,roles?:string[],permissions?:string[],refId?:number,refIdStr?:string,invalidLoginAttempts?:number,lastLoginAttempt?:string,lockedDate?:string,banUntilDate?:string,createdDate?:string,modifiedDate?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    userName;
+    /** @type {string} */
+    displayName;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+    /** @type {?string} */
+    handle;
+    /** @type {string} */
+    company;
+    /** @type {?string} */
+    profileUrl;
+    /** @type {?string} */
+    avatar;
+    /** @type {?string} */
+    lastLoginIp;
+    /** @type {boolean} */
+    isArchived;
+    /** @type {?string} */
+    archivedDate;
+    /** @type {?string} */
+    lastLoginDate;
+    /** @type {string} */
+    phoneNumber;
+    /** @type {?string} */
+    birthDate;
+    /** @type {string} */
+    birthDateRaw;
+    /** @type {string} */
+    address;
+    /** @type {string} */
+    address2;
+    /** @type {string} */
+    city;
+    /** @type {string} */
+    state;
+    /** @type {string} */
+    country;
+    /** @type {string} */
+    culture;
+    /** @type {string} */
+    fullName;
+    /** @type {string} */
+    gender;
+    /** @type {string} */
+    language;
+    /** @type {string} */
+    mailAddress;
+    /** @type {string} */
+    nickname;
+    /** @type {string} */
+    postalCode;
+    /** @type {string} */
+    timeZone;
+    /** @type {{ [index: string]: string; }} */
+    meta;
+    /** @type {string} */
+    primaryEmail;
+    /** @type {string[]} */
+    roles;
+    /** @type {string[]} */
+    permissions;
+    /** @type {?number} */
+    refId;
+    /** @type {string} */
+    refIdStr;
+    /** @type {number} */
+    invalidLoginAttempts;
+    /** @type {?string} */
+    lastLoginAttempt;
+    /** @type {?string} */
+    lockedDate;
+    /** @type {?string} */
+    banUntilDate;
+    /** @type {string} */
+    createdDate;
+    /** @type {string} */
+    modifiedDate;
+}
 export class MailMessageRun {
     /** @param {{id?:number,mailRunId?:number,contactId?:number,contact?:Contact,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,createdDate?:string,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -345,71 +516,6 @@ export class MailMessageRun {
     completedDate;
     /** @type {?ResponseStatus} */
     error;
-}
-export class AuditBase {
-    /** @param {{createdDate?:string,createdBy?:string,modifiedDate?:string,modifiedBy?:string,deletedDate?:string,deletedBy?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    createdDate;
-    /** @type {string} */
-    createdBy;
-    /** @type {string} */
-    modifiedDate;
-    /** @type {string} */
-    modifiedBy;
-    /** @type {?string} */
-    deletedDate;
-    /** @type {string} */
-    deletedBy;
-}
-export class Comment extends AuditBase {
-    /** @param {{id?:number,threadId?:number,replyId?:number,content?:string,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,createdDate?:string,createdBy?:string,modifiedDate?:string,modifiedBy?:string,deletedDate?:string,deletedBy?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {number} */
-    threadId;
-    /** @type {?number} */
-    replyId;
-    /** @type {string} */
-    content;
-    /** @type {number} */
-    upVotes;
-    /** @type {number} */
-    downVotes;
-    /** @type {number} */
-    votes;
-    /** @type {?string} */
-    flagReason;
-    /** @type {?string} */
-    notes;
-    /** @type {number} */
-    appUserId;
-}
-/** @typedef {'Offensive'|'Spam'|'Nudity'|'Illegal'|'Other'} */
-export var PostReport;
-(function (PostReport) {
-    PostReport["Offensive"] = "Offensive"
-    PostReport["Spam"] = "Spam"
-    PostReport["Nudity"] = "Nudity"
-    PostReport["Illegal"] = "Illegal"
-    PostReport["Other"] = "Other"
-})(PostReport || (PostReport = {}));
-export class CommentReport {
-    /** @param {{id?:number,commentId?:number,appUserId?:number,postReport?:PostReport,description?:string,createdDate?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {number} */
-    commentId;
-    /** @type {number} */
-    appUserId;
-    /** @type {PostReport} */
-    postReport;
-    /** @type {string} */
-    description;
-    /** @type {string} */
-    createdDate;
 }
 export class Thread {
     /** @param {{id?:number,url?:string,description?:string,externalRef?:string,viewCount?:number,likesCount?:number,commentsCount?:number,refId?:number,refIdStr?:string,createdDate?:string,closedDate?:string,deletedDate?:string}} [init] */
@@ -472,7 +578,7 @@ export class ViewMailRunInfoResponse {
     responseStatus;
 }
 export class ViewAppDataResponse {
-    /** @param {{baseUrl?:string,appBaseUrl?:string,vars?:{ [index: string]: { [index:string]: string; }; },responseStatus?:ResponseStatus}} [init] */
+    /** @param {{baseUrl?:string,appBaseUrl?:string,vars?:{ [index: string]: { [index:string]: string; }; },bannedUserIds?:number[],responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {string} */
     baseUrl;
@@ -480,16 +586,22 @@ export class ViewAppDataResponse {
     appBaseUrl;
     /** @type {{ [index: string]: { [index:string]: string; }; }} */
     vars;
+    /** @type {number[]} */
+    bannedUserIds;
     /** @type {ResponseStatus} */
     responseStatus;
 }
 export class ViewAppStatsResponse {
-    /** @param {{totals?:{ [index: string]: number; },last30DayTotals?:{ [index: string]: number; },responseStatus?:ResponseStatus}} [init] */
+    /** @param {{totals?:{ [index: string]: number; },before30DayTotals?:{ [index: string]: number; },last30DayTotals?:{ [index: string]: number; },archivedTotals?:{ [index: string]: number; },responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {{ [index: string]: number; }} */
     totals;
     /** @type {{ [index: string]: number; }} */
+    before30DayTotals;
+    /** @type {{ [index: string]: number; }} */
     last30DayTotals;
+    /** @type {{ [index: string]: number; }} */
+    archivedTotals;
     /** @type {ResponseStatus} */
     responseStatus;
 }
@@ -621,6 +733,25 @@ export class QueryResponse {
     meta;
     /** @type {ResponseStatus} */
     responseStatus;
+}
+export class AdminUpdateCommentReport {
+    /** @param {{id?:number,appUserId?:number,postReport?:PostReport,description?:string,moderation?:ModerationDecision,notes?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {?number} */
+    appUserId;
+    /** @type {?PostReport} */
+    postReport;
+    /** @type {?string} */
+    description;
+    /** @type {?ModerationDecision} */
+    moderation;
+    /** @type {?string} */
+    notes;
+    getTypeName() { return 'AdminUpdateCommentReport' }
+    getMethod() { return 'PATCH' }
+    createResponse() { return new CommentReport() }
 }
 export class ViewMqMessages {
     constructor(init) { Object.assign(this, init) }
@@ -1112,7 +1243,7 @@ export class QueryArchiveMessageRuns extends QueryDb_1 {
 export class QueryComments extends QueryDb_2 {
     /** @param {{threadId?:number,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {number} */
+    /** @type {?number} */
     threadId;
     getTypeName() { return 'QueryComments' }
     getMethod() { return 'GET' }
@@ -1127,12 +1258,40 @@ export class QueryCommentVotes extends QueryDb_1 {
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
-export class QueryThreads extends QueryDb_1 {
+export class AdminQueryAppUsers extends QueryDb_1 {
+    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    getTypeName() { return 'AdminQueryAppUsers' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
+export class AdminQueryThreads extends QueryDb_1 {
     /** @param {{id?:number,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
     /** @type {?number} */
     id;
-    getTypeName() { return 'QueryThreads' }
+    getTypeName() { return 'AdminQueryThreads' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
+export class AdminQueryComments extends QueryDb_1 {
+    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    getTypeName() { return 'AdminQueryComments' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
+export class AdminQueryCommentVotes extends QueryDb_1 {
+    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    getTypeName() { return 'AdminQueryCommentVotes' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
+export class AdminQueryCommentReports extends QueryDb_1 {
+    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    getTypeName() { return 'AdminQueryCommentReports' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
@@ -1341,16 +1500,7 @@ export class CreateCommentReport {
     getMethod() { return 'POST' }
     createResponse() { }
 }
-export class DeleteCommentReport {
-    /** @param {{id?:number}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    getTypeName() { return 'DeleteCommentReport' }
-    getMethod() { return 'DELETE' }
-    createResponse() { }
-}
-export class UpdateThread {
+export class AdminUpdateThread {
     /** @param {{id?:number,url?:string,description?:string,externalRef?:string,refId?:number,refIdStr?:string,createdDate?:string,closedDate?:string,deletedDate?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
@@ -1371,16 +1521,85 @@ export class UpdateThread {
     closedDate;
     /** @type {?string} */
     deletedDate;
-    getTypeName() { return 'UpdateThread' }
+    getTypeName() { return 'AdminUpdateThread' }
     getMethod() { return 'PATCH' }
     createResponse() { return new Thread() }
 }
-export class DeleteThread {
+export class AdminDeleteThread {
     /** @param {{id?:number}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
-    getTypeName() { return 'DeleteThread' }
+    getTypeName() { return 'AdminDeleteThread' }
+    getMethod() { return 'DELETE' }
+    createResponse() { }
+}
+export class AdminUpdateComment {
+    /** @param {{id?:number,threadId?:number,replyId?:number,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,content?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {?number} */
+    threadId;
+    /** @type {?number} */
+    replyId;
+    /** @type {?number} */
+    upVotes;
+    /** @type {?number} */
+    downVotes;
+    /** @type {?number} */
+    votes;
+    /** @type {?string} */
+    flagReason;
+    /** @type {?string} */
+    notes;
+    /** @type {?number} */
+    appUserId;
+    /** @type {string} */
+    content;
+    getTypeName() { return 'AdminUpdateComment' }
+    getMethod() { return 'PATCH' }
+    createResponse() { return new Comment() }
+}
+export class AdminDeleteComment {
+    /** @param {{id?:number}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    getTypeName() { return 'AdminDeleteComment' }
+    getMethod() { return 'DELETE' }
+    createResponse() { }
+}
+export class AdminUpdateCommentVote {
+    /** @param {{id?:number,commentId?:number,appUserId?:number,vote?:number}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {number} */
+    commentId;
+    /** @type {number} */
+    appUserId;
+    /** @type {number} */
+    vote;
+    getTypeName() { return 'AdminUpdateCommentVote' }
+    getMethod() { return 'PATCH' }
+    createResponse() { return new CommentVote() }
+}
+export class AdminDeleteCommentVote {
+    /** @param {{id?:number}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    getTypeName() { return 'AdminDeleteCommentVote' }
+    getMethod() { return 'DELETE' }
+    createResponse() { }
+}
+export class AdminDeleteCommentReport {
+    /** @param {{id?:number}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    getTypeName() { return 'AdminDeleteCommentReport' }
     getMethod() { return 'DELETE' }
     createResponse() { }
 }

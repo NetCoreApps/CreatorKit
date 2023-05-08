@@ -41,6 +41,7 @@ public class MailingServices : Service
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 MailingLists = mailingList,
+                Source = request.Source,
                 EmailLower = request.Email.ToLower(),
                 NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
                 ExternalRef = Renderer.CreateRef(),

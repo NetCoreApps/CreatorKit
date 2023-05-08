@@ -1,6 +1,6 @@
 import { onMounted, watch, computed, ref, inject, reactive, createApp, nextTick, getCurrentInstance } from "vue"
 import ServiceStackVue, { useClient, useAuth, useUtils } from "@servicestack/vue"
-import { isDate, toDate, fromXsdDuration, indexOfAny, map, leftPart, JsonApiClient, $1, enc, EventBus } from "@servicestack/client"
+import { isDate, toDate, fromXsdDuration, indexOfAny, map, leftPart, $$, enc, EventBus } from "@servicestack/client"
 import {
     GetThread,
     GetThreadUserData,
@@ -15,10 +15,7 @@ import {
     PostReport, 
 } from '../Posts.dtos.mjs'
 import { Authenticate, SignUpDialog, SignInDialog } from "./Auth.mjs"
-
-const BaseUrl = location.origin === 'https://localhost:5002'
-    ? 'https://localhost:5001'
-    : 'https://ssg-services.servicestack.net'
+import { BaseUrl, mount } from "./init.mjs"
 
 export class Store {
     BaseUrl = BaseUrl
@@ -88,79 +85,6 @@ export class Store {
             localStorage.removeItem(cacheKey)
         }
     }    
-}
-
-let AppData = {
-    Auth: null,
-    UserData: null,
-}
-let client = null, store = null, Apps = []
-export { client, AppData, Apps }
-
-const Components = {}
-
-/** @param {any} [exports] */
-export function init(exports) {
-    if (AppData.init) return
-    client = JsonApiClient.create(BaseUrl)
-    store = new Store(client)
-    AppData = reactive(AppData)
-    AppData.init = true
-    
-    nextTick(async () => {
-        const [api, threadApi] = await Promise.all([
-            client.api(new Authenticate()),
-            client.api(new GetThread({ url: leftPart(location.href.replace('#','?'),'?') }))
-        ])
-        if (threadApi.succeeded) {
-            store.thread = threadApi.response.result
-            store.events.publish('thread', store.thread)
-        }
-        if (api.succeeded) {
-            store.signIn(api.response)
-            await store.loadUserData()
-        } else {
-            store.signOut()
-        }
-    })
-    
-    if (exports) {
-        exports.client = client
-        exports.Apps = Apps
-    }
-}
-
-const alreadyMounted = el => el.__vue_app__
-
-/** Mount Vue3 Component
- * @param sel {string|Element} - Element or Selector where component should be mounted
- * @param component
- * @param [props] {any} */
-export function mount(sel, component, props) {
-    if (!AppData.init) {
-        init(globalThis)
-    }
-    const el = $1(sel)
-    if (alreadyMounted(el)) return
-    const app = createApp(component, props)
-    app.provide('client', client)
-    app.provide('store', store)
-    Object.keys(Components).forEach(name => {
-        app.component(name, Components[name])
-    })
-    app.use(ServiceStackVue)
-    app.component('RouterLink', ServiceStackVue.component('RouterLink'))
-    app.directive('highlightjs', (el, binding) => {
-        if (binding.value) {
-            el.innerHTML = enc(binding.value)
-            globalThis.hljs.highlightElement(el)
-        }
-    })
-    app.mount(el)
-    Apps.push(app)
-
-    globalThis.store = store
-    return app
 }
 
 const ModalForm = {
@@ -698,3 +622,47 @@ const Relative = (function () {
     }
 })();
 
+
+const components = { PostComments }
+
+export function post(selector, args) {
+    const mountOptions = {
+        mount(app, { client, AppData }) {
+            const store = new Store(client)
+            nextTick(async () => {
+                const [api, threadApi] = await Promise.all([
+                    client.api(new Authenticate()),
+                    client.api(new GetThread({ url: leftPart(location.href.replace('#','?'),'?') }))
+                ])
+                if (threadApi.succeeded) {
+                    store.thread = threadApi.response.result
+                    store.events.publish('thread', store.thread)
+                }
+                if (api.succeeded) {
+                    store.signIn(api.response)
+                    await store.loadUserData()
+                } else {
+                    store.signOut()
+                }
+            })
+            
+            app.provide('store', store)
+            app.component('RouterLink', ServiceStackVue.component('RouterLink'))
+            app.directive('highlightjs', (el, binding) => {
+                if (binding.value) {
+                    el.innerHTML = enc(binding.value)
+                    globalThis.hljs.highlightElement(el)
+                }
+            })
+            globalThis.store = store
+        }
+    }
+    
+    $$(selector).forEach(el => {
+        const post = el.getAttribute('data-post')
+        if (!post) throw new Error(`Missing data-post=Component`)
+        const component = components[post]
+        if (!component) throw new Error(`Unknown component '${post}', available components: ${Object.keys(components).join(', ')}`)
+        mount(el, component, args, mountOptions)
+    })
+}
