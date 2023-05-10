@@ -31,6 +31,8 @@ public class MailingServices : Service
             contact.FirstName = request.FirstName;
             contact.LastName = request.LastName;
             contact.MailingLists |= mailingList;
+            contact.UnsubscribedDate = null;
+            contact.DeletedDate = null;
             await Db.UpdateAsync(contact);
         }
         else
@@ -64,20 +66,37 @@ public class MailingServices : Service
         return contact;
     }
 
-    public async Task Any(UnsubscribeFromMailingList request)
+    public async Task Any(UpdateContactMailingLists request)
     {
-        var mailingList = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
-        var existing = request.ExternalRef != null
-            ? await Db.SingleAsync<Contact>(x => x.ExternalRef == request.ExternalRef)
-            : request.Email != null
-                ? await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower())
-                : null;
+        var mailingLists = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
+        var existing = await Db.SingleAsync<Contact>(x => x.ExternalRef == request.Ref);
         if (existing == null)
             throw HttpError.NotFound("Mail subscription not found");
 
-        var remainingList = existing.MailingLists & ~mailingList;
-        await Db.UpdateOnlyAsync(() => new Contact { MailingLists = remainingList },
-            where: x => x.Id == existing.Id);
+        if (request.UnsubscribeAll == true)
+        {
+            await Db.UpdateOnlyAsync(() => new Contact { MailingLists = MailingList.None, UnsubscribedDate = DateTime.UtcNow },
+                where: x => x.Id == existing.Id);
+        }
+        else
+        {
+            await Db.UpdateOnlyAsync(() => new Contact { MailingLists = mailingLists, UnsubscribedDate = null, DeletedDate = null },
+                where: x => x.Id == existing.Id);
+        }
+    }
+
+    public async Task<object> Any(FindContact request)
+    {
+        var contact = request.Ref != null
+            ? await Db.SingleAsync<Contact>(x => x.ExternalRef == request.Ref)
+            : request.Email != null
+                ? await Db.SingleAsync<Contact>(x => x.Email == request.Email)
+                : throw HttpError.NotFound("Contact does not exist");
+
+        return new FindContactResponse
+        {
+            Result = contact
+        };
     }
 
     public async Task<object> Any(ViewMailMessage request)

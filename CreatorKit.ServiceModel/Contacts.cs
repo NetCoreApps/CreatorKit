@@ -35,12 +35,25 @@ public class SubscribeToMailingList : IPost, IReturnVoid
 }
 
 [Tag(Tag.Mail)]
-public class UnsubscribeFromMailingList : IPost, IReturnVoid
+public class UpdateContactMailingLists : IPost, IReturnVoid
 {
-    public string? Email { get; set; }
-    public string? ExternalRef { get; set; }
+    [ValidateNotEmpty]
+    public string? Ref { get; set; }
     [Input(Type = "tag", EvalAllowableValues = "AppData.MailingListValues"), FieldCss(Field = "col-span-12")]
     public List<string> MailingLists { get; set; }
+    public bool? UnsubscribeAll { get; set; }
+}
+
+[Tag(Tag.Mail)]
+public class FindContact : IGet, IReturn<FindContactResponse>
+{
+    public string? Email { get; set; }
+    public string? Ref { get; set; }
+}
+public class FindContactResponse
+{
+    public Contact Result { get; set; }
+    public ResponseStatus ResponseStatus { get; set; }
 }
 
 [Tag(Tag.Mail)]

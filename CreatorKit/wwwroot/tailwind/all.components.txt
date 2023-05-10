@@ -282,9 +282,498 @@ export class RegisterResponse {
     /** @type {{ [index: string]: string; }} */
     meta;
 }
+import { $$, enc, JsonApiClient } from "@servicestack/client";
+import { createApp, reactive } from "vue";
+import ServiceStackVue from "@servicestack/vue"
+
+export const BaseUrl = location.origin === 'https://localhost:5002'
+    ? 'https://localhost:5001'
+    : 'https://ssg-services.servicestack.net'
+
+
+let AppData = {
+    init: false,
+    Auth: null,
+    UserData: null,
+}
+let client = null, store = null, Apps = []
+export { client, AppData }
+
+
+/** @param {any} [exports] */
+export function init(exports) {
+    if (AppData.init) return
+    client = JsonApiClient.create(BaseUrl)
+    AppData = reactive(AppData)
+    AppData.init = true
+
+    if (exports) {
+        exports.client = client
+        exports.AppData = AppData
+        exports.Apps = Apps
+    }
+}
+
+const alreadyMounted = el => el.__vue_app__
+
+/** Mount Vue3 Component
+ * @param sel {string|Element} - Element or Selector where component should be mounted
+ * @param component
+ * @param [props] {any} 
+ * @param {{ mount?:(app, { client, AppData }) => void }} options= */
+export function mount(sel, component, props, options) {
+    if (!AppData.init) {
+        init(globalThis)
+    }
+    const els = $$(sel)
+    els.forEach(el => {
+        if (alreadyMounted(el)) return
+        const elProps = el.getAttribute('data-props')
+        const useProps = elProps ? { ...props, ...(new Function(`return (${elProps})`)()) } : props
+        const app = createApp(component, useProps)
+        app.provide('client', client)
+
+        app.use(ServiceStackVue)
+        if (options?.mount) {
+            options.mount(app, { client, AppData })
+        }
+        app.mount(el)
+        Apps.push(app)
+    })
+
+    return Apps.length === 1 ? Apps[0] : Apps
+}
+import { computed, onMounted, onUnmounted, ref, watch } from "vue"
+import { useClient, useUtils } from "@servicestack/vue"
+import { QueryContacts, ViewAppData } from "../dtos.mjs"
+
+const SelectEmail = {
+    template:`<div v-if="show" class="relative w-full">
+        <div class="z-10 mt-1 absolute bg-white border border-gray-200 rounded w-full">
+          <ul v-if="results.length" role="list" class="divide-y divide-gray-100">
+            <li v-for="(sub,index) in results" @click="selectIndex(index)"
+                :class="['pl-3 flex gap-x-2 py-2 hover:bg-gray-50 cursor-pointer overflow-hidden whitespace-nowrap', index === active ? 'bg-sky-50' : '']">
+              <div class="min-w-0">
+                <p class="text-sm font-semibold leading-6 text-gray-900">{{sub.firstName}} {{sub.lastName}}</p>
+                <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{sub.email}}</p>
+              </div>
+            </li>
+          </ul>
+          <Loading v-else-if="loading" class="p-4 text-base" imageClass="w-5 h-5">Loading...</Loading>
+        </div>
+    </div>`,
+    props:['modelValue','inputElement'],
+    setup(props) {
+        const client = useClient()
+        const { focusNextElement } = useUtils()
+        const popupStyle = ref('')
+        const email = ref()
+        const show = ref(false)
+        const api = ref()
+        const active = ref(-1)
+        const results = computed(() => api.value?.response?.results || [])
+        const loading = computed(() => client.loading.value)
+
+        async function update() {
+            await (async (search) => {
+                const apiSearch = await client.api(new QueryContacts({ search, take:8, orderBy:'nameLower' }))
+                if (apiSearch.succeeded && search === props.modelValue) {
+                    api.value = apiSearch
+                    active.value = -1
+                }
+            })(props.modelValue)
+        }
+
+        function selectIndex(index) {
+            const contact = index >= 0 ? results.value[index] : null
+            if (contact) {
+                const setFields = ['email','firstName','lastName']
+                setFields.forEach(id => {
+                    const el = props.inputElement.form[id]
+                    if (el) {
+                        el.value = contact[id]
+                        el.dispatchEvent(new Event('input', {bubbles:true}));
+                    }
+                })
+                focusNextElement({ after:props.inputElement.form['lastName'] })
+            }
+        }
+
+        const inputEvents = {
+            focus(e) {
+                show.value = true
+            },
+            blur(e) {
+                setTimeout(() => show.value = false, 200)
+            },
+            keydown(e) {
+                if (e.key === 'ArrowDown') {
+                    if (!show.value) show.value = true
+                    if (active.value === -1) {
+                        active.value = 0
+                    } else {
+                        active.value = (active.value + 1) % results.value.length
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    if (active.value >= 0) {
+                        active.value = (active.value - 1) % results.value.length
+                        if (active.value < 0) active.value = results.value.length - 1
+                    }
+                } else if (e.key === 'Enter') {
+                    show.value = false
+                    e.preventDefault()
+                    selectIndex(active.value)
+                } else if (e.key === 'Escape') {
+                    if (show.value) {
+                        show.value = false
+                        e.stopPropagation()
+                    }
+                }
+            },
+        }
+
+        onMounted(() => {
+            client.swr(new QueryContacts({ take:8, orderBy:'nameLower' }), r => api.value = r)
+            const el = email.value = document.querySelector('#email')
+            el.setAttribute('autocomplete','no-autofill')
+            Object.keys(inputEvents).forEach(evt => {
+                inputEvents[evt] = inputEvents[evt].bind(el)
+                el.addEventListener(evt, inputEvents[evt])
+            })
+            const rect = el.getBoundingClientRect()
+            popupStyle.value = `top:${Math.floor(rect.y+rect.height+2)}px;left:26px;width:${Math.floor(rect.width-4)}px`
+        })
+
+        onUnmounted(() => {
+            Object.keys(inputEvents).forEach(evt => {
+                email.value?.removeEventListener(evt, inputEvents[evt])
+            })
+        })
+        
+        watch(() => props.modelValue, update)
+
+        return { show, results, loading, active, selectIndex }
+    }
+}
+
+export const EmailInput = {
+    components: { SelectEmail },
+    template: `<TextInput v-bind="$attrs" @update:modelValue="$emit('update:modelValue',$event)">
+      <template #footer="{ id, inputElement, modelValue }">
+        <SelectEmail v-if="inputElement" :inputElement="inputElement" :modelValue="modelValue" />
+      </template>
+    </TextInput>`,
+    emits:['update:modelValue'],
+    props: [],
+    setup(props) {
+        return { }
+    }
+}
+
+const InsertVariableButton = {
+    template:`<div>
+        <svg @click="toggle()" class="w-5 h-5 select-none cursor-pointer text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="2048" height="2048" viewBox="0 0 2048 2048">
+            <title>Insert template variable (CTRL+SPACE)</title>
+            <path fill="currentColor" d="M2048 128v1664h-640l128-128h384v-384h-768V768H768v512H128v384h256l128 128H0V128h2048zM640 256H128v384h512V256zm640 0H768v384h512V256zm640 0h-512v384h512V256zm-621 1139l90 90l-429 429l-429-429l90-90l275 275V896h128v774l275-275z"/></svg>
+        <div :class="['absolute z-10 mt-2 w-56 -ml-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none', transition1]" role="menu"
+            aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+        <div v-if="toggleState" class="py-1" role="none">
+          <div v-for="(collection,label) in vars">
+            <button type="button" @click="toggleVar(label)" class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700" :aria-controls="'sub-menu-'+label" aria-expanded="false">
+              <svg :class="['h-5 w-5 shrink-0', expanded[label] ? 'rotate-90 text-gray-500' : 'text-gray-400']" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+              </svg>
+              {{label}}
+            </button>
+            <ul v-if="expanded[label]" class="mt-1 px-2" :id="'sub-menu-'+label">
+              <li v-for="(value,name) in collection">
+                <span @click="select(label,name)" :title="value" class="cursor-pointer hover:bg-gray-50 block rounded-md py-2 pr-2 pl-9 text-sm leading-6 text-gray-700">{{name}}</span>
+              </li>
+            </ul>
+          </div>
+          
+        </div>
+    </div>
+  </div>
+    `,
+    props:['instance'],
+    setup(props) {
+        const client = useClient()
+        const { transition } = useUtils()
+        const expanded = ref({})
+        const api = ref()
+
+        const vars = computed(() => ({ 
+            contact: {
+                Email: 'email@example.org',
+                FirstName: 'First',
+                LastName: 'Last',
+                ExternalRef: '0123456789'
+            },
+            ...api.value?.response?.vars
+        }))
+
+        const toggleState = ref(false)
+        const transition1 = ref('hidden')
+        const rule1 = {
+            entering: { cls:'transition ease-out duration-100', from:'transform opacity-0 scale-95',    to:'transform opacity-100 scale-100'},
+            leaving:  { cls:'transition ease-in duration-75',   from:'transform opacity-100 scale-100', to:'transform opacity-0 scale-95'}
+        }
+        function toggle(show) {
+            if (show == null) show = !toggleState.value
+            transition(rule1, transition1, show)
+            if (show)
+                toggleState.value = show
+            else 
+                setTimeout(() => toggleState.value = show, 100)
+        }
+        
+        onMounted(async () => {
+            await client.swr(new ViewAppData(), r => api.value = r)
+        })
+
+        function toggleVar(label) {
+            expanded.value[label] = !expanded.value[label]
+        }       
+        function select(group,name) {
+            if (group === 'contact') {
+                props.instance.insert('{{' + name + '}}','')
+            }
+            else if (group === 'images') {
+                props.instance.insert('![]({{' + `${group}.${name}` + '}})','')
+            } else {
+                props.instance.insert('{{' + `${group}.${name}` + '}}','')
+            }
+            toggle(false)
+        }
+        
+        /** @param {KeyboardEvent} e */
+        function handleKeyDown(e) {
+            console.log('handleKeyDown', e)
+            if (e.code === 'Space' && e.ctrlKey) {
+                toggle(true)
+                e.stopPropagation()
+            }
+        }
+        
+        onMounted(() => props.instance.textarea.value?.addEventListener('keydown', handleKeyDown))
+        onUnmounted(() => props.instance.textarea.value?.removeEventListener('keydown', handleKeyDown))
+        
+        return { toggle, toggleState, transition1, vars, expanded, select, toggleVar }
+    }
+}
+
+export const MarkdownEmailInput = {
+    components: { InsertVariableButton },
+    template: `<MarkdownInput v-bind="$attrs" @update:modelValue="$emit('update:modelValue',$event)">
+      <template #toolbarbuttons="{ instance, textarea }">
+        <InsertVariableButton :instance="instance" :textarea="textarea" />
+      </template>
+    </MarkdownInput>`,
+    emits:['update:modelValue'],
+    props: [],
+    setup(props) {
+        return { }
+    }
+}import { computed, onMounted, ref } from "vue"
+import { $$, appendQueryString, combinePaths, queryString, rightPart } from "@servicestack/client"
+import ServiceStackVue, { useClient } from "@servicestack/vue"
+import { SubscribeToMailingList, QueryContacts, UpdateContact } from "../Mail.dtos.mjs"
+import { BaseUrl, mount } from "./init.mjs"
+
+export const JoinMailingList = {
+    template:`<div>
+      <form v-if="!submitted" v-on:submit.prevent="submit" class="w-full">
+        <input type="hidden" name="source" value="Website">
+        <input type="hidden" name="mailingLists" :value="mailingLists ? asStrings(mailingLists).join(',') : 'MonthlyNewsletter'">
+        <ErrorSummary class="mb-3" except="email,firstName,lastName" />
+        <div class="space-y-4">
+          <label for="email-address" class="sr-only">Email address</label>
+          <div :class="[expand ? 'w-full' : 'w-auto']" style="transition:width 1s ease-in-out, visibility 1s linear">
+            <div class="grid grid-cols-2 items-end gap-3">
+              <div :class="[expand ? 'col-span-2' : '']">
+                  <TextInput class="" v-on:focus="expand=true" id="email" name="email" type="email" autocomplete="email" required label="" :placeholder="placeholder || 'Enter your email'" />
+              </div>
+              <div v-if="expand" class="">
+                  <TextInput class="w-full" id="firstName" required label="" placeholder="First Name" autocomplete="given_name" />
+              </div>
+              <div v-if="expand" class="">
+                  <TextInput class="w-full" id="lastName" required label="" placeholder="Last Name" autocomplete="family_name" />
+              </div>
+              <div :class="[expand ? 'col-span-2 flex justify-center' : '']">
+                  <PrimaryButton>{{ submitLabel || 'Subscribe' }}</PrimaryButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+      <div v-else>
+         <h3 class="mb-3 flex text-xl font-semibold leading-6 text-gray-900 group-hover:text-gray-600">
+            <Icon v-if="thanksIcon" class="w-6 h-6 mr-2" :image="thanksIcon" /> 
+            <svg v-else class="w-6 h-6 mr-2 text-green-600" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path fill="none" stroke="currentColor" d="M4 7.5L7 10l4-5m-3.5 9.5a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>
+            {{thanksHeading || 'Thanks for signing up!'}}
+         </h3>
+         <p class="text-sm leading-6">
+            {{thanksMessage || 'To complete sign up, look for the verification email in your inbox and click the link in that email.'}}
+         </p>
+      </div>
+    </div>
+    `,
+    props:['mailingLists','placeholder','submitLabel','thanksIcon','thanksHeading','thanksMessage'],
+    setup(props) {
+        const client = useClient()
+        const expand = ref(false)
+        const submitted = ref(false)
+        
+        /** @param {SubmitEvent} e */
+        async function submit(e) {
+            const api = await client.apiFormVoid(new SubscribeToMailingList(), new FormData(e.target))
+            if (api.succeeded) {
+                submitted.value = true
+            }
+        }
+        function asStrings(o) { return typeof o == 'string' ? o.split(',') : o || [] }
+        
+        return { expand, submitted, submit, asStrings }
+    }
+}
+
+export const MailPreferences = {
+    template:`<div>
+      <div v-if="saved" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:col-span-7">
+        <div class="flex justify-center">
+          <svg class="my-4 w-16 h-16 text-green-600" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path fill="none" stroke="currentColor" d="M4 7.5L7 10l4-5m-3.5 9.5a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>
+        </div>
+        <h2 class="mb-3 inline sm:block lg:inline xl:block">Updated!</h2>
+        <p class="inline sm:block lg:inline xl:block">Your email preferences have been saved.</p>
+      </div>
+      <div v-else-if="contact">
+        <div v-if="unsubscribe">
+          <p class="mb-3">
+            Unsubscribe from all future email communications:
+          </p>
+          <div class="my-8 flex justify-center">
+            <PrimaryButton type="button" color="red">Unsubscribe</PrimaryButton>
+          </div>
+        </div>
+        <p class="mb-3">
+          Manage mail preferences for <b>{{contact.email}}</b>:
+        </p>
+        <form @submit.prevent="submit" class="flex justify-center">
+          <div class="">
+            <div v-for="(value,index) in mailingListType.enumValues">
+              <div v-if="parseInt(value) > 1">
+                <input v-model="contactMailingLists" type="checkbox" :id="'chk-'+value" class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-300 focus:ring-indigo-600" :value="mailingListType.enumDescriptions[index] || mailingListType.enumNames[index]">
+                <label class="select-none ml-3 text-sm font-medium leading-6 text-gray-900 dark:text-gray-50" :for="'chk-'+value">{{mailingListType.enumDescriptions[index] || mailingListType.enumNames[index]}}</label>
+              </div>
+            </div>
+            <PrimaryButton class="mt-8">Save Changes</PrimaryButton>
+          </div>
+        </form>
+      </div>
+      <div v-else>
+        <p>
+          Enter your email to manage your email preferences:
+        </p>
+        <ErrorSummary class="my-3" />
+        <form @submit.prevent="findContact" class="space-x-4 flex items-end">
+          <div><TextInput id="email" v-model="email" label="" placeholder="Enter your email" /></div>
+          <div><PrimaryButton>Submit</PrimaryButton></div>
+        </form>
+      </div>
+    </div>`,
+    setup(props) {
+        const client = useClient()
+        const contact = ref()
+        const email = ref()
+        const metadata = ref()
+        const mailingListType = computed(() => metadata.value?.api.types.find(x => x.name === 'MailingList'))
+        const contactMailingLists = ref([])
+        const saved = ref(false) 
+        const unsubscribe = ref(false)
+        
+        async function findContact(e) {
+            if (!email.value) return
+            const api = await client.api(new QueryContacts({
+                email: email.value,
+            }))
+            if (api.succeeded) {
+                contact.value = api.response.results[0]
+                if (contact.value) {
+                    contactMailingLists.value = enumFlags(contact.value.mailingLists)
+                } else {
+                    client.setError({ message: 'No existing email subscription was found' })
+                }
+            }
+        }
+
+        async function submit(e) {
+            const api = await client.api(new UpdateContact({ 
+                id: contact.value.id,
+                mailingLists: contactMailingLists.value
+            }))
+            if (api.succeeded) {
+                saved.value = true
+            }
+        }
+
+        function enumFlags(value) {
+            const enumType = mailingListType.value
+            if (!enumType) throw new Error(`Could not find MailingList`)
+            const to = []
+            for (let i=0; i<enumType.enumValues.length; i++) {
+                const enumValue = parseInt(enumType.enumValues[i])
+                if (enumValue > 0 && (enumValue & value) === enumValue) {
+                    to.push(enumType.enumDescriptions?.[i] || enumType.enumNames?.[i] || `${value}`)
+                }
+            }
+            return to
+        }
+        
+        onMounted(async () => {
+            metadata.value = await (await fetch(appendQueryString(combinePaths(BaseUrl, `/metadata/app.json`), {includeTypes: 'MailingList'}))).json()
+            
+            const search = location.search ? location.search : location.hash.includes('?') ? '?' + rightPart(location.hash,'?') : ''
+            let qs = queryString(search)
+            if (qs.email || qs.ref) {
+                const api = await client.api(new QueryContacts({ 
+                    email: qs.email,
+                    externalRef: qs.ref
+                }))
+                if (api.succeeded) {
+                    contact.value = api.response.results[0]
+                    if (contact.value) {
+                        contactMailingLists.value = enumFlags(contact.value.mailingLists)
+                    }
+                }
+            }
+            unsubscribe.value = !!qs.unsubscribe
+        })
+        
+      return { contact, email, findContact, submit, enumFlags, mailingListType, contactMailingLists, saved,
+               unsubscribe }  
+    }
+}
+
+const components = { JoinMailingList, MailPreferences }
+export function mail(selector, args) {
+    const mountOptions = {
+        mount(app, { client, AppData }) {
+            app.component('RouterLink', ServiceStackVue.component('RouterLink'))
+        }
+    }
+
+    $$(selector).forEach(el => {
+        const mail = el.getAttribute('data-mail')
+        if (!mail) throw new Error(`Missing data-mail=Component`)
+        const component = components[mail]
+        if (!component) throw new Error(`Unknown component '${mail}', available components: ${Object.keys(components).join(', ')}`)
+        mount(el, component, args, mountOptions)
+    })
+}
 import { onMounted, watch, computed, ref, inject, reactive, createApp, nextTick, getCurrentInstance } from "vue"
 import ServiceStackVue, { useClient, useAuth, useUtils } from "@servicestack/vue"
-import { isDate, toDate, fromXsdDuration, indexOfAny, map, leftPart, JsonApiClient, $1, enc, EventBus } from "@servicestack/client"
+import { isDate, toDate, fromXsdDuration, indexOfAny, map, leftPart, $$, enc, EventBus } from "@servicestack/client"
 import {
     GetThread,
     GetThreadUserData,
@@ -299,10 +788,7 @@ import {
     PostReport, 
 } from '../Posts.dtos.mjs'
 import { Authenticate, SignUpDialog, SignInDialog } from "./Auth.mjs"
-
-const BaseUrl = location.origin === 'https://localhost:5002'
-    ? 'https://localhost:5001'
-    : 'https://ssg-services.servicestack.net'
+import { BaseUrl, mount } from "./init.mjs"
 
 export class Store {
     BaseUrl = BaseUrl
@@ -372,79 +858,6 @@ export class Store {
             localStorage.removeItem(cacheKey)
         }
     }    
-}
-
-let AppData = {
-    Auth: null,
-    UserData: null,
-}
-let client = null, store = null, Apps = []
-export { client, AppData, Apps }
-
-const Components = {}
-
-/** @param {any} [exports] */
-export function init(exports) {
-    if (AppData.init) return
-    client = JsonApiClient.create(BaseUrl)
-    store = new Store(client)
-    AppData = reactive(AppData)
-    AppData.init = true
-    
-    nextTick(async () => {
-        const [api, threadApi] = await Promise.all([
-            client.api(new Authenticate()),
-            client.api(new GetThread({ url: leftPart(location.href.replace('#','?'),'?') }))
-        ])
-        if (threadApi.succeeded) {
-            store.thread = threadApi.response.result
-            store.events.publish('thread', store.thread)
-        }
-        if (api.succeeded) {
-            store.signIn(api.response)
-            await store.loadUserData()
-        } else {
-            store.signOut()
-        }
-    })
-    
-    if (exports) {
-        exports.client = client
-        exports.Apps = Apps
-    }
-}
-
-const alreadyMounted = el => el.__vue_app__
-
-/** Mount Vue3 Component
- * @param sel {string|Element} - Element or Selector where component should be mounted
- * @param component
- * @param [props] {any} */
-export function mount(sel, component, props) {
-    if (!AppData.init) {
-        init(globalThis)
-    }
-    const el = $1(sel)
-    if (alreadyMounted(el)) return
-    const app = createApp(component, props)
-    app.provide('client', client)
-    app.provide('store', store)
-    Object.keys(Components).forEach(name => {
-        app.component(name, Components[name])
-    })
-    app.use(ServiceStackVue)
-    app.component('RouterLink', ServiceStackVue.component('RouterLink'))
-    app.directive('highlightjs', (el, binding) => {
-        if (binding.value) {
-            el.innerHTML = enc(binding.value)
-            globalThis.hljs.highlightElement(el)
-        }
-    })
-    app.mount(el)
-    Apps.push(app)
-
-    globalThis.store = store
-    return app
 }
 
 const ModalForm = {
@@ -593,7 +1006,7 @@ const Comment = {
                 <div v-if="showMenu" class="absolute -ml-20">
                     <div class="select-none rounded-md whitespace-nowrap bg-white dark:bg-black shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                         <div class="py-1" role="none">
-                            <div @click="showDialog('Report')" class="flex cursor-pointer text-gray-700 dark:text-gray-300 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-4 py-2 text-sm" role="menuitem" tabindex="-1">
+                            <div @click="showDialog('NewReport')" class="flex cursor-pointer text-gray-700 dark:text-gray-300 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-4 py-2 text-sm" role="menuitem" tabindex="-1">
                                 <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"/></svg>
                                 Report
                             </div>
@@ -807,7 +1220,7 @@ export const PostComments = {
     components: { ThreadDialogs, Thread, Comment, InputComment, NewReport },
     template: /*html*/`
     <div class="mt-24 mx-auto flex flex-col w-full max-w-3xl transition-opacity">
-        <div class="mb-12">
+        <div class="mb-12 flex">
             <div @click="toggleLike" class="cursor-pointer flex items-center select-none">
                 <svg v-if="!store.userData?.liked" class="text-gray-700 w-8 h-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><title>Recommend Post</title><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V3a.75.75 0 0 1 .75-.75A2.25 2.25 0 0 1 16.5 4.5c0 1.152-.26 2.243-.723 3.218c-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715c.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48a4.53 4.53 0 0 1-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602c.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665a8.97 8.97 0 0 0 .654 3.375Z"/></svg>
                 <svg v-else class="text-gray-700 w-8 h-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><title>Unrecommend</title><path fill="currentColor" d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.375a7.47 7.47 0 0 1 1.602-4.634c.151-.192.373-.309.6-.397c.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V3a.75.75 0 0 1 .75-.75a2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218c-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715c.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23a4.53 4.53 0 0 1-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23h-.777Zm-5.162-7.773a11.969 11.969 0 0 0-.831 4.398a12 12 0 0 0 .52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666c.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227Z"/></svg>
@@ -846,7 +1259,6 @@ export const PostComments = {
         const { user } = useAuth()
         const instance = getCurrentInstance()
         store.config.commentLink = props.commentLink
-        console.log('props.commentLink', props.commentLink)
         
         let comments = ref([])
         let show = ref('')
@@ -983,3 +1395,47 @@ const Relative = (function () {
     }
 })();
 
+
+const components = { PostComments }
+
+export function post(selector, args) {
+    const mountOptions = {
+        mount(app, { client, AppData }) {
+            const store = new Store(client)
+            nextTick(async () => {
+                const [api, threadApi] = await Promise.all([
+                    client.api(new Authenticate()),
+                    client.api(new GetThread({ url: leftPart(location.href.replace('#','?'),'?') }))
+                ])
+                if (threadApi.succeeded) {
+                    store.thread = threadApi.response.result
+                    store.events.publish('thread', store.thread)
+                }
+                if (api.succeeded) {
+                    store.signIn(api.response)
+                    await store.loadUserData()
+                } else {
+                    store.signOut()
+                }
+            })
+            
+            app.provide('store', store)
+            app.component('RouterLink', ServiceStackVue.component('RouterLink'))
+            app.directive('highlightjs', (el, binding) => {
+                if (binding.value) {
+                    el.innerHTML = enc(binding.value)
+                    globalThis.hljs.highlightElement(el)
+                }
+            })
+            globalThis.store = store
+        }
+    }
+    
+    $$(selector).forEach(el => {
+        const post = el.getAttribute('data-post')
+        if (!post) throw new Error(`Missing data-post=Component`)
+        const component = components[post]
+        if (!component) throw new Error(`Unknown component '${post}', available components: ${Object.keys(components).join(', ')}`)
+        mount(el, component, args, mountOptions)
+    })
+}

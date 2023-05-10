@@ -1,5 +1,5 @@
 /* Options:
-Date: 2023-05-08 18:45:27
+Date: 2023-05-10 17:45:41
 Version: 6.81
 Tip: To override a DTO option, remove "//" prefix before updating
 BaseUrl: https://localhost:5001
@@ -258,6 +258,14 @@ export class MailRunResponse {
     /** @type {ResponseStatus} */
     responseStatus;
 }
+export class FindContactResponse {
+    /** @param {{result?:Contact,responseStatus?:ResponseStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {Contact} */
+    result;
+    /** @type {ResponseStatus} */
+    responseStatus;
+}
 export class ViewMailRunInfoResponse {
     /** @param {{messagesSent?:number,totalMessages?:number,timeTaken?:string,responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -463,18 +471,29 @@ export class CreateContact {
     getMethod() { return 'POST' }
     createResponse() { return new Contact() }
 }
-export class UnsubscribeFromMailingList {
-    /** @param {{email?:string,externalRef?:string,mailingLists?:string[]}} [init] */
+export class UpdateContactMailingLists {
+    /** @param {{ref?:string,mailingLists?:string[],unsubscribeAll?:boolean}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    ref;
+    /** @type {string[]} */
+    mailingLists;
+    /** @type {?boolean} */
+    unsubscribeAll;
+    getTypeName() { return 'UpdateContactMailingLists' }
+    getMethod() { return 'POST' }
+    createResponse() { }
+}
+export class FindContact {
+    /** @param {{email?:string,ref?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {?string} */
     email;
     /** @type {?string} */
-    externalRef;
-    /** @type {string[]} */
-    mailingLists;
-    getTypeName() { return 'UnsubscribeFromMailingList' }
-    getMethod() { return 'POST' }
-    createResponse() { }
+    ref;
+    getTypeName() { return 'FindContact' }
+    getMethod() { return 'GET' }
+    createResponse() { return new FindContactResponse() }
 }
 export class SendMailMessage {
     /** @param {{id?:number,force?:boolean}} [init] */

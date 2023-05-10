@@ -1,7 +1,7 @@
 import { computed, onMounted, ref } from "vue"
 import { $$, appendQueryString, combinePaths, queryString, rightPart } from "@servicestack/client"
 import ServiceStackVue, { useClient } from "@servicestack/vue"
-import { SubscribeToMailingList, QueryContacts, UpdateContact } from "../Mail.dtos.mjs"
+import { SubscribeToMailingList, UpdateContactMailingLists, FindContact } from "../Mail.dtos.mjs"
 import { BaseUrl, mount } from "./init.mjs"
 
 export const JoinMailingList = {
@@ -70,12 +70,27 @@ export const MailPreferences = {
         <h2 class="mb-3 inline sm:block lg:inline xl:block">Updated!</h2>
         <p class="inline sm:block lg:inline xl:block">Your email preferences have been saved.</p>
       </div>
+      <div v-else-if="unsubscribed" class="text-gray-900 sm:text-4xl lg:col-span-7">
+        <div class="flex justify-center">
+          <svg class="my-4 w-16 h-16 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="4"><path d="m35 26.614l-19.854-19.3a2.928 2.928 0 0 0-4.259.188a3.334 3.334 0 0 0 .18 4.544l10.024 9.93"/><path stroke-linejoin="round" d="M21.09 21.976L10.178 11.155a3.486 3.486 0 0 0-4.735-.161a3.032 3.032 0 0 0-.18 4.417l10.993 11.203"/><path d="M16.255 26.614L10 20.5a3.299 3.299 0 0 0-4.633-.08a3.233 3.233 0 0 0-.093 4.588c9.23 9.536 14.02 14.04 15.817 15.545C24 42.99 29.735 44 32.73 42c2.995-2 5.702-4.846 6.987-7.671c.765-1.683 2.25-6.87 4.458-15.561a3.305 3.305 0 0 0-2.46-4.034a3.5 3.5 0 0 0-4.166 2.493L35 26.614m-3.284-13.948a19.597 19.597 0 0 0-8.752-7.187M5.194 33.776a19.599 19.599 0 0 0 8.364 7.635"/></g></svg>
+        </div>
+        <h2 class="mb-3 text-3xl font-bold tracking-tight inline sm:block lg:inline xl:block">Updated!</h2>
+        <p class="text-2xl inline sm:block lg:inline xl:block">You've been unsubscribed from all email subscriptions, we're sorry to see you go!</p>
+      </div>
       <div v-else-if="contact">
+        <div v-if="unsubscribeView">
+          <p class="mb-3">
+            Unsubscribe from all future email communications:
+          </p>
+          <div class="my-8 flex justify-center">
+            <PrimaryButton type="button" color="red" @click="submitUnsubscribe">Unsubscribe</PrimaryButton>
+          </div>
+        </div>
         <p class="mb-3">
-          Managing mail preferences for <b>{{contact.email}}</b>:
+          Manage mail preferences for <b>{{contact.email}}</b>:
         </p>
-        <form @submit.prevent="submit">
-          <div class="mx-auto max-w-xs">
+        <form @submit.prevent="submit" class="flex justify-center">
+          <div class="">
             <div v-for="(value,index) in mailingListType.enumValues">
               <div v-if="parseInt(value) > 1">
                 <input v-model="contactMailingLists" type="checkbox" :id="'chk-'+value" class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-300 focus:ring-indigo-600" :value="mailingListType.enumDescriptions[index] || mailingListType.enumNames[index]">
@@ -104,15 +119,17 @@ export const MailPreferences = {
         const metadata = ref()
         const mailingListType = computed(() => metadata.value?.api.types.find(x => x.name === 'MailingList'))
         const contactMailingLists = ref([])
-        const saved = ref(false) 
+        const saved = ref(false)
+        const unsubscribeView = ref(false)
+        const unsubscribed = ref(false)
         
         async function findContact(e) {
             if (!email.value) return
-            const api = await client.api(new QueryContacts({
+            const api = await client.api(new FindContact({
                 email: email.value,
             }))
             if (api.succeeded) {
-                contact.value = api.response.results[0]
+                contact.value = api.response.result
                 if (contact.value) {
                     contactMailingLists.value = enumFlags(contact.value.mailingLists)
                 } else {
@@ -121,9 +138,19 @@ export const MailPreferences = {
             }
         }
 
+        async function submitUnsubscribe(e) {
+            const api = await client.apiVoid(new UpdateContactMailingLists({
+                ref: contact.value.externalRef,
+                unsubscribeFromAll: true,
+            }))
+            if (api.succeeded) {
+                unsubscribed.value = true
+            }
+        }
+
         async function submit(e) {
-            const api = await client.api(new UpdateContact({ 
-                id: contact.value.id,
+            const api = await client.apiVoid(new UpdateContactMailingLists({
+                ref: contact.value.externalRef,
                 mailingLists: contactMailingLists.value
             }))
             if (api.succeeded) {
@@ -150,20 +177,22 @@ export const MailPreferences = {
             const search = location.search ? location.search : location.hash.includes('?') ? '?' + rightPart(location.hash,'?') : ''
             let qs = queryString(search)
             if (qs.email || qs.ref) {
-                const api = await client.api(new QueryContacts({ 
+                const api = await client.api(new FindContact({ 
                     email: qs.email,
-                    externalRef: qs.ref
+                    ref: qs.ref
                 }))
                 if (api.succeeded) {
-                    contact.value = api.response.results[0]
+                    contact.value = api.response.result
                     if (contact.value) {
                         contactMailingLists.value = enumFlags(contact.value.mailingLists)
                     }
                 }
             }
+            unsubscribeView.value = !!qs.unsubscribe
         })
         
-      return { contact, email, findContact, submit, enumFlags, mailingListType, contactMailingLists, saved }  
+      return { contact, email, findContact, submit, enumFlags, mailingListType, contactMailingLists, saved,
+               unsubscribeView, unsubscribed, submitUnsubscribe }  
     }
 }
 
