@@ -63,7 +63,8 @@ export const JoinMailingList = {
 
 export const MailPreferences = {
     template:`<div>
-      <div v-if="saved" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:col-span-7">
+      <Loading v-if="!loaded">Loading...</Loading>
+      <div v-else-if="saved" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:col-span-7">
         <div class="flex justify-center">
           <svg class="my-4 w-16 h-16 text-green-600" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path fill="none" stroke="currentColor" d="M4 7.5L7 10l4-5m-3.5 9.5a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>
         </div>
@@ -122,6 +123,7 @@ export const MailPreferences = {
         const saved = ref(false)
         const unsubscribeView = ref(false)
         const unsubscribed = ref(false)
+        const loaded = ref(false)
         
         async function findContact(e) {
             if (!email.value) return
@@ -188,10 +190,11 @@ export const MailPreferences = {
                     }
                 }
             }
+            loaded.value = true
             unsubscribeView.value = !!qs.unsubscribe
         })
         
-      return { contact, email, findContact, submit, enumFlags, mailingListType, contactMailingLists, saved,
+      return { loaded, contact, email, findContact, submit, enumFlags, mailingListType, contactMailingLists, saved,
                unsubscribeView, unsubscribed, submitUnsubscribe }  
     }
 }
