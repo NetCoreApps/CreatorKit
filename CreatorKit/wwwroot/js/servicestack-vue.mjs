@@ -1,64 +1,64 @@
-var Ws = Object.defineProperty;
-var Js = (e, t, l) => t in e ? Ws(e, t, { enumerable: !0, configurable: !0, writable: !0, value: l }) : e[t] = l;
-var _e = (e, t, l) => (Js(e, typeof t != "symbol" ? t + "" : t, l), l);
-import { defineComponent as ue, computed as f, openBlock as a, createElementBlock as u, normalizeClass as w, unref as o, createElementVNode as n, createCommentVNode as k, renderSlot as K, ref as M, toDisplayString as A, inject as qe, nextTick as bt, isRef as Un, mergeProps as Le, withModifiers as Ne, h as ht, resolveComponent as J, createBlock as ne, withCtx as ke, useAttrs as Xs, createVNode as $e, createTextVNode as xe, watchEffect as Bl, normalizeStyle as Wl, Fragment as Te, renderList as Ie, withDirectives as wt, vModelCheckbox as Jl, withKeys as qn, createStaticVNode as bl, vModelSelect as Ys, useSlots as Xl, getCurrentInstance as Be, onMounted as Je, createSlots as Yl, normalizeProps as It, guardReactiveProps as hl, vModelDynamic as eo, onUnmounted as Pt, watch as Ct, vModelText as to, resolveDynamicComponent as Qn, provide as Xt, resolveDirective as lo } from "vue";
-import { errorResponseExcept as no, dateFmt as Kn, toTime as so, omit as ut, enc as Rl, setQueryString as oo, appendQueryString as Kt, nameOf as ao, ApiResult as tt, lastRightPart as xt, leftPart as wl, map as Ue, toDate as _t, toDateTime as io, toCamelCase as ro, mapGet as be, chop as uo, fromXsdDuration as Zn, isDate as xl, timeFmt12 as co, apiValue as fo, indexOfAny as mo, createBus as vo, toKebabCase as Bn, humanize as Ee, delaySet as Gn, rightPart as dl, queryString as Hl, combinePaths as ho, toPascalCase as nt, errorResponse as ft, trimEnd as go, $1 as gl, lastLeftPart as po, ResponseStatus as Ol, ResponseError as Rn, HttpMethods as en, uniqueKeys as El, humanify as Wn, each as yo } from "@servicestack/client";
-const bo = { class: "flex items-center" }, wo = {
+var Js = Object.defineProperty;
+var Xs = (e, t, l) => t in e ? Js(e, t, { enumerable: !0, configurable: !0, writable: !0, value: l }) : e[t] = l;
+var _e = (e, t, l) => (Xs(e, typeof t != "symbol" ? t + "" : t, l), l);
+import { defineComponent as ue, computed as f, openBlock as a, createElementBlock as u, normalizeClass as w, unref as o, createElementVNode as n, createCommentVNode as k, renderSlot as K, ref as M, toDisplayString as A, inject as qe, nextTick as xt, isRef as Un, mergeProps as Le, withModifiers as Ne, h as ht, resolveComponent as J, createBlock as ne, withCtx as ke, useAttrs as Ys, createVNode as $e, createTextVNode as xe, watchEffect as Bl, normalizeStyle as Wl, Fragment as Te, renderList as Ie, withDirectives as kt, vModelCheckbox as Jl, withKeys as qn, createStaticVNode as bl, vModelSelect as eo, useSlots as Xl, getCurrentInstance as Be, onMounted as Je, createSlots as Yl, normalizeProps as It, guardReactiveProps as hl, vModelDynamic as to, onUnmounted as Pt, watch as Lt, vModelText as lo, resolveDynamicComponent as Qn, provide as Xt, resolveDirective as no } from "vue";
+import { errorResponseExcept as so, dateFmt as Kn, toTime as oo, omit as ut, enc as Rl, setQueryString as ao, appendQueryString as Kt, nameOf as io, ApiResult as tt, lastRightPart as $t, leftPart as wl, map as Ue, toDate as Vt, toDateTime as ro, toCamelCase as uo, mapGet as be, chop as co, fromXsdDuration as Zn, isDate as xl, timeFmt12 as fo, apiValue as mo, indexOfAny as vo, createBus as ho, toKebabCase as Bn, humanize as Ee, delaySet as Gn, rightPart as dl, queryString as Hl, combinePaths as go, toPascalCase as nt, errorResponse as ft, trimEnd as po, $1 as gl, lastLeftPart as yo, ResponseStatus as Ol, ResponseError as Rn, HttpMethods as en, uniqueKeys as El, humanify as Wn, each as bo } from "@servicestack/client";
+const wo = { class: "flex items-center" }, xo = {
   key: 0,
   class: "flex-shrink-0 mr-3"
-}, xo = {
+}, ko = {
   key: 0,
   class: "h-5 w-5 text-yellow-400",
   xmlns: "http://www.w3.org/2000/svg",
   viewBox: "0 0 20 20",
   fill: "currentColor",
   "aria-hidden": "true"
-}, ko = /* @__PURE__ */ n("path", {
+}, $o = /* @__PURE__ */ n("path", {
   "fill-rule": "evenodd",
   d: "M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z",
   "clip-rule": "evenodd"
-}, null, -1), $o = [
-  ko
-], Co = {
+}, null, -1), Co = [
+  $o
+], _o = {
   key: 1,
   class: "h-5 w-5 text-red-400",
   xmlns: "http://www.w3.org/2000/svg",
   viewBox: "0 0 20 20",
   fill: "currentColor",
   "aria-hidden": "true"
-}, _o = /* @__PURE__ */ n("path", {
+}, Lo = /* @__PURE__ */ n("path", {
   "fill-rule": "evenodd",
   d: "M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z",
   "clip-rule": "evenodd"
-}, null, -1), Lo = [
-  _o
-], Vo = {
+}, null, -1), Vo = [
+  Lo
+], So = {
   key: 2,
   class: "h-5 w-5 text-blue-400",
   xmlns: "http://www.w3.org/2000/svg",
   viewBox: "0 0 20 20",
   fill: "currentColor",
   "aria-hidden": "true"
-}, So = /* @__PURE__ */ n("path", {
+}, Mo = /* @__PURE__ */ n("path", {
   "fill-rule": "evenodd",
   d: "M19 10.5a8.5 8.5 0 11-17 0 8.5 8.5 0 0117 0zM8.25 9.75A.75.75 0 019 9h.253a1.75 1.75 0 011.709 2.13l-.46 2.066a.25.25 0 00.245.304H11a.75.75 0 010 1.5h-.253a1.75 1.75 0 01-1.709-2.13l.46-2.066a.25.25 0 00-.245-.304H9a.75.75 0 01-.75-.75zM10 7a1 1 0 100-2 1 1 0 000 2z",
   "clip-rule": "evenodd"
-}, null, -1), Mo = [
-  So
-], Ao = {
+}, null, -1), Ao = [
+  Mo
+], To = {
   key: 3,
   class: "h-5 w-5 text-green-400",
   xmlns: "http://www.w3.org/2000/svg",
   viewBox: "0 0 20 20",
   fill: "currentColor",
   "aria-hidden": "true"
-}, To = /* @__PURE__ */ n("path", {
+}, Fo = /* @__PURE__ */ n("path", {
   "fill-rule": "evenodd",
   d: "M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z",
   "clip-rule": "evenodd"
-}, null, -1), Fo = [
-  To
-], Io = /* @__PURE__ */ ue({
+}, null, -1), Io = [
+  Fo
+], Do = /* @__PURE__ */ ue({
   __name: "Alert",
   props: {
     type: { default: "warn" },
@@ -69,9 +69,9 @@ const bo = { class: "flex items-center" }, wo = {
     return (r, d) => (a(), u("div", {
       class: w([o(l), o(s), "border-l-4 p-4"])
     }, [
-      n("div", bo, [
-        e.hideIcon ? k("", !0) : (a(), u("div", wo, [
-          e.type == "warn" ? (a(), u("svg", xo, $o)) : e.type == "error" ? (a(), u("svg", Co, Lo)) : e.type == "info" ? (a(), u("svg", Vo, Mo)) : e.type == "success" ? (a(), u("svg", Ao, Fo)) : k("", !0)
+      n("div", wo, [
+        e.hideIcon ? k("", !0) : (a(), u("div", xo, [
+          e.type == "warn" ? (a(), u("svg", ko, Co)) : e.type == "error" ? (a(), u("svg", _o, Vo)) : e.type == "info" ? (a(), u("svg", So, Ao)) : e.type == "success" ? (a(), u("svg", To, Io)) : k("", !0)
         ])),
         n("div", null, [
           n("p", {
@@ -83,11 +83,11 @@ const bo = { class: "flex items-center" }, wo = {
       ])
     ], 2));
   }
-}), Do = {
+}), Oo = {
   key: 0,
   class: "rounded-md bg-green-50 dark:bg-green-200 p-4",
   role: "alert"
-}, Oo = { class: "flex" }, jo = /* @__PURE__ */ n("div", { class: "flex-shrink-0" }, [
+}, jo = { class: "flex" }, Po = /* @__PURE__ */ n("div", { class: "flex-shrink-0" }, [
   /* @__PURE__ */ n("svg", {
     class: "h-5 w-5 text-green-400 dark:text-green-500",
     fill: "none",
@@ -102,7 +102,7 @@ const bo = { class: "flex items-center" }, wo = {
       d: "M5 13l4 4L19 7"
     })
   ])
-], -1), Po = { class: "ml-3" }, Bo = { class: "text-sm font-medium text-green-800" }, Ro = { key: 0 }, Ho = { class: "ml-auto pl-3" }, Eo = { class: "-mx-1.5 -my-1.5" }, zo = /* @__PURE__ */ n("span", { class: "sr-only" }, "Dismiss", -1), No = /* @__PURE__ */ n("svg", {
+], -1), Bo = { class: "ml-3" }, Ro = { class: "text-sm font-medium text-green-800" }, Ho = { key: 0 }, Eo = { class: "ml-auto pl-3" }, zo = { class: "-mx-1.5 -my-1.5" }, No = /* @__PURE__ */ n("span", { class: "sr-only" }, "Dismiss", -1), Uo = /* @__PURE__ */ n("svg", {
   class: "h-5 w-5",
   xmlns: "http://www.w3.org/2000/svg",
   viewBox: "0 0 20 20",
@@ -110,37 +110,37 @@ const bo = { class: "flex items-center" }, wo = {
   "aria-hidden": "true"
 }, [
   /* @__PURE__ */ n("path", { d: "M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" })
-], -1), Uo = [
-  zo,
-  No
-], qo = /* @__PURE__ */ ue({
+], -1), qo = [
+  No,
+  Uo
+], Qo = /* @__PURE__ */ ue({
   __name: "AlertSuccess",
   props: {
     message: null
   },
   setup(e) {
     const t = M(!1);
-    return (l, s) => t.value ? k("", !0) : (a(), u("div", Do, [
-      n("div", Oo, [
-        jo,
-        n("div", Po, [
-          n("h3", Bo, [
-            e.message ? (a(), u("span", Ro, A(e.message), 1)) : K(l.$slots, "default", { key: 1 })
+    return (l, s) => t.value ? k("", !0) : (a(), u("div", Oo, [
+      n("div", jo, [
+        Po,
+        n("div", Bo, [
+          n("h3", Ro, [
+            e.message ? (a(), u("span", Ho, A(e.message), 1)) : K(l.$slots, "default", { key: 1 })
           ])
         ]),
-        n("div", Ho, [
-          n("div", Eo, [
+        n("div", Eo, [
+          n("div", zo, [
             n("button", {
               type: "button",
               class: "inline-flex rounded-md bg-green-50 dark:bg-green-200 p-1.5 text-green-500 dark:text-green-600 hover:bg-green-100 dark:hover:bg-green-700 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50 dark:ring-offset-green-200",
               onClick: s[0] || (s[0] = (i) => t.value = !0)
-            }, Uo)
+            }, qo)
           ])
         ])
       ])
     ]));
   }
-}), Qo = { class: "flex" }, Ko = /* @__PURE__ */ n("div", { class: "flex-shrink-0" }, [
+}), Ko = { class: "flex" }, Zo = /* @__PURE__ */ n("div", { class: "flex-shrink-0" }, [
   /* @__PURE__ */ n("svg", {
     class: "h-5 w-5 text-red-400",
     xmlns: "http://www.w3.org/2000/svg",
@@ -151,7 +151,7 @@ const bo = { class: "flex items-center" }, wo = {
       d: "M12 2c5.53 0 10 4.47 10 10s-4.47 10-10 10S2 17.53 2 12S6.47 2 12 2m3.59 5L12 10.59L8.41 7L7 8.41L10.59 12L7 15.59L8.41 17L12 13.41L15.59 17L17 15.59L13.41 12L17 8.41L15.59 7Z"
     })
   ])
-], -1), Zo = { class: "ml-3" }, Go = { class: "text-sm text-red-700 dark:text-red-200" }, Wo = /* @__PURE__ */ ue({
+], -1), Go = { class: "ml-3" }, Wo = { class: "text-sm text-red-700 dark:text-red-200" }, Jo = /* @__PURE__ */ ue({
   __name: "ErrorSummary",
   props: {
     status: null,
@@ -161,20 +161,20 @@ const bo = { class: "flex items-center" }, wo = {
   setup(e) {
     const t = e;
     let l = qe("ApiState", void 0);
-    const s = f(() => t.status || l != null && l.error.value ? no.call({ responseStatus: t.status ?? (l == null ? void 0 : l.error.value) }, t.except ?? []) : null);
+    const s = f(() => t.status || l != null && l.error.value ? so.call({ responseStatus: t.status ?? (l == null ? void 0 : l.error.value) }, t.except ?? []) : null);
     return (i, r) => o(s) ? (a(), u("div", {
       key: 0,
       class: w(`bg-red-50 dark:bg-red-900 border-l-4 border-red-400 p-4 ${i.$props.class}`)
     }, [
-      n("div", Qo, [
-        Ko,
-        n("div", Zo, [
-          n("p", Go, A(o(s)), 1)
+      n("div", Ko, [
+        Zo,
+        n("div", Go, [
+          n("p", Wo, A(o(s)), 1)
         ])
       ])
     ], 2)) : k("", !0);
   }
-}), Jo = ["id", "aria-describedby"], Xo = /* @__PURE__ */ ue({
+}), Xo = ["id", "aria-describedby"], Yo = /* @__PURE__ */ ue({
   __name: "InputDescription",
   props: {
     id: null,
@@ -188,25 +188,25 @@ const bo = { class: "flex items-center" }, wo = {
       "aria-describedby": `${e.id}-description`
     }, [
       n("div", null, A(e.description), 1)
-    ], 8, Jo)) : k("", !0);
+    ], 8, Xo)) : k("", !0);
   }
 });
 function kl(e) {
   return Kn(e).replace(/\//g, "-");
 }
 function Jn(e) {
-  return e == null ? "" : so(e);
+  return e == null ? "" : oo(e);
 }
 function Xn(e, t) {
-  e.value = null, bt(() => e.value = t);
+  e.value = null, xt(() => e.value = t);
 }
-function St(e) {
+function At(e) {
   return Object.keys(e).forEach((t) => {
     const l = e[t];
     e[t] = Un(l) ? o(l) : l;
   }), e;
 }
-function kt(e, t, l) {
+function Ct(e, t, l) {
   l ? (t.value = e.entering.cls + " " + e.entering.from, setTimeout(() => t.value = e.entering.cls + " " + e.entering.to, 0)) : (t.value = e.leaving.cls + " " + e.leaving.from, setTimeout(() => t.value = e.leaving.cls + " " + e.leaving.to, 0));
 }
 function cl(e) {
@@ -250,12 +250,12 @@ function $l(e) {
 function Ft(e) {
   return bn(e);
 }
-let Yo = ["string", "number", "boolean", "null", "undefined"];
-function $t(e) {
-  return Yo.indexOf(typeof e) >= 0 || e instanceof Date;
+let ea = ["string", "number", "boolean", "null", "undefined"];
+function _t(e) {
+  return ea.indexOf(typeof e) >= 0 || e instanceof Date;
 }
 function Zt(e) {
-  return !$t(e);
+  return !_t(e);
 }
 class Yn {
   get length() {
@@ -282,7 +282,7 @@ function pl(e) {
 }
 function tn(e) {
   if (typeof history < "u") {
-    const t = oo(location.href, e);
+    const t = ao(location.href, e);
     history.pushState({}, "", t);
   }
 }
@@ -303,9 +303,9 @@ function es(e) {
   return t ? JSON.parse(t) : null;
 }
 function nn(e, t) {
-  return Kt(`swr.${ao(e)}`, t ? Object.assign({}, e, t) : e);
+  return Kt(`swr.${io(e)}`, t ? Object.assign({}, e, t) : e);
 }
-function ea(e) {
+function ta(e) {
   if (e.request) {
     const t = nn(e.request, e.args);
     ae.config.storage.removeItem(t);
@@ -322,11 +322,11 @@ async function ts(e, t, l, s, i) {
   }
   return d;
 }
-function Mt(e) {
+function gt(e) {
   return typeof e == "string" ? e.split(",") : e || [];
 }
-function At(e, t) {
-  const l = Mt(t);
+function bt(e, t) {
+  const l = gt(t);
   return e.reduce((s, i) => (s[i] = !l.includes(i), s), {});
 }
 function ls() {
@@ -335,23 +335,25 @@ function ls() {
     dateInputFormat: kl,
     timeInputFormat: Jn,
     setRef: Xn,
-    unRefs: St,
-    transition: kt,
+    unRefs: At,
+    transition: Ct,
     focusNextElement: cl,
     getTypeName: Bt,
     htmlTag: it,
     htmlAttrs: zl,
     linkAttrs: $l,
     toAppUrl: Ft,
-    isPrimitive: $t,
+    isPrimitive: _t,
     isComplexType: Zt,
     pushState: tn,
     scopedExpr: ln,
     copyText: Nl,
     fromCache: es,
     swrCacheKey: nn,
-    swrClear: ea,
-    swrApi: ts
+    swrClear: ta,
+    swrApi: ts,
+    asStrings: gt,
+    asOptions: bt
   };
 }
 const ns = "png,jpg,jpeg,jfif,gif,svg,webp".split(","), ss = {
@@ -375,7 +377,7 @@ const ns = "png,jpg,jpeg,jfif,gif,svg,webp".split(","), ss = {
   zip: ct("0 0 16 16", "<g fill='currentColor'><path d='M6.5 7.5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v.938l.4 1.599a1 1 0 0 1-.416 1.074l-.93.62a1 1 0 0 1-1.109 0l-.93-.62a1 1 0 0 1-.415-1.074l.4-1.599V7.5zm2 0h-1v.938a1 1 0 0 1-.03.243l-.4 1.598l.93.62l.93-.62l-.4-1.598a1 1 0 0 1-.03-.243V7.5z'/><path d='M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm5.5-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9v1H8v1h1v1H8v1h1v1H7.5V5h-1V4h1V3h-1V2h1V1z'/></g>"),
   exe: ct("0 0 16 16", "<path fill='currentColor' fill-rule='evenodd' d='M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5L14 4.5ZM2.575 15.202H.785v-1.073H2.47v-.606H.785v-1.025h1.79v-.648H0v3.999h2.575v-.647ZM6.31 11.85h-.893l-.823 1.439h-.036l-.832-1.439h-.931l1.227 1.983l-1.239 2.016h.861l.853-1.415h.035l.85 1.415h.908l-1.254-1.992L6.31 11.85Zm1.025 3.352h1.79v.647H6.548V11.85h2.576v.648h-1.79v1.025h1.684v.606H7.334v1.073Z'/>"),
   att: ct("0 0 24 24", "<path fill='currentColor' d='M14 0a5 5 0 0 1 5 5v12a7 7 0 1 1-14 0V9h2v8a5 5 0 0 0 10 0V5a3 3 0 1 0-6 0v12a1 1 0 1 0 2 0V6h2v11a3 3 0 1 1-6 0V5a5 5 0 0 1 5-5Z'/>")
-}, ta = /[\r\n%#()<>?[\\\]^`{|}]/g, En = 1024, la = ["Bytes", "KB", "MB", "GB", "TB"], na = (() => {
+}, la = /[\r\n%#()<>?[\\\]^`{|}]/g, En = 1024, na = ["Bytes", "KB", "MB", "GB", "TB"], sa = (() => {
   const e = "application/", t = e + "vnd.openxmlformats-officedocument.", l = "image/", s = "text/", i = "audio/", r = "video/", d = {
     jpg: l + "jpeg",
     tif: l + "tiff",
@@ -406,7 +408,7 @@ const ns = "png,jpg,jpeg,jfif,gif,svg,webp".split(","), ss = {
 })();
 let Ul = [];
 function os(e) {
-  return e = e.replace(/"/g, "'"), e = e.replace(/>\s+</g, "><"), e = e.replace(/\s{2,}/g, " "), e.replace(ta, encodeURIComponent);
+  return e = e.replace(/"/g, "'"), e = e.replace(/>\s+</g, "><"), e = e.replace(/\s{2,}/g, " "), e.replace(la, encodeURIComponent);
 }
 function sn(e) {
   return "data:image/svg+xml;utf8," + os(e);
@@ -428,15 +430,15 @@ function on(e) {
   if (!e)
     return null;
   let t = wl(e, "?");
-  return xt(t, "/");
+  return $t(t, "/");
 }
 function Yt(e) {
   let t = on(e);
-  return t == null || t.indexOf(".") === -1 ? null : xt(t, ".").toLowerCase();
+  return t == null || t.indexOf(".") === -1 ? null : $t(t, ".").toLowerCase();
 }
 function an(e) {
   let t = Yt(e.name);
-  return t && ns.indexOf(t) >= 0 ? as(e) : gt(e.name);
+  return t && ns.indexOf(t) >= 0 ? as(e) : pt(e.name);
 }
 function rn(e) {
   if (!e)
@@ -446,7 +448,7 @@ function rn(e) {
   let t = Yt(e);
   return t && ns.indexOf(t) >= 0 || !1;
 }
-function gt(e) {
+function pt(e) {
   if (!e)
     return null;
   let t = Yt(e);
@@ -470,22 +472,22 @@ function un(e, t = 2) {
   if (e === 0)
     return "0 Bytes";
   const l = t < 0 ? 0 : t, s = Math.floor(Math.log(e) / Math.log(En));
-  return parseFloat((e / Math.pow(En, s)).toFixed(l)) + " " + la[s];
+  return parseFloat((e / Math.pow(En, s)).toFixed(l)) + " " + na[s];
 }
-function sa(e) {
+function oa(e) {
   return e.files && Array.from(e.files).map((t) => ({ fileName: t.name, contentLength: t.size, filePath: an(t) }));
 }
 function Cl(e, t) {
   e.onerror = null, e.src = dn(e.src, t) || "";
 }
 function dn(e, t) {
-  return qt(xt(e, ".").toLowerCase()) || (t ? qt(t) || t : null) || qt("doc");
+  return qt($t(e, ".").toLowerCase()) || (t ? qt(t) || t : null) || qt("doc");
 }
 function ql(e) {
   if (!e)
     throw new Error("fileNameOrExt required");
-  const t = xt(e, ".").toLowerCase();
-  return na[t] || "application/" + t;
+  const t = $t(e, ".").toLowerCase();
+  return sa[t] || "application/" + t;
 }
 function gh() {
   return {
@@ -497,17 +499,17 @@ function gh() {
     getFileName: on,
     getMimeType: ql,
     formatBytes: un,
-    filePathUri: gt,
+    filePathUri: pt,
     svgToDataUri: sn,
     fileImageUri: an,
     objectUrl: as,
     flush: is,
-    inputFiles: sa,
+    inputFiles: oa,
     iconOnError: Cl,
     iconFallbackSrc: dn
   };
 }
-class oa {
+class aa {
   constructor(t) {
     _e(this, "view");
     _e(this, "includeTypes");
@@ -523,7 +525,7 @@ class oa {
     return {};
   }
 }
-const Dt = "/metadata/app.json", aa = {
+const Dt = "/metadata/app.json", ia = {
   Boolean: "checkbox",
   DateTime: "date",
   DateOnly: "date",
@@ -543,7 +545,7 @@ const Dt = "/metadata/app.json", aa = {
   String: "text",
   Guid: "text",
   Uri: "text"
-}, ia = {
+}, ra = {
   number: "Int32",
   checkbox: "Boolean",
   date: "DateTime",
@@ -562,18 +564,18 @@ const Dt = "/metadata/app.json", aa = {
   Decimal: "decimal"
 };
 [...Object.keys(Ql), ...Object.values(Ql)];
-const ra = {
+const ua = {
   String: "string",
   Boolean: "bool",
   ...Ql
 };
 function rl(e) {
-  return ra[e] || e;
+  return ua[e] || e;
 }
 function us(e, t) {
   return e ? (t || (t = []), e === "Nullable`1" ? rl(t[0]) + "?" : e.endsWith("[]") ? `List<${rl(e.substring(0, e.length - 2))}>` : t.length === 0 ? rl(e) : wl(rl(e), "`") + "<" + t.join(",") + ">") : "";
 }
-function ua(e) {
+function da(e) {
   return e && us(e.name, e.genericArgs);
 }
 class Ot {
@@ -638,18 +640,18 @@ const ze = {
     return e ? Ue(e.inherits, (i) => ze.AnyRead.indexOf(i.name) >= 0) ? (t = e.inherits) == null ? void 0 : t.genericArgs[0] : (s = (l = e.implements) == null ? void 0 : l.find((i) => ze.AnyWrite.indexOf(i.name) >= 0)) == null ? void 0 : s.genericArgs[0] : null;
   }
 };
-function da(e) {
+function ca(e) {
   var t;
   return ((t = e.input) == null ? void 0 : t.type) || _l(cn(e));
 }
 function ds(e) {
-  return e.endsWith("?") ? uo(e, 1) : e;
+  return e.endsWith("?") ? co(e, 1) : e;
 }
 function _l(e) {
-  return aa[ds(e)];
+  return ia[ds(e)];
 }
-function ca(e) {
-  return e && ia[e] || "String";
+function fa(e) {
+  return e && ra[e] || "String";
 }
 function cn(e) {
   return e.type === "Nullable`1" ? e.genericArgs[0] : e.type;
@@ -660,7 +662,7 @@ function Kl(e) {
 function cs(e) {
   return e && e.toLowerCase() == "string" || !1;
 }
-function fa(e) {
+function ma(e) {
   return e == "List`1" || e.startsWith("List<") || e.endsWith("[]");
 }
 function fs(e) {
@@ -697,7 +699,7 @@ function Gt(e, t) {
   }();
   return new i(t);
 }
-function ma(e, t, l = {}) {
+function va(e, t, l = {}) {
   let s = function() {
     return function(r) {
       Object.assign(this, r);
@@ -719,10 +721,10 @@ function ma(e, t, l = {}) {
 function ml(e, t) {
   return e ? (Object.keys(e).forEach((l) => {
     let s = e[l];
-    typeof s == "string" && s.startsWith("/Date") && (e[l] = kl(_t(s)));
+    typeof s == "string" && s.startsWith("/Date") && (e[l] = kl(Vt(s)));
   }), e) : {};
 }
-function va(e, t) {
+function ha(e, t) {
   let l = {};
   return Array.from(e.elements).forEach((s) => {
     var p;
@@ -738,15 +740,15 @@ function fn(e) {
   var t;
   return ((t = e == null ? void 0 : e.api) == null ? void 0 : t.operations) && e.api.operations.length > 0;
 }
-function ha(e) {
+function ga(e) {
   if (e != null && e.assert && !ae.metadata.value)
     throw new Error("useMetadata() not configured, see: https://docs.servicestack.net/vue/use-metadata");
   return ae.metadata.value;
 }
 function Wt(e) {
-  return e && fn(e) ? (e.date = io(new Date()), ae.metadata.value = e, typeof localStorage < "u" && localStorage.setItem(Dt, JSON.stringify(e)), !0) : !1;
+  return e && fn(e) ? (e.date = ro(new Date()), ae.metadata.value = e, typeof localStorage < "u" && localStorage.setItem(Dt, JSON.stringify(e)), !0) : !1;
 }
-function ga() {
+function pa() {
   ae.metadata.value = null, typeof localStorage < "u" && localStorage.removeItem(Dt);
 }
 function vs() {
@@ -775,12 +777,12 @@ async function zn(e, t) {
     console.error(`Could not download ${t ? "AppMetadata" : e}: ${l.statusText}`);
   fn(ae.metadata.value) || console.warn("AppMetadata is not available");
 }
-async function pa(e) {
+async function ya(e) {
   var r;
   const { olderThan: t, resolvePath: l, resolve: s } = e || {};
   let i = vs() && t !== 0;
   if (i && t) {
-    let d = _t((r = ae.metadata.value) == null ? void 0 : r.date);
+    let d = Vt((r = ae.metadata.value) == null ? void 0 : r.date);
     (!d || new Date().getTime() - d.getTime() > t) && (i = !1);
   }
   if (!i) {
@@ -788,7 +790,7 @@ async function pa(e) {
       return;
     const d = qe("client");
     if (d != null) {
-      const c = await d.api(new oa());
+      const c = await d.api(new aa());
       c.succeeded && Wt(c.response);
     }
     if (ae.metadata.value != null)
@@ -816,7 +818,7 @@ function Ll(e) {
   let t = (s = ae.metadata.value) == null ? void 0 : s.api;
   return t ? t.operations.find((i) => i.request.name.toLowerCase() === e.toLowerCase()) : null;
 }
-function ya({ dataModel: e }) {
+function ba({ dataModel: e }) {
   var s;
   const t = (s = ae.metadata.value) == null ? void 0 : s.api;
   if (!t)
@@ -834,7 +836,7 @@ function mn(e) {
 function hs(e, t) {
   return e && t && e.name === t.name && (!e.namespace || !t.namespace || e.namespace === t.namespace);
 }
-function ba(e, t) {
+function wa(e, t) {
   let l = st(e);
   return l && l.properties && l.properties.find((i) => i.name.toLowerCase() === t.toLowerCase());
 }
@@ -884,15 +886,15 @@ function vn(e) {
   const t = [];
   return Object.keys(e).forEach((l) => t.push({ key: l, value: e[l] })), t;
 }
-function wa(e, t) {
+function xa(e, t) {
   const s = ((i, r) => Object.assign({
     id: i,
     name: i,
     type: r
-  }, t))(e.name, (t == null ? void 0 : t.type) || da(e) || "text");
+  }, t))(e.name, (t == null ? void 0 : t.type) || ca(e) || "text");
   return e.isEnum && (s.type = "select", s.allowableEntries = vn(ys(e))), s;
 }
-function xa(e) {
+function ka(e) {
   let t = [];
   if (e) {
     const l = We(e), s = Ll(e.name), i = mn(s == null ? void 0 : s.dataModel);
@@ -900,8 +902,8 @@ function xa(e) {
       var c, m, h;
       if (!ms(r))
         return;
-      const d = wa(r, r.input);
-      if (d.id = ro(d.id), d.type == "file" && r.uploadTo && !d.accept) {
+      const d = xa(r, r.input);
+      if (d.id = uo(d.id), d.type == "file" && r.uploadTo && !d.accept) {
         const p = (m = (c = ae.metadata.value) == null ? void 0 : c.plugins.filesUpload) == null ? void 0 : m.locations.find((y) => y.name == r.uploadTo);
         p && !d.accept && p.allowExtensions && (d.accept = p.allowExtensions.map((y) => y.startsWith(".") ? y : `.${y}`).join(","));
       }
@@ -978,14 +980,14 @@ function ws(e, t) {
   }
   return i || null;
 }
-function ka(e, t) {
+function $a(e, t) {
   return Ue(el(e), (l) => be(t, l.name));
 }
 function xs(e, t, l) {
-  return e && e.valueType === "none" ? "" : l.key === "%In" || l.key === "%Between" ? `(${l.value})` : $a(t, l.value);
+  return e && e.valueType === "none" ? "" : l.key === "%In" || l.key === "%Between" ? `(${l.value})` : Ca(t, l.value);
 }
-function $a(e, t) {
-  return e ? (e = ds(e), Kl(e) || e === "Boolean" ? t : fa(e) ? `[${t}]` : `'${t}'`) : t;
+function Ca(e, t) {
+  return e ? (e = ds(e), Kl(e) || e === "Boolean" ? t : ma(e) ? `[${t}]` : `'${t}'`) : t;
 }
 function ot() {
   const e = f(() => {
@@ -999,10 +1001,10 @@ function ot() {
     return ((s = ae.metadata.value) == null ? void 0 : s.plugins.autoQuery.viewerConventions) || [];
   });
   return vs(), {
-    loadMetadata: pa,
-    getMetadata: ha,
+    loadMetadata: ya,
+    getMetadata: ga,
     setMetadata: Wt,
-    clearMetadata: ga,
+    clearMetadata: pa,
     metadataApp: e,
     metadataApi: t,
     filterDefinitions: l,
@@ -1010,24 +1012,24 @@ function ot() {
     typeOfRef: mn,
     typeEquals: hs,
     apiOf: Ll,
-    findApis: ya,
-    typeName: ua,
+    findApis: ba,
+    typeName: da,
     typeName2: us,
-    property: ba,
+    property: wa,
     enumOptions: gs,
     propertyOptions: ys,
-    createFormLayout: xa,
+    createFormLayout: ka,
     typeProperties: We,
     supportsProp: ms,
     Crud: ze,
     Apis: Ot,
     getPrimaryKey: el,
     getPrimaryKeyByProps: ws,
-    getId: ka,
+    getId: $a,
     createDto: Gt,
-    makeDto: ma,
+    makeDto: va,
     toFormValues: ml,
-    formValues: va,
+    formValues: ha,
     isComplexProp: fs,
     asKvps: vn,
     expandEnumFlags: hn,
@@ -1095,9 +1097,9 @@ const et = class {
     }
   }
 };
-let yt = et;
-_e(yt, "Lookup", {});
-let Zl = () => new Date().getTime(), Ca = ["/", "T", ":", "-"], rt = {
+let wt = et;
+_e(wt, "Lookup", {});
+let Zl = () => new Date().getTime(), _a = ["/", "T", ":", "-"], rt = {
   //locale: null,
   assumeUtc: !0,
   //number: null,
@@ -1108,14 +1110,14 @@ let Zl = () => new Date().getTime(), Ca = ["/", "T", ":", "-"], rt = {
   maxFieldLength: 150,
   maxNestedFields: 2,
   maxNestedFieldLength: 30
-}, _a = new Intl.RelativeTimeFormat(rt.locale, {}), Nn = 24 * 60 * 60 * 1e3 * 365, jl = {
+}, La = new Intl.RelativeTimeFormat(rt.locale, {}), Nn = 24 * 60 * 60 * 1e3 * 365, jl = {
   year: Nn,
   month: Nn / 12,
   day: 24 * 60 * 60 * 1e3,
   hour: 60 * 60 * 1e3,
   minute: 60 * 1e3,
   second: 1e3
-}, pt = {
+}, yt = {
   currency: ks,
   bytes: $s,
   link: Cs,
@@ -1128,7 +1130,7 @@ let Zl = () => new Date().getTime(), Ca = ["/", "T", ":", "-"], rt = {
   time: Ts,
   relativeTime: pn,
   relativeTimeFromMs: Vl,
-  enumFlags: Ta,
+  enumFlags: Is,
   formatDate: Rt,
   formatNumber: gn
 };
@@ -1136,16 +1138,16 @@ let Zl = () => new Date().getTime(), Ca = ["/", "T", ":", "-"], rt = {
 class Ke {
 }
 _e(Ke, "currency", { method: "currency" }), _e(Ke, "bytes", { method: "bytes" }), _e(Ke, "link", { method: "link" }), _e(Ke, "linkTel", { method: "linkTel" }), _e(Ke, "linkMailTo", { method: "linkMailTo" }), _e(Ke, "icon", { method: "icon" }), _e(Ke, "iconRounded", { method: "iconRounded" }), _e(Ke, "attachment", { method: "attachment" }), _e(Ke, "time", { method: "time" }), _e(Ke, "relativeTime", { method: "relativeTime" }), _e(Ke, "relativeTimeFromMs", { method: "relativeTimeFromMs" }), _e(Ke, "date", { method: "formatDate" }), _e(Ke, "number", { method: "formatNumber" }), _e(Ke, "hidden", { method: "hidden" }), _e(Ke, "enumFlags", { method: "enumFlags" });
-function La(e) {
+function Va(e) {
   rt = Object.assign({}, rt, e);
 }
-function Va(e) {
+function Sa(e) {
   Object.keys(e || {}).forEach((t) => {
-    typeof e[t] == "function" && (pt[t] = e[t]);
+    typeof e[t] == "function" && (yt[t] = e[t]);
   });
 }
-function Sa() {
-  return pt;
+function Ma() {
+  return yt;
 }
 function tl(e, t) {
   return t ? it("span", e, t) : e;
@@ -1184,13 +1186,13 @@ function As(e) {
   return "";
 }
 function Ts(e, t) {
-  let l = typeof e == "string" ? new Date(Zn(e) * 1e3) : xl(e) ? _t(e) : null;
-  return tl(l ? co(l) : e, t);
+  let l = typeof e == "string" ? new Date(Zn(e) * 1e3) : xl(e) ? Vt(e) : null;
+  return tl(l ? fo(l) : e, t);
 }
 function Rt(e, t) {
   if (e == null)
     return "";
-  let l = typeof e == "number" ? new Date(e) : typeof e == "string" ? _t(e) : e;
+  let l = typeof e == "number" ? new Date(e) : typeof e == "string" ? Vt(e) : e;
   if (!xl(l))
     return console.warn(`${l} is not a Date value`), e == null ? "" : `${e}`;
   let s = rt.date ? Sl(rt.date) : null;
@@ -1203,7 +1205,7 @@ function gn(e, t) {
   return s === "" && (console.warn(`formatNumber(${e}) => ${s}`, l), s = `${e}`), tl(s, t);
 }
 function Fs(e, t, l) {
-  let s = fo(e), i = t ? Sl(t) : null;
+  let s = mo(e), i = t ? Sl(t) : null;
   if (typeof i == "function") {
     let d = l;
     if (t != null && t.options)
@@ -1218,9 +1220,9 @@ function Fs(e, t, l) {
   return r ?? "";
 }
 function Jt(e, t, l) {
-  return $t(e) ? Fs(e, t, l) : Da(e, t, l);
+  return _t(e) ? Fs(e, t, l) : Da(e, t, l);
 }
-function Ma(e) {
+function Aa(e) {
   if (e == null)
     return NaN;
   if (typeof e == "number")
@@ -1233,30 +1235,30 @@ function Ma(e) {
       return t;
     if (e[0] === "P" || e.startsWith("-P"))
       return Zn(e) * 1e3 * -1;
-    if (mo(e, Ca) >= 0)
-      return _t(e).getTime() - Zl();
+    if (vo(e, _a) >= 0)
+      return Vt(e).getTime() - Zl();
   }
   return NaN;
 }
 function Vl(e, t) {
   for (let l in jl)
     if (Math.abs(e) > jl[l] || l === "second")
-      return (t || _a).format(Math.round(e / jl[l]), l);
+      return (t || La).format(Math.round(e / jl[l]), l);
 }
 function pn(e, t) {
-  let l = Ma(e);
+  let l = Aa(e);
   return isNaN(l) ? "" : Vl(l, t);
 }
-function Aa(e, t) {
+function Ta(e, t) {
   return Vl(e.getTime() - (t ? t.getTime() : Zl()));
 }
-function Ta(e, t) {
+function Is(e, t) {
   return hn(e, t).join(", ");
 }
 function Sl(e) {
   if (!e)
     return null;
-  let { method: t, options: l } = e, s = `${t}(${l})`, i = pt[s] || pt[t];
+  let { method: t, options: l } = e, s = `${t}(${l})`, i = yt[s] || yt[t];
   if (typeof i == "function")
     return i;
   let r = e.locale || rt.locale;
@@ -1264,7 +1266,7 @@ function Sl(e) {
     let d = r ? `'${r}'` : "undefined", c = `return new ${t}(${d},${l || "undefined"})`;
     try {
       let m = Function(c)();
-      return i = t === "Intl.DateTimeFormat" ? (h) => m.format(_t(h)) : t === "Intl.NumberFormat" ? (h) => m.format(Number(h)) : t === "Intl.RelativeTimeFormat" ? (h) => pn(h, m) : (h) => m.format(h), pt[s] = i;
+      return i = t === "Intl.DateTimeFormat" ? (h) => m.format(Vt(h)) : t === "Intl.NumberFormat" ? (h) => m.format(Number(h)) : t === "Intl.RelativeTimeFormat" ? (h) => pn(h, m) : (h) => m.format(h), yt[s] = i;
     } catch (m) {
       console.error(`Invalid format: ${c}`, m);
     }
@@ -1272,22 +1274,22 @@ function Sl(e) {
     let d = globalThis[t];
     if (typeof d == "function") {
       let c = l != null ? Function("return " + l)() : void 0;
-      return i = (m) => d(m, c, r), pt[s] = i;
+      return i = (m) => d(m, c, r), yt[s] = i;
     }
-    console.error(`No '${t}' function exists`, Object.keys(pt));
+    console.error(`No '${t}' function exists`, Object.keys(yt));
   }
   return null;
 }
-function Is(e, t) {
+function Ds(e, t) {
   return e ? e.length > t ? e.substring(0, t) + "..." : e : "";
 }
-function Ds(e) {
-  return e.substring(0, 6) === "/Date(" ? Rt(_t(e)) : e;
+function Os(e) {
+  return e.substring(0, 6) === "/Date(" ? Rt(Vt(e)) : e;
 }
 function Fa(e) {
   return yn(jt(e)).replace(/"/g, "");
 }
-function Os(e) {
+function js(e) {
   if (e == null || e === "")
     return "";
   if (typeof e == "string")
@@ -1299,17 +1301,17 @@ function Os(e) {
   return e;
 }
 function yn(e, t = 4) {
-  return e = Os(e), typeof e != "object" ? typeof e == "string" ? e : `${e}` : JSON.stringify(e, void 0, t);
+  return e = js(e), typeof e != "object" ? typeof e == "string" ? e : `${e}` : JSON.stringify(e, void 0, t);
 }
 function Ia(e) {
-  return e = Os(e), typeof e != "object" ? typeof e == "string" ? e : `${e}` : (e = Object.assign({}, e), e = jt(e), yn(e));
+  return e = js(e), typeof e != "object" ? typeof e == "string" ? e : `${e}` : (e = Object.assign({}, e), e = jt(e), yn(e));
 }
 function jt(e) {
   if (e == null)
     return null;
   if (typeof e == "string")
-    return Ds(e);
-  if ($t(e))
+    return Os(e);
+  if (_t(e))
     return e;
   if (e instanceof Date)
     return Rt(e);
@@ -1326,7 +1328,7 @@ function jt(e) {
 function Da(e, t, l) {
   let s = e;
   if (Array.isArray(e)) {
-    if ($t(e[0]))
+    if (_t(e[0]))
       return s.join(",");
     e[0] != null && (s = e[0]);
   }
@@ -1337,15 +1339,15 @@ function Da(e, t, l) {
   let i = Object.keys(s), r = [];
   for (let d = 0; d < Math.min(rt.maxNestedFields, i.length); d++) {
     let c = i[d], m = `${jt(s[c])}`;
-    r.push(`<b class="font-medium">${c}</b>: ${Rl(Is(Ds(m), rt.maxNestedFieldLength))}`);
+    r.push(`<b class="font-medium">${c}</b>: ${Rl(Ds(Os(m), rt.maxNestedFieldLength))}`);
   }
   return i.length > 2 && r.push("..."), it("span", "{ " + r.join(", ") + " }", Object.assign({ title: Rl(Fa(e)) }, l));
 }
 function ph() {
   return {
     Formats: Ke,
-    setDefaultFormats: La,
-    setFormatters: Va,
+    setDefaultFormats: Va,
+    setFormatters: Sa,
     formatValue: Jt,
     formatter: Sl,
     dateInputFormat: kl,
@@ -1360,14 +1362,15 @@ function ph() {
     hidden: As,
     time: Ts,
     relativeTime: pn,
-    relativeTimeFromDate: Aa,
+    relativeTimeFromDate: Ta,
     relativeTimeFromMs: Vl,
+    enumFlags: Is,
     formatDate: Rt,
     formatNumber: gn,
     indentJson: yn,
     prettyJson: Ia,
     scrub: jt,
-    truncate: Is,
+    truncate: Ds,
     apiValueFmt: Fs,
     iconOnError: Cl
   };
@@ -1378,7 +1381,7 @@ const Oa = ["onClick", "title"], ja = /* @__PURE__ */ ue({
     to: null
   },
   setup(e) {
-    const t = e, { config: l } = Lt(), s = () => l.value.navigate(t.to ?? "/");
+    const t = e, { config: l } = St(), s = () => l.value.navigate(t.to ?? "/");
     return (i, r) => (a(), u("a", Le({
       onClick: Ne(s, ["prevent"]),
       title: e.to,
@@ -1407,7 +1410,7 @@ _e(ae, "config", {
   tableIcon: { svg: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g fill='none' stroke='currentColor' stroke-width='1.5'><path d='M5 12v6s0 3 7 3s7-3 7-3v-6'/><path d='M5 6v6s0 3 7 3s7-3 7-3V6'/><path d='M12 3c7 0 7 3 7 3s0 3-7 3s-7-3-7-3s0-3 7-3Z'/></g></svg>" },
   scopeWhitelist: {
     enumFlagsConverter: bs,
-    ...Sa()
+    ...Ma()
   }
 }), _e(ae, "autoQueryGridDefaults", {
   deny: [],
@@ -1416,7 +1419,7 @@ _e(ae, "config", {
   tableStyle: "stripedRows",
   take: 25,
   maxFieldLength: 150
-}), _e(ae, "events", vo()), _e(ae, "user", M(null)), _e(ae, "metadata", M(null)), _e(ae, "components", {
+}), _e(ae, "events", ho()), _e(ae, "user", M(null)), _e(ae, "metadata", M(null)), _e(ae, "components", {
   RouterLink: ja
 });
 function Pa(e) {
@@ -1431,7 +1434,7 @@ function bn(e) {
 function Ra(e) {
   return e && ae.config.fallbackPathResolver ? ae.config.fallbackPathResolver(e) : e;
 }
-function Lt() {
+function St() {
   const e = f(() => ae.config), t = f(() => ae.autoQueryGridDefaults), l = ae.events;
   return {
     config: e,
@@ -1443,7 +1446,7 @@ function Lt() {
     fallbackPathResolver: Ra
   };
 }
-const js = ue({
+const Ps = ue({
   inheritAttrs: !1,
   props: {
     image: Object,
@@ -1724,7 +1727,7 @@ const yl = {
     color: { default: "blue" }
   },
   setup(e) {
-    const t = e, l = Xs(), s = f(() => (yl[t.color] || yl.blue) + (l.href ? "" : " cursor-pointer"));
+    const t = e, l = Ys(), s = f(() => (yl[t.color] || yl.blue) + (l.href ? "" : " cursor-pointer"));
     return (i, r) => (a(), u("a", {
       class: w(o(s))
     }, [
@@ -1901,7 +1904,7 @@ function Si(e) {
 function Mi() {
   ae.user.value = null, ae.events.publish("signOut", null);
 }
-function Ps(e) {
+function Bs(e) {
   var t;
   return (((t = ae.user.value) == null ? void 0 : t.roles) || []).indexOf(e) >= 0;
 }
@@ -1910,7 +1913,7 @@ function Ai(e) {
   return (((t = ae.user.value) == null ? void 0 : t.permissions) || []).indexOf(e) >= 0;
 }
 function wn() {
-  return Ps("Admin");
+  return Bs("Admin");
 }
 function vl(e) {
   if (!e)
@@ -1951,9 +1954,9 @@ function Ti(e) {
 }
 function xn() {
   const e = f(() => ae.user.value || null), t = f(() => ae.user.value != null);
-  return { signIn: Si, signOut: Mi, user: e, isAuthenticated: t, hasRole: Ps, hasPermission: Ai, isAdmin: wn, canAccess: vl, invalidAccessMessage: Ti };
+  return { signIn: Si, signOut: Mi, user: e, isAuthenticated: t, hasRole: Bs, hasPermission: Ai, isAdmin: wn, canAccess: vl, invalidAccessMessage: Ti };
 }
-const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
+const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Rs = /* @__PURE__ */ ue({
   __name: "EnsureAccess",
   props: {
     invalidAccess: null,
@@ -1961,7 +1964,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
   },
   emits: ["done"],
   setup(e) {
-    const { isAuthenticated: t } = xn(), { config: l } = Lt(), s = () => {
+    const { isAuthenticated: t } = xn(), { config: l } = St(), s = () => {
       let r = location.href.substring(location.origin.length) || "/";
       const d = Kt(l.value.redirectSignIn, { redirect: r });
       l.value.navigate(d);
@@ -2103,7 +2106,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       t("save", y.value), t("done");
     }
     function W(O) {
-      y.value.sort = O === y.value.sort ? void 0 : O, bt(T);
+      y.value.sort = O === y.value.sort ? void 0 : O, xt(T);
     }
     return (O, L) => {
       var X;
@@ -2142,7 +2145,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                   key: ee.key,
                   class: "flex items-center"
                 }, [
-                  wt(n("input", {
+                  kt(n("input", {
                     type: "checkbox",
                     id: ee.key,
                     value: ee.key,
@@ -2343,7 +2346,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
   },
   emits: ["done", "save"],
   setup(e, { emit: t }) {
-    const l = e, { autoQueryGridDefaults: s } = Lt(), i = M({});
+    const l = e, { autoQueryGridDefaults: s } = St(), i = M({});
     Bl(() => i.value = Object.assign({
       take: s.value.take,
       selectedColumns: []
@@ -2372,7 +2375,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                     for: `${e.id}-take`,
                     class: "block text-sm font-medium text-gray-700 dark:text-gray-300"
                   }, "Results per page", 8, Vr),
-                  wt(n("select", {
+                  kt(n("select", {
                     id: `${e.id}-take`,
                     "onUpdate:modelValue": h[0] || (h[0] = (g) => i.value.take = g),
                     class: "mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-black border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
@@ -2382,7 +2385,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                       selected: g === i.value.take
                     }, A(g), 9, Mr))), 256))
                   ], 8, Sr), [
-                    [Ys, i.value.take]
+                    [eo, i.value.take]
                   ])
                 ]),
                 n("div", Ar, [
@@ -2405,7 +2408,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                         key: g.name,
                         class: "flex items-center"
                       }, [
-                        wt(n("input", {
+                        kt(n("input", {
                           type: "checkbox",
                           id: g.name,
                           value: g.name,
@@ -2688,7 +2691,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
   },
   emits: ["headerSelected", "rowSelected"],
   setup(e, { expose: t, emit: l }) {
-    const s = e, { config: i, autoQueryGridDefaults: r } = Lt(), d = r, c = qe("client"), m = i.value.storage, h = "filtering,queryString,queryFilters".split(","), p = "copyApiUrl,downloadCsv,filtersView,newItem,pagingInfo,pagingNav,preferences,refresh,resetPreferences,toolbar".split(","), y = f(() => s.deny ? At(h, s.deny) : At(h, d.value.deny)), v = f(() => s.hide ? At(p, s.hide) : At(p, d.value.hide));
+    const s = e, { config: i, autoQueryGridDefaults: r } = St(), d = r, c = qe("client"), m = i.value.storage, h = "filtering,queryString,queryFilters".split(","), p = "copyApiUrl,downloadCsv,filtersView,newItem,pagingInfo,pagingNav,preferences,refresh,resetPreferences,toolbar".split(","), y = f(() => s.deny ? bt(h, s.deny) : bt(h, d.value.deny)), v = f(() => s.hide ? bt(p, s.hide) : bt(p, d.value.hide));
     function g($) {
       return y.value[$];
     }
@@ -2711,7 +2714,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       return We(le.value).filter((I) => $.includes(I.name.toLowerCase()) || $.includes(I.name.toLowerCase() + "-header")).map((I) => I.name);
     });
     function ee() {
-      let $ = Mt(s.selectedColumns);
+      let $ = gt(s.selectedColumns);
       return $.length > 0 ? $ : X.value.length > 0 ? X.value : [];
     }
     const S = f(() => {
@@ -2719,21 +2722,21 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       const ce = We(le.value);
       return I.length > 0 ? I.map((oe) => ce.find((pe) => pe.name.toLowerCase() === oe)).filter((oe) => oe != null) : ce;
     }), te = f(() => {
-      let $ = S.value.map((ce) => ce.name), I = Mt(fe.value.selectedColumns).map((ce) => ce.toLowerCase());
+      let $ = S.value.map((ce) => ce.name), I = gt(fe.value.selectedColumns).map((ce) => ce.toLowerCase());
       return I.length > 0 ? $.filter((ce) => I.includes(ce.toLowerCase())) : $;
     }), x = M([]), G = M(new tt()), H = M(new tt()), Z = M(), C = M(!1), _ = M(), P = M(), de = M(!1), F = M(), V = M(s.skip), re = M(!1), ye = 25, fe = M({ take: ye }), R = M(!1), j = f(() => x.value.some(($) => $.settings.filters.length > 0 || !!$.settings.sort) || fe.value.selectedColumns), me = f(() => x.value.map(($) => $.settings.filters.length).reduce(($, I) => $ + I, 0)), Ce = f(() => {
       var $;
-      return We(Fl(Vt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name)));
+      return We(Fl(Mt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name)));
     }), ve = f(() => {
       var $;
-      return el(Fl(Vt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name)));
+      return el(Fl(Mt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name)));
     }), Ve = f(() => fe.value.take ?? ye), Fe = f(() => G.value.response ? be(G.value.response, "results") : []), E = f(() => {
       var $;
       return (($ = G.value.response) == null ? void 0 : $.total) ?? Fe.value.length ?? 0;
     }), q = f(() => V.value > 0), se = f(() => V.value > 0), ge = f(() => Fe.value.length >= Ve.value), Se = f(() => Fe.value.length >= Ve.value), Oe = M(), Re = M(), Me = {
       NoQuery: "No Query API was found"
     };
-    t({ update: Ye, search: Ln, createRequestArgs: Al, reset: jn, createDone: zt, createSave: Dl, editDone: Et, editSave: al, forceUpdate: _n, setEdit: Es, edit: P });
+    t({ update: Ye, search: Ln, createRequestArgs: Al, reset: jn, createDone: zt, createSave: Dl, editDone: Et, editSave: al, forceUpdate: _n, setEdit: zs, edit: P });
     function De($) {
       if ($) {
         if (s.canFilter)
@@ -2797,13 +2800,13 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       let I = (ce = F.value) == null ? void 0 : ce.column;
       I && (I.settings = $, m.setItem(sl(I.name), JSON.stringify(I.settings)), await Ye()), F.value = null;
     }
-    async function Rs($) {
+    async function Hs($) {
       m.setItem(sl($.name), JSON.stringify($.settings)), await Ye();
     }
-    async function Hs($) {
+    async function Es($) {
       de.value = !1, fe.value = $, m.setItem(Tl(), JSON.stringify($)), await Ye();
     }
-    function Es($) {
+    function zs($) {
       Object.assign(P.value, $), _n();
     }
     function _n() {
@@ -2815,7 +2818,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
     async function Ye() {
       await Ln(Al());
     }
-    async function zs() {
+    async function Ns() {
       await Ye();
     }
     async function Ln($) {
@@ -2827,7 +2830,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       let ce = Gt(I, $), oe = Gn((He) => {
         G.value.response = G.value.error = void 0, R.value = He;
       }), pe = await c.api(ce);
-      oe(), bt(() => G.value = pe);
+      oe(), xt(() => G.value = pe);
       let Ae = be(pe.response, "results") || [];
       !pe.succeeded || Ae.label == 0;
     }
@@ -2835,7 +2838,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       let $ = {
         include: "total",
         take: Ve.value
-      }, I = Mt(fe.value.selectedColumns || s.selectedColumns);
+      }, I = gt(fe.value.selectedColumns || s.selectedColumns);
       if (I.length > 0) {
         let oe = ve.value;
         oe && I.includes(oe.name) && (I = [oe.name, ...I]);
@@ -2871,48 +2874,48 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       }
       return typeof $.skip > "u" && V.value > 0 && ($.skip = V.value), ce.length > 0 && ($.orderBy = ce.join(",")), $;
     }
-    function Ns() {
+    function Us() {
       const $ = Vn("csv");
       Nl($), typeof window < "u" && window.open($);
     }
-    function Us() {
+    function qs() {
       const $ = Vn("json");
       Nl($), re.value = !0, setTimeout(() => re.value = !1, 3e3);
     }
     function Vn($ = "json") {
       var Ae;
-      const I = Al(), ce = `/api/${(Ae = we.value.AnyQuery) == null ? void 0 : Ae.request.name}`, oe = ho(c.baseUrl, Kt(ce, { ...I, jsconfig: "edv" }));
+      const I = Al(), ce = `/api/${(Ae = we.value.AnyQuery) == null ? void 0 : Ae.request.name}`, oe = go(c.baseUrl, Kt(ce, { ...I, jsconfig: "edv" }));
       return oe.indexOf("?") >= 0 ? wl(oe, "?") + "." + $ + "?" + dl(oe, "?") : oe + ".json";
     }
-    async function qs() {
+    async function Qs() {
       x.value.forEach(($) => {
         $.settings = { filters: [] }, m.removeItem(sl($.name));
       }), fe.value = { take: ye }, m.removeItem(Tl()), await Ye();
     }
-    function Qs() {
+    function Ks() {
       C.value = !0, Qe({ create: null });
     }
-    const Vt = f(() => Bt(s.type)), dt = f(() => {
+    const Mt = f(() => Bt(s.type)), dt = f(() => {
       var $;
-      return Vt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name);
+      return Mt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name);
     }), Tl = () => {
       var $;
-      return `${s.id}/ApiPrefs/${Vt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name)}`;
+      return `${s.id}/ApiPrefs/${Mt.value || (($ = we.value.AnyQuery) == null ? void 0 : $.dataModel.name)}`;
     }, sl = ($) => {
       var I;
-      return `Column/${s.id}:${Vt.value || ((I = we.value.AnyQuery) == null ? void 0 : I.dataModel.name)}.${$}`;
-    }, { metadataApi: Sn, typeOf: Fl, apiOf: Mn, filterDefinitions: Ks } = ot(), { invalidAccessMessage: Il } = xn(), An = f(() => s.filterDefinitions || Ks.value), we = f(() => {
-      let $ = Mt(s.apis);
-      return $.length > 0 ? Ot.from($.map((I) => Mn(I)).filter((I) => I != null).map((I) => I)) : Ot.forType(Vt.value, Sn.value);
+      return `Column/${s.id}:${Mt.value || ((I = we.value.AnyQuery) == null ? void 0 : I.dataModel.name)}.${$}`;
+    }, { metadataApi: Sn, typeOf: Fl, apiOf: Mn, filterDefinitions: Zs } = ot(), { invalidAccessMessage: Il } = xn(), An = f(() => s.filterDefinitions || Zs.value), we = f(() => {
+      let $ = gt(s.apis);
+      return $.length > 0 ? Ot.from($.map((I) => Mn(I)).filter((I) => I != null).map((I) => I)) : Ot.forType(Mt.value, Sn.value);
     }), ol = ($) => `<span class="text-yellow-700">${$}</span>`, Tn = f(() => {
       if (!Sn.value)
         return ol(`AppMetadata not loaded, see <a class="${yl.blue}" href="https://docs.servicestack.net/vue/use-metadata" target="_blank">useMetadata()</a>`);
-      let I = Mt(s.apis).map((oe) => Mn(oe) == null ? oe : null).filter((oe) => oe != null);
+      let I = gt(s.apis).map((oe) => Mn(oe) == null ? oe : null).filter((oe) => oe != null);
       if (I.length > 0)
         return ol(`Unknown API${I.length > 1 ? "s" : ""}: ${I.join(", ")}`);
       let ce = we.value;
       return ce.empty ? ol("Mising DataModel in property 'type' or AutoQuery APIs to use in property 'apis'") : ce.AnyQuery ? null : ol(Me.NoQuery);
-    }), Fn = f(() => we.value.AnyQuery && Il(we.value.AnyQuery)), In = f(() => we.value.Create && Il(we.value.Create)), Dn = f(() => we.value.AnyUpdate && Il(we.value.AnyUpdate)), Zs = f(() => vl(we.value.Create));
+    }), Fn = f(() => we.value.AnyQuery && Il(we.value.AnyQuery)), In = f(() => we.value.Create && Il(we.value.Create)), Dn = f(() => we.value.AnyUpdate && Il(we.value.AnyUpdate)), Gs = f(() => vl(we.value.Create));
     f(() => vl(we.value.AnyUpdate));
     const On = f(() => vl(we.value.Delete));
     function Et() {
@@ -2957,7 +2960,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       return o(Tn) ? (a(), u("div", Rr, [
         $e(ce, { innerHTML: o(Tn) }, null, 8, ["innerHTML"])
       ])) : o(Fn) ? (a(), u("div", Hr, [
-        $e(Bs, { "invalid-access": o(Fn) }, null, 8, ["invalid-access"])
+        $e(Rs, { "invalid-access": o(Fn) }, null, 8, ["invalid-access"])
       ])) : (a(), u("div", Er, [
         C.value && o(we).Create ? (a(), u("div", zr, [
           o(In) ? (a(), ne(oe, {
@@ -3056,7 +3059,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
             columns: o(S),
             prefs: fe.value,
             onDone: I[1] || (I[1] = (Pe) => de.value = !1),
-            onSave: Hs
+            onSave: Es
           }, null, 8, ["columns", "prefs"])) : k("", !0),
           n("div", qr, [
             n("div", Qr, [
@@ -3114,7 +3117,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
               b("refresh") ? (a(), u("div", hu, [
                 n("button", {
                   type: "button",
-                  onClick: zs,
+                  onClick: Ns,
                   title: "Refresh",
                   class: w(o(U))
                 }, pu, 2)
@@ -3122,7 +3125,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
               b("downloadCsv") ? (a(), u("div", yu, [
                 n("button", {
                   type: "button",
-                  onClick: Ns,
+                  onClick: Us,
                   title: "Download CSV",
                   class: w(o(U))
                 }, wu, 2)
@@ -3130,7 +3133,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
               b("copyApiUrl") ? (a(), u("div", xu, [
                 n("button", {
                   type: "button",
-                  onClick: Us,
+                  onClick: qs,
                   title: "Copy API URL",
                   class: w(o(U))
                 }, [
@@ -3141,7 +3144,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
               o(j) && b("resetPreferences") ? (a(), u("div", Mu, [
                 n("button", {
                   type: "button",
-                  onClick: qs,
+                  onClick: Qs,
                   title: "Reset Preferences & Filters",
                   class: w(o(U))
                 }, Tu, 2)
@@ -3158,10 +3161,10 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                   Z.value != "filters" ? (a(), u("svg", Ou, Pu)) : (a(), u("svg", Bu, Hu))
                 ], 2)
               ])) : k("", !0),
-              b("newItem") && o(we).Create && o(Zs) ? (a(), u("div", Eu, [
+              b("newItem") && o(we).Create && o(Gs) ? (a(), u("div", Eu, [
                 n("button", {
                   type: "button",
-                  onClick: Qs,
+                  onClick: Ks,
                   title: o(dt),
                   class: w(o(U))
                 }, [
@@ -3182,7 +3185,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
           definitions: o(An),
           columns: x.value,
           onDone: I[8] || (I[8] = (Pe) => Z.value = null),
-          onChange: Rs
+          onChange: Hs
         }, null, 8, ["definitions", "columns"])) : k("", !0),
         H.value.error ?? G.value.error ? (a(), ne(He, {
           key: 5,
@@ -3232,7 +3235,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
               g("filtering") && De(Pe) ? (a(), u("div", Qu, [
                 n("span", Ku, A(vt), 1),
                 $e(Pn, {
-                  column: x.value.find((Gs) => Gs.name.toLowerCase() === Pe.toLowerCase()),
+                  column: x.value.find((Ws) => Ws.name.toLowerCase() === Pe.toLowerCase()),
                   "is-open": ((Nt = F.value) == null ? void 0 : Nt.column.name) === Pe
                 }, null, 8, ["column", "is-open"])
               ])) : (a(), u("div", Zu, [
@@ -3716,7 +3719,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
     function U() {
       if (p.value.length == 0)
         return "";
-      let x = go(p.value.trim(), ",");
+      let x = po(p.value.trim(), ",");
       return x[0] == "," && (x = x.substring(1)), x = x.trim(), x.length == 0 && d.value && c.value.length > 0 ? r.value : x;
     }
     function D(x) {
@@ -3796,7 +3799,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
               ])
             ]))), 256)),
             n("div", ec, [
-              wt(n("input", Le({
+              kt(n("input", Le({
                 ref_key: "txtInput",
                 ref: h,
                 type: o(y),
@@ -3819,7 +3822,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                 onBlur: W,
                 onClick: G[1] || (G[1] = (H) => d.value = !0)
               }, o(ut)(x.$attrs, ["class", "required"])), null, 16, tc), [
-                [eo, p.value]
+                [to, p.value]
               ])
             ])
           ])
@@ -3897,13 +3900,13 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
   },
   setup(e) {
     var T;
-    const t = e, l = M(null), { assetsPathResolver: s, fallbackPathResolver: i } = Lt(), r = {}, d = M(), c = M(((T = t.files) == null ? void 0 : T.map(m)) || []);
+    const t = e, l = M(null), { assetsPathResolver: s, fallbackPathResolver: i } = St(), r = {}, d = M(), c = M(((T = t.files) == null ? void 0 : T.map(m)) || []);
     function m(W) {
       return W.filePath = s(W.filePath), W;
     }
     t.values && t.values.length > 0 && (c.value = t.values.map((W) => {
       let O = W.replace(/\\/g, "/");
-      return { fileName: po(xt(O, "/"), "."), filePath: O, contentType: ql(O) };
+      return { fileName: yo($t(O, "/"), "."), filePath: O, contentType: ql(O) };
     }).map(m));
     const h = f(() => t.label ?? Ee(nt(t.id))), p = f(() => t.placeholder ?? h.value);
     let y = qe("ApiState", void 0);
@@ -3926,7 +3929,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       if (c.value.length > 0)
         return c.value[0].filePath;
       let W = typeof t.modelValue == "string" ? t.modelValue : t.values && t.values[0];
-      return W && gt(s(W)) || null;
+      return W && pt(s(W)) || null;
     }), N = (W) => !W || W.startsWith("data:") || W.endsWith(".svg") ? "" : "rounded-full object-cover";
     function z(W) {
       d.value = i(ie.value);
@@ -3975,9 +3978,9 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
                 title: Y(L.filePath) ? "" : L.filePath
               }, [
                 n("img", {
-                  src: r[o(gt)(L.filePath)] || o(s)(o(gt)(L.filePath)),
+                  src: r[o(pt)(L.filePath)] || o(s)(o(pt)(L.filePath)),
                   class: w(["mr-2 h-8 w-8", N(L.filePath)]),
-                  onError: (U) => r[o(gt)(L.filePath)] = o(i)(o(gt)(L.filePath))
+                  onError: (U) => r[o(pt)(L.filePath)] = o(i)(o(pt)(L.filePath))
                 }, null, 42, Mc),
                 Y(L.filePath) ? (a(), u("span", Tc, A(L.fileName), 1)) : (a(), u("a", {
                   key: 0,
@@ -4179,7 +4182,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
     function ee() {
       b.value = B.value;
     }
-    return Ct(y, ee), (S, te) => (a(), u("div", {
+    return Lt(y, ee), (S, te) => (a(), u("div", {
       id: `${e.id}-autocomplete`
     }, [
       o(d) ? (a(), u("label", {
@@ -4188,7 +4191,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
         class: "block text-sm font-medium text-gray-700 dark:text-gray-300"
       }, A(o(d)), 9, jc)) : k("", !0),
       n("div", Pc, [
-        wt(n("input", Le({
+        kt(n("input", Le({
           ref_key: "txtInput",
           ref: p,
           id: `${e.id}-text`,
@@ -4208,7 +4211,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
           onPaste: z,
           required: !1
         }, S.$attrs), null, 16, Bc), [
-          [to, y.value]
+          [lo, y.value]
         ]),
         n("button", {
           type: "button",
@@ -4334,7 +4337,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       l.modelValue[l.input.id],
       (m) => l.input.type === "file" ? null : l.input.type === "date" && m instanceof Date ? kl(m) : l.input.type === "time" ? Jn(m) : m
     ));
-    Ct(d, () => {
+    Lt(d, () => {
       l.modelValue[l.input.id] = d.value, t("update:modelValue", l.modelValue);
     });
     const c = f(() => {
@@ -4342,13 +4345,13 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       if (l.input.type !== "file" || !m)
         return [];
       if (typeof m == "string")
-        return [{ filePath: m, fileName: xt(m, "/") }];
+        return [{ filePath: m, fileName: $t(m, "/") }];
       if (!Array.isArray(m) && typeof m == "object")
         return m;
       if (Array.isArray(m)) {
         const h = [];
         return m.forEach((p) => {
-          typeof p == "string" ? h.push({ filePath: p, fileName: xt(p, "/") }) : typeof p == "object" && h.push(p);
+          typeof p == "string" ? h.push({ filePath: p, fileName: $t(p, "/") }) : typeof p == "object" && h.push(p);
         }), h;
       }
     });
@@ -4492,7 +4495,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
   },
   emits: ["update:modelValue"],
   setup(e, { emit: t }) {
-    const l = e, { config: s } = Lt(), { metadataApi: i } = ot(), r = f(() => l.id || l.input.id), d = f(() => l.label ?? Ee(nt(r.value)));
+    const l = e, { config: s } = St(), { metadataApi: i } = ot(), r = f(() => l.id || l.input.id), d = f(() => l.label ?? Ee(nt(r.value)));
     let c = qe("ApiState", void 0);
     const m = qe("client"), h = f(() => ft.call({ responseStatus: l.status ?? (c == null ? void 0 : c.error.value) }, r.value)), p = M(""), y = M(""), v = f(() => be(l.modelValue, r.value)), g = f(() => We(l.metadataType).find((N) => N.name.toLowerCase() == r.value.toLowerCase())), b = f(() => {
       var N, z, T;
@@ -4506,9 +4509,9 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
           return;
         }
         B.openModal({ name: "ModalLookup", ref: N }, (z) => {
-          if (console.debug("openModal", p.value, " -> ", z, yt.setRefValue(N, z), N), z) {
+          if (console.debug("openModal", p.value, " -> ", z, wt.setRefValue(N, z), N), z) {
             const T = be(z, N.refId);
-            p.value = yt.setRefValue(N, z) || T;
+            p.value = wt.setRefValue(N, z) || T;
             const W = o(l.modelValue);
             W[r.value] = T, t("update:modelValue", W);
           }
@@ -4545,10 +4548,10 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
           const X = le != null ? be(N, le.name) : null;
           if (X != null) {
             let ee = be(X, T.refLabel);
-            ee && (p.value = `${ee}`, yt.setValue(T.model, W, T.refLabel, ee));
+            ee && (p.value = `${ee}`, wt.setValue(T.model, W, T.refLabel, ee));
           } else {
             const ee = ((D = z.attributes) == null ? void 0 : D.some((te) => te.name == "Computed")) == !0;
-            let S = await yt.getOrFetchValue(m, i.value, T.model, T.refId, T.refLabel, ee, W);
+            let S = await wt.getOrFetchValue(m, i.value, T.model, T.refId, T.refLabel, ee, W);
             p.value = S || `${T.model}: ${p.value}`;
           }
         }
@@ -4648,7 +4651,7 @@ const Fi = { key: 0 }, Ii = { class: "md:p-4" }, Bs = /* @__PURE__ */ ue({
       if (!N) {
         if (s.formLayout) {
           const U = s.formLayout.map((D) => {
-            const Q = { name: D.id, type: ca(D.type) }, le = Object.assign({ prop: Q }, D);
+            const Q = { name: D.id, type: fa(D.type) }, le = Object.assign({ prop: Q }, D);
             return s.configureField && s.configureField(le), le;
           });
           return s.configureFormLayout && s.configureFormLayout(U), U;
@@ -4748,28 +4751,28 @@ function Ml() {
   }
   async function d(v, g, b) {
     e.value = !0;
-    let B = await s.api(St(v), g, b);
+    let B = await s.api(At(v), g, b);
     return e.value = !1, l.value = B.response, t.value = B.error, B;
   }
   async function c(v, g, b) {
     e.value = !0;
-    let B = await s.apiVoid(St(v), g, b);
+    let B = await s.apiVoid(At(v), g, b);
     return e.value = !1, l.value = B.response, t.value = B.error, B;
   }
   async function m(v, g, b, B) {
     e.value = !0;
-    let Y = await s.apiForm(St(v), g, b, B);
+    let Y = await s.apiForm(At(v), g, b, B);
     return e.value = !1, l.value = Y.response, t.value = Y.error, Y;
   }
   async function h(v, g, b, B) {
     e.value = !0;
-    let Y = await s.apiFormVoid(St(v), g, b, B);
+    let Y = await s.apiFormVoid(At(v), g, b, B);
     return e.value = !1, l.value = Y.response, t.value = Y.error, Y;
   }
   async function p(v, g, b, B) {
     return ts(s, v, g, b, B);
   }
-  let y = { setError: i, addFieldError: r, loading: e, error: t, api: d, apiVoid: c, apiForm: m, apiFormVoid: h, swr: p, unRefs: St, setRef: Xn };
+  let y = { setError: i, addFieldError: r, loading: e, error: t, api: d, apiVoid: c, apiForm: m, apiFormVoid: h, swr: p, unRefs: At, setRef: Xn };
   return Xt("ApiState", y), y;
 }
 const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b", null, "type", -1), x0 = { key: 0 }, k0 = { key: 2 }, $0 = ["innerHTML"], C0 = /* @__PURE__ */ n("input", {
@@ -4815,7 +4818,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       (re = V == null ? void 0 : V.proxy) == null || re.$forceUpdate();
     }
     async function m(V) {
-      Object.assign(X.value, V), c(), await bt(() => null);
+      Object.assign(X.value, V), c(), await xt(() => null);
     }
     Xt("ModalProvider", {
       openModal: v
@@ -4867,8 +4870,8 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       entering: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-full", to: "translate-x-0" },
       leaving: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-0", to: "translate-x-full" }
     };
-    Ct(C, () => {
-      kt(P, _, C.value), C.value || setTimeout(Z, 700);
+    Lt(C, () => {
+      Ct(P, _, C.value), C.value || setTimeout(Z, 700);
     }), C.value = !0;
     function de() {
       s.formStyle == "slideOver" ? C.value = !1 : Z();
@@ -5176,8 +5179,8 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       entering: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-full", to: "translate-x-0" },
       leaving: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-0", to: "translate-x-full" }
     };
-    Ct(Z, () => {
-      kt(_, C, Z.value), Z.value || setTimeout(H, 700);
+    Lt(Z, () => {
+      Ct(_, C, Z.value), Z.value || setTimeout(H, 700);
     }), Z.value = !0;
     function P() {
       s.formStyle == "slideOver" ? Z.value = !1 : H();
@@ -5496,8 +5499,8 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       entering: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-full", to: "translate-x-0" },
       leaving: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-0", to: "translate-x-full" }
     };
-    Ct(F, () => {
-      kt(re, V, F.value), F.value || setTimeout(de, 700);
+    Lt(F, () => {
+      Ct(re, V, F.value), F.value || setTimeout(de, 700);
     }), F.value = !0;
     function ye() {
       s.formStyle == "slideOver" ? F.value = !1 : de();
@@ -5729,7 +5732,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       l.value ? "cursor-pointer bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" : "bg-red-400"
     ]);
     return (r, d) => (a(), u(Te, null, [
-      wt(n("input", {
+      kt(n("input", {
         id: "confirmDelete",
         type: "checkbox",
         class: "focus:ring-indigo-500 h-4 w-4 text-indigo-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:ring-offset-black",
@@ -5953,7 +5956,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       const v = be(e.modelValue, y.name), g = v && h.refLabel && be(v, h.refLabel);
       if (!g)
         return m;
-      const b = l(h.model), B = b == null ? void 0 : b.icon, Y = B ? ht(js, { image: B, class: "w-5 h-5 mr-1" }) : null;
+      const b = l(h.model), B = b == null ? void 0 : b.icon, Y = B ? ht(Ps, { image: B, class: "w-5 h-5 mr-1" }) : null;
       return ht("span", { class: "flex", title: `${h.model} ${r}` }, [
         Y,
         g
@@ -5998,7 +6001,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
     classes: { type: Function, default: (e, t, l, s, i) => s }
   },
   setup(e) {
-    const t = e, l = f(() => $t(t.value)), s = f(() => Array.isArray(t.value)), i = (m) => Wn(m), r = (m) => t.fieldAttrs ? t.fieldAttrs(m) : null, d = f(() => El(t.value)), c = (m) => m ? Object.keys(m).map((h) => ({ key: i(h), val: m[h] })) : [];
+    const t = e, l = f(() => _t(t.value)), s = f(() => Array.isArray(t.value)), i = (m) => Wn(m), r = (m) => t.fieldAttrs ? t.fieldAttrs(m) : null, d = f(() => El(t.value)), c = (m) => m ? Object.keys(m).map((h) => ({ key: i(h), val: m[h] })) : [];
     return (m, h) => {
       const p = J("HtmlFormat", !0);
       return a(), u("div", {
@@ -6011,7 +6014,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
           key: 1,
           class: w(e.classes("array", "div", e.depth, o(he).gridClass))
         }, [
-          o($t)(e.value[0]) ? (a(), u("div", l1, "[ " + A(e.value.join(", ")) + " ]", 1)) : (a(), u("div", {
+          o(_t)(e.value[0]) ? (a(), u("div", l1, "[ " + A(e.value.join(", ")) + " ]", 1)) : (a(), u("div", {
             key: 1,
             class: w(e.classes("array", "div", e.depth, o(he).grid2Class))
           }, [
@@ -6130,8 +6133,8 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       entering: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-full", to: "translate-x-0" },
       leaving: { cls: "transform transition ease-in-out duration-500 sm:duration-700", from: "translate-x-0", to: "translate-x-full" }
     };
-    Ct(l, () => {
-      kt(i, s, l.value), l.value || setTimeout(() => t("done"), 700);
+    Lt(l, () => {
+      Ct(i, s, l.value), l.value || setTimeout(() => t("done"), 700);
     }), l.value = !0;
     const r = () => l.value = !1, d = (c) => {
       c.key === "Escape" && r();
@@ -6233,8 +6236,8 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       entering: { cls: "ease-out duration-300", from: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95", to: "opacity-100 translate-y-0 sm:scale-100" },
       leaving: { cls: "ease-in duration-200", from: "opacity-100 translate-y-0 sm:scale-100", to: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" }
     };
-    Ct(l, () => {
-      kt(i, s, l.value), kt(d, r, l.value), l.value || setTimeout(() => t("done"), 200);
+    Lt(l, () => {
+      Ct(i, s, l.value), Ct(d, r, l.value), l.value || setTimeout(() => t("done"), 200);
     }), l.value = !0;
     const c = () => l.value = !1;
     Xt("ModalProvider", {
@@ -6440,7 +6443,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
   },
   emits: ["done"],
   setup(e, { emit: t }) {
-    const l = e, s = Xl(), { config: i } = Lt(), { metadataApi: r, filterDefinitions: d } = ot(), c = qe("client"), m = i.value.storage, h = f(() => l.toolbarButtonClass ?? he.toolbarButtonClass), p = f(() => d.value), y = 25, v = M({ take: y }), g = M(new tt()), b = M(l.skip), B = M(!1), Y = M(), ie = (E) => typeof E == "string" ? E.split(",") : E || [];
+    const l = e, s = Xl(), { config: i } = St(), { metadataApi: r, filterDefinitions: d } = ot(), c = qe("client"), m = i.value.storage, h = f(() => l.toolbarButtonClass ?? he.toolbarButtonClass), p = f(() => d.value), y = 25, v = M({ take: y }), g = M(new tt()), b = M(l.skip), B = M(!1), Y = M(), ie = (E) => typeof E == "string" ? E.split(",") : E || [];
     function N(E, q) {
       return he.getTableRowClass("fullWidth", q, !1, !0);
     }
@@ -6519,7 +6522,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       let se = Gt(q, E), ge = Gn((Re) => {
         g.value.response = g.value.error = void 0, B.value = Re;
       }), Se = await c.api(se);
-      ge(), bt(() => g.value = Se);
+      ge(), xt(() => g.value = Se);
       let Oe = be(Se.response, "results") || [];
       !Se.succeeded || Oe.label == 0;
     }
@@ -6898,7 +6901,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
         });
       });
     }), W = f(() => N(l.oauth) ? [] : (m == null ? void 0 : m.authProviders.filter((D) => D.type === "oauth")) || []), O = f(() => {
-      let D = yo(
+      let D = bo(
         m == null ? void 0 : m.authProviders.filter((le) => le.formLayout && le.formLayout.length > 0),
         (le, X) => {
           let ee = z(X) || nt(X.name);
@@ -6918,13 +6921,13 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       }
     }
     return (D, Q) => {
-      const le = J("ErrorSummary"), X = J("AutoFormFields"), ee = J("PrimaryButton"), S = J("Icon"), te = lo("href");
+      const le = J("ErrorSummary"), X = J("AutoFormFields"), ee = J("PrimaryButton"), S = J("Icon"), te = no("href");
       return o(m) ? (a(), u("div", Hm, [
         n("div", Em, [
           n("h2", zm, A(e.title), 1),
           Object.keys(o(O)).length > 1 ? (a(), u("p", Nm, [
             n("span", Um, [
-              (a(!0), u(Te, null, Ie(o(O), (x, G) => wt((a(), u("a", {
+              (a(!0), u(Te, null, Ie(o(O), (x, G) => kt((a(), u("a", {
                 onClick: (H) => g.value = x,
                 class: w([
                   x === "" || x === o(B).name ? "rounded-l-md" : x === o(Y).name ? "rounded-r-md -ml-px" : "-ml-px",
@@ -7097,7 +7100,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
   setup(e, { expose: t, emit: l }) {
     const s = e;
     let i = [], r = [], d = qe("ApiState", void 0);
-    const c = f(() => ft.call({ responseStatus: s.status ?? (d == null ? void 0 : d.error.value) }, s.id)), m = f(() => s.label ?? Ee(nt(s.id))), h = "bold,italics,link,image,blockquote,code,heading,orderedList,unorderedList,strikethrough,undo,redo,help".split(","), p = f(() => s.hide ? At(h, s.hide) : At(h, []));
+    const c = f(() => ft.call({ responseStatus: s.status ?? (d == null ? void 0 : d.error.value) }, s.id)), m = f(() => s.label ?? Ee(nt(s.id))), h = "bold,italics,link,image,blockquote,code,heading,orderedList,unorderedList,strikethrough,undo,redo,help".split(","), p = f(() => s.hide ? bt(h, s.hide) : bt(h, []));
     function y(C) {
       return p.value[C];
     }
@@ -7128,7 +7131,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
       };
     }
     function z({ value: C, selectionStart: _, selectionEnd: P }) {
-      P == null && (P = _), B(C), bt(() => {
+      P == null && (P = _), B(C), xt(() => {
         b.value.focus(), b.value.setSelectionRange(_, P);
       });
     }
@@ -7148,7 +7151,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
         var se = R.substring(me, Ce);
         ye && (se = ye(se)), Fe ? (R = ve.substring(0, ve.length - C.length) + se + Ve.substring(_.length), F = -se.length - C.length, V = se.length) : (R = ve + C + se + _ + Ve, F ? j += (C + _).length : (j = me, F = C.length, V = se.length));
       }
-      B(R), bt(() => {
+      B(R), xt(() => {
         fe.focus(), F = j + (F || 0), V = (F || 0) + (V || 0), fe.setSelectionRange(F, V);
       });
     }
@@ -7584,11 +7587,11 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
     ]));
   }
 }), fh = {
-  Alert: Io,
-  AlertSuccess: qo,
-  ErrorSummary: Wo,
-  InputDescription: Xo,
-  Icon: js,
+  Alert: Do,
+  AlertSuccess: Qo,
+  ErrorSummary: Jo,
+  InputDescription: Yo,
+  Icon: Ps,
   Loading: qa,
   OutlineButton: Za,
   PrimaryButton: Ja,
@@ -7603,7 +7606,7 @@ const y0 = { key: 0 }, b0 = { class: "text-red-700" }, w0 = /* @__PURE__ */ n("b
   FilterViews: $n,
   FilterColumn: kn,
   QueryPrefs: Cn,
-  EnsureAccess: Bs,
+  EnsureAccess: Rs,
   EnsureAccessDialog: cd,
   TextInput: xd,
   TextareaInput: Sd,
@@ -7658,7 +7661,7 @@ export {
   bh as default,
   xn as useAuth,
   Ml as useClient,
-  Lt as useConfig,
+  St as useConfig,
   gh as useFiles,
   ph as useFormatters,
   ot as useMetadata,
