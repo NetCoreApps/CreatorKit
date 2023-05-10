@@ -12,6 +12,7 @@
   
   <ItemGroup>
     <Content Include="emails\**" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Migrations\seed\**" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   
   <ItemGroup>
