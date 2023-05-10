@@ -202,7 +202,7 @@ public class Migration1000 : MigrationBase
             }
         }
 
-        var seedUsers = File.ReadAllText("App_Data/seed/users.txt").FromCsv<List<SeedUser>>();
+        var seedUsers = File.ReadAllText("Migrations/seed/users.txt").FromCsv<List<SeedUser>>();
         foreach (var user in seedUsers)
         {
             CreateUser(user.Email, user.FirstName, user.LastName, user.Roles);

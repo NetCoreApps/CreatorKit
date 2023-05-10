@@ -38,7 +38,7 @@ public class SeedDataTasks
                 ? roles
                 : null;
         }
-        File.WriteAllText(Path.Combine(hostDir, "App_Data/seed/users.txt"), users.ToCsv());
+        File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/users.txt"), users.ToCsv());
     }
     
     [Test]
@@ -48,6 +48,6 @@ public class SeedDataTasks
         
         using var db = ResolveDbFactory().Open();
         var contacts = db.Select<SeedContact>(db.From<Contact>());
-        File.WriteAllText(Path.Combine(hostDir, "App_Data/seed/subscribers.txt"), contacts.ToCsv());
+        File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/subscribers.txt"), contacts.ToCsv());
     }
 }

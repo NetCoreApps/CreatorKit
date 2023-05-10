@@ -184,7 +184,7 @@ public class Migration1001 : MigrationBase
         Db.CreateTable<MailRun>();
         Db.CreateTable<MailMessageRun>();
         
-        var seedContacts = File.ReadAllText("App_Data/seed/subscribers.txt").FromCsv<List<SeedContact>>();
+        var seedContacts = File.ReadAllText("Migrations/seed/subscribers.txt").FromCsv<List<SeedContact>>();
         foreach (var contact in seedContacts)
         {
             Db.Insert(CreateContact(contact.Email, contact.FirstName, contact.LastName, (MailingList)(int)contact.MailingLists));
