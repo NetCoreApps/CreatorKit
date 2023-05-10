@@ -2,7 +2,7 @@ BaseUrl           {{BaseUrl}}
 AppBaseUrl        {{AppBaseUrl}}
 PublicApiBaseUrl  {{PublicApiBaseUrl}}
 Website           {{BaseUrl}}
-MailPreferences   {{BaseUrl}}/mailpreferences
+MailPreferences   {{BaseUrl}}/mail-preferences
 Unsubscribe       {{BaseUrl}}/unsubscribe
 Privacy           {{BaseUrl}}/privacy
 Contact           {{BaseUrl}}/#contact

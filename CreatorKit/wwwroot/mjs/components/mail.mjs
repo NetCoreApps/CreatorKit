@@ -13,7 +13,7 @@ export const JoinMailingList = {
         <div class="space-y-4">
           <label for="email-address" class="sr-only">Email address</label>
           <div :class="[expand ? 'w-full' : 'w-auto']" style="transition:width 1s ease-in-out, visibility 1s linear">
-            <div class="grid grid-cols-2 items-end gap-4">
+            <div class="grid grid-cols-2 items-end gap-3">
               <div :class="[expand ? 'col-span-2' : '']">
                   <TextInput class="" v-on:focus="expand=true" id="email" name="email" type="email" autocomplete="email" required label="" :placeholder="placeholder || 'Enter your email'" />
               </div>

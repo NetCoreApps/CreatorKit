@@ -1,0 +1,3 @@
+Email,FirstName,LastName,MailingLists
+demis.bellot@gmail.com,Demis,Bellot,3
+team@servicestack.net,Team,ServiceStack,2

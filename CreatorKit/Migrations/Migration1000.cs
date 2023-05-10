@@ -184,12 +184,17 @@ public class Migration1000 : MigrationBase
         var authRepo = CreateAuthRepo();
         authRepo.InitSchema(Db);
 
-        void CreateUser(string email, string name, string refId, List<string>? roles = null, string? avatar = null,
-            string? handle = null)
+        void CreateUser(string email, string firstName, string lastName, List<string>? roles = null)
         {
             var password = "p@55wOrd";
+            var name = $"{firstName} {lastName}";
             var newAdmin = new AppUser
-                { Email = email, DisplayName = name, RefIdStr = refId, Avatar = avatar, Handle = handle };
+            {
+                Email = email, FirstName = firstName, LastName = lastName, DisplayName = name, 
+                RefIdStr = Guid.NewGuid().ToString("N"),
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow,
+            };
             var user = authRepo.CreateUserAuth(Db, newAdmin, password);
             if (roles?.Count > 0)
             {
@@ -197,16 +202,11 @@ public class Migration1000 : MigrationBase
             }
         }
 
-        CreateUser(Users.Admin.Email, Users.Admin.DisplayName, Users.Admin.RefIdStr, Users.Admin.Roles,
-            Users.Admin.Avatar, Users.Admin.Handle);
-        CreateUser(Users.System.Email, Users.System.DisplayName, Users.System.RefIdStr, Users.System.Roles,
-            Users.System.Avatar, Users.System.Handle);
-        CreateUser(Users.Demis.Email, Users.Demis.DisplayName, Users.Demis.RefIdStr, Users.Demis.Roles,
-            Users.Demis.Avatar, Users.Demis.Handle);
-        CreateUser(Users.Darren.Email, Users.Darren.DisplayName, Users.Darren.RefIdStr, Users.Darren.Roles,
-            Users.Darren.Avatar, Users.Darren.Handle);
-        CreateUser(Users.Test.Email, Users.Test.DisplayName, Users.Test.RefIdStr, Users.Test.Roles,
-            Users.Test.Avatar, Users.Test.Handle);
+        var seedUsers = File.ReadAllText("App_Data/seed/users.txt").FromCsv<List<SeedUser>>();
+        foreach (var user in seedUsers)
+        {
+            CreateUser(user.Email, user.FirstName, user.LastName, user.Roles);
+        }
         
         Db.CreateTable<Thread>();
         Db.CreateTable<ThreadLike>();

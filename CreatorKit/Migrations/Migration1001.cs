@@ -172,7 +172,7 @@ public class Migration1001 : MigrationBase
             MailingLists = mailingList,
             ExternalRef = Guid.NewGuid().ToString("N"),
             CreatedDate = DateTime.UtcNow,
-            VerifiedDate = DateTime.UtcNow.AddMinutes(1),
+            VerifiedDate = DateTime.UtcNow,
             Source = Source.UI,
         };
     }
@@ -184,9 +184,11 @@ public class Migration1001 : MigrationBase
         Db.CreateTable<MailRun>();
         Db.CreateTable<MailMessageRun>();
         
-        Db.Insert(CreateContact("demis.bellot@gmail.com", "Demis", "Bellot", MailingList.TestGroup | MailingList.MonthlyNewsletter));
-        Db.Insert(CreateContact("team@servicestack.net", "Team", "ServiceStack", MailingList.MonthlyNewsletter));
-        Db.Insert(CreateContact("demis@servicestack.com", "Ubixar", "Liquidbit", MailingList.TestGroup | MailingList.YearlyUpdates));
+        var seedContacts = File.ReadAllText("App_Data/seed/subscribers.txt").FromCsv<List<SeedContact>>();
+        foreach (var contact in seedContacts)
+        {
+            Db.Insert(CreateContact(contact.Email, contact.FirstName, contact.LastName, (MailingList)(int)contact.MailingLists));
+        }
 
         using var dbArchive = DbFactory.Open("archive");
         dbArchive.CreateTable<ArchiveMessage>();

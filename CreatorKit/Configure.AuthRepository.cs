@@ -50,6 +50,8 @@ public class ConfigureAuthRepository : IHostingStartup
                     Input.For<AppUser>(x => x.Email, x => x.Type = Input.Types.Email),
                     Input.For<AppUser>(x => x.DisplayName,  c => c.FieldsPerRow(2)),
                     Input.For<AppUser>(x => x.UserName,     c => c.FieldsPerRow(2)),
+                    Input.For<AppUser>(x => x.FirstName,    c => c.FieldsPerRow(2)),
+                    Input.For<AppUser>(x => x.LastName,     c => c.FieldsPerRow(2)),
                     Input.For<AppUser>(x => x.Company),
                     Input.For<AppUser>(x => x.Nickname,     c => {
                         c.FieldsPerRow(2);
