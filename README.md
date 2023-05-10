@@ -1,4 +1,4 @@
-# ssg-services
+# Creator Kit
 
 Useful APIs for Razor SSG Websites
 
