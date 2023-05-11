@@ -41,6 +41,12 @@ public class RenderNewsletter : RenderEmailBase, IGet, IReturn<string>
     public int? Year { get; set; }
 }
 
+[Route("/docs/{Page}")]
+public class RenderDoc : IGet, IReturn<string>
+{
+    [ValidateNotEmpty]
+    public string Page { get; set; }
+}
 
 /// <summary>
 /// Specify which renderer should be used to render emails

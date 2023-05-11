@@ -1,136 +1,128 @@
-<html>
+<html class="h-full bg-white">
 <head>
-<title>Creator Kit</title>
-<style>
-    body { padding: 1em 1em 5em 1em; }
-    body, input[type=text] { font: 20px/28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif }
-    input { padding:.25em .5em; margin-right:.5em; }
-    a { color:#007bff; text-decoration:none }
-    a:hover { text-decoration:underline }
-    #result { display:inline-block; color:#28a745; font-size:28px }
-    pre { border-radius:10px; overflow:hidden }
-    h2, h3, strong { font-weight:500 }
-</style>
-<link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/styles/atom-one-dark.min.css">
-<script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script><!--safari polyfill-->
-<script type="importmap">
+    <title>Admin Portal</title>
+    <link rel="icon" type="image/svg" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/typography.css">
+    <script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script><!--safari polyfill-->
+    <script type="importmap">
 {
     "imports": {
-        "@servicestack/client": "https://unpkg.com/@servicestack/client@2/dist/servicestack-client.min.mjs"
+        "vue": "/lib/mjs/vue.mjs",
+        "@servicestack/client": "/lib/mjs/servicestack-client.mjs",
+        "@servicestack/vue": "/lib/mjs/servicestack-vue.mjs",
+        "app.mjs": "/mjs/app.mjs",
+        "dtos.mjs": "/mjs/dtos.mjs"
     }
 }
 </script>
 </head>
-<body>
+<body class="h-full">
+<div id="app" v-cloak>
+    <sidebar-layout ref="sidebar">
+        <div class="flex h-16 shrink-0 items-center">
+            <a href="/portal/">
+                <svg class="h-10 w-auto text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="currentColor" d="M10 6c1.544 1.76 2.276 4.15 2.217 6.61c3.968 1.67 9.924 6.12 11.181 12.39H28C26.051 14.31 14.918 6.77 10 6zm-2 7c4.67 4.913.81 11.582-4 12h18.97C21.5 18.289 11.95 13.533 8 13z"/></svg>
+            </a>
+        </div>
+        <nav class="flex flex-1 flex-col">
+            <ul role="list" class="flex flex-1 flex-col gap-y-7">
+                <li>
+                    <ul role="list" class="-mx-2 space-y-1">
+                        <li v-for="section in sections">
+                            <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
+                            <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
+                                <div v-html="section.icon"></div>
+                                {{section.label}}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <template #mobiletitlebar>
+            <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.label }}</div>
+        </template>
+    </sidebar-layout>
 
-<h2><a href="/ui/Hello">Hello</a> API</h2>
-<input type="text" id="txtName">
-<div id="result"></div>
-
-<script type="module">
-import { JsonApiClient, $1, on } from '@servicestack/client'
-import { Hello } from '/types/mjs'
-
-const client = JsonApiClient.create()
-on('#txtName', {
-    /** @param {Event} el */
-    async keyup(el) {
-        const api = await client.api(new Hello({ name:el.target.value }))
-        $1('#result').innerHTML = api.response.result
-    }
-})
-
-$1('#txtName').value = 'World'
-$1('#txtName').dispatchEvent(new KeyboardEvent('keyup'))
-</script>
-
-<div id="content" style="max-width:105ch"></div>
-
-<template id="docs">
-## View in API Explorer
-
-- [Call API](/ui/Hello)
-- [View API Details](/ui/Hello?tab=details)
-- [Browse API source code in different langauges](/ui/Hello?tab=code)
-
-### Using JsonServiceClient in Web Pages
-
-Easiest way to call APIs is to use [@servicestack/client](https://docs.servicestack.net/javascript-client) with
-the built-in [/types/mjs](/types/mjs) which returns your APIs in annotated typed ES6 class DTOs where it can be 
-referenced directly from a [JavaScript Module](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-
-We recommend using an [importmap](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) 
-to specify where to load **@servicestack/client** from, e.g:
-
-```html
-&lt;script type="importmap"&gt;
-{
-  "imports": {
-    "@servicestack/client":"https://unpkg.com/@servicestack/client@2/dist/servicestack-client.mjs"
-  }
-}
-&lt;/script&gt;
-```
-
-This lets us reference the **@servicestack/client** package name in our source code instead of its physical location:
-    
-```html
-&lt;input type="text" id="txtName"&gt;
-&lt;div id="result"&gt;&lt;/div&gt;
-```
-
-```html
-&lt;script type="module"&gt;
-import { JsonApiClient, $1, on } from '@servicestack/client'
-import { Hello } from '/types/mjs'
-
-const client = JsonApiClient.create()
-on('#txtName', {
-    async keyup(el) {
-        const api = await client.api(new Hello({ name:el.target.value }))
-        $1('#result').innerHTML = api.response.result
-    }
-})
-&lt;/script&gt;
-```
-
-### Enable static analysis and intelli-sense 
-
-For better IDE intelli-sense during development, save the annotated Typed DTOs to disk with the [x dotnet tool](https://docs.servicestack.net/dotnet-tool):
-
-```bash
-$ x mjs
-```
-
-Then reference it instead to enable IDE static analysis when calling Typed APIs from JavaScript:
-
-```js
-import { Hello } from '/js/dtos.mjs'
-client.api(new Hello({ name }))
-```
-    
-To also enable static analysis for **@servicestack/client**, install the dependency-free library as a dev dependency:
-    
-```bash
-$ npm install -D @servicestack/client
-```
-
-Where only its TypeScript definitions are used by the IDE during development to enable its type-checking and intelli-sense.
-</template>
-
-<script src="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-function decode(html) {
-    const txt = document.createElement("textarea")
-    txt.innerHTML = html
-    return txt.value
-}
-document.querySelector('#content').innerHTML = marked.parse(decode(document.querySelector('#docs').innerHTML))
-hljs.highlightAll()
-</script>
-
+    <main class="lg:pl-72">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div>
+                <h1 class="hidden lg:block pt-4 mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">{{ activeSection.label }}</h1>
+                <component :key="refreshKey" :is="activeSection.component" @nav="navTo"></component>
+            </div>
+        </div>
+    </main>
 </div>
 
-</body>
-</html>
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+import { RenderDoc } from "/mjs/dtos.mjs"
+import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult, humanize } from "@servicestack/client"
+import { useAuth, useClient, useMetadata, useUtils, useFormatters, css } from "@servicestack/vue"
+import { ref, computed, onMounted, onUnmounted, shallowRef, watch, nextTick } from "vue"
+
+const MarkdownPage = {
+    template:`
+      <div class="prose">
+        <div v-html="html"></div>
+      </div>`,
+    props:['page'],
+    setup(props) {
+        const client = useClient()
+        const cacheKey = `/docs/${props.page}`
+        const html = ref(localStorage.getItem(cacheKey) || '')
+        
+        onMounted(async () => {
+            const api = await client.api(new RenderDoc({ page: props.page }))
+            if (api.succeeded) {
+                html.value = api.response
+                localStorage.setItem(cacheKey, html.value)
+            }
+        })
+        
+        return { html }
+    }
+}
+
+const sections = {
+    home: {
+        label: 'Creator Kit',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M16 6.6L8 1.4L6 2.7V1H4v3L0 6.6l1.9 2.7l.1-.1V15h5v-4h2v4h5V9.2l.1.1L16 6.6zm-14.6.3L8 2.6l6.6 4.3l-.7 1L8 4L2.1 7.9l-.7-1zM13 14h-3v-4H6v4H3V8.6l5-3.3l5 3.3V14z"/></svg>`,
+        component: {
+            template:`<MarkdownPage page="index.md" />`
+        }
+    }
+}
+Object.keys(sections).forEach(id => sections[id].id = id)
+
+const App = {
+    components: { MarkdownPage },
+    setup() {
+        const { user } = useAuth()
+        const sidebar = ref()
+        const refreshKey = ref(1)
+        const showUserMenu = ref(false)
+        const allSections = sections
+        const activeSection = shallowRef(allSections[rightPart(leftPart(location.hash,'?'), '#')] || sections.home)
+
+        function navTo(section, args, pushState=true) {
+            if (!args) args = {}
+            refreshKey.value++
+            activeSection.value = allSections[section] || sections.home
+            console.log('navTo', { section, ...args }, appendQueryString(`#${section}`, args))
+            if (pushState) history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
+            sidebar.value.toggle(false)
+        }
+
+        onMounted(() => {
+            window.addEventListener('popstate', event => {
+                navTo(event.state?.section, {}, false)
+            })
+        })
+
+        return { sidebar, user, sections, activeSection, navTo, refreshKey, showUserMenu }
+    }
+}
+mount('#app', App)
+</script>
