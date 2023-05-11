@@ -1,53 +1,58 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ServiceStack;
-using ServiceStack.Script;
 using CreatorKit.ServiceModel;
 
 namespace CreatorKit.ServiceInterface;
 
 public class MailData
 {
-    public static MailData Instance { get; set; } = new();
     public DateTime LastUpdated { get; set; }
-    public List<MarkdownFile> Posts { get; set; } = new();
+    public AppData AppData { get; }
 
-    public Task LoadAsync() => LoadAsync(AppData.Instance.BaseUrl);
-    public async Task LoadAsync(string baseUrl)
+    public MailData(AppData appData)
     {
-        Posts.Clear();
-        var indexUrl = baseUrl.CombineWith("/meta/index.json");
-        var index = JSON.parse(await indexUrl.GetJsonFromUrlAsync());
-        var posts = index is Dictionary<string,object> oIndex
-            ? oIndex.TryGetValue("posts", out var oPosts)
-                ? oPosts.ConvertTo<List<string>>()
-                : null
-            : null;
-        
-        foreach (var yearPostsUrl in posts.Safe())
-        {
-            var yearPostsJson = await yearPostsUrl.GetJsonFromUrlAsync();
-            var yearPosts = yearPostsJson.FromJson<List<MarkdownFile>>();
-            Posts.AddRange(yearPosts);
-        }
-
-        LastUpdated = DateTime.UtcNow;
-        Posts = Posts.OrderByDescending(x => x.Date).ToList();
+        AppData = appData;
     }
 
-    public MailData Search(DateTime? fromDate = null, DateTime? toDate = null)
+    public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(10);
+    public ConcurrentDictionary<int, SiteMeta> MetaCache { get; } = new();
+
+    public async Task<SiteMeta> SearchAsync(DateTime? fromDate = null, DateTime? toDate = null)
     {
-        var posts = Posts.AsEnumerable();
-        if (fromDate != null)
-            posts = posts.Where(x => x.Date >= fromDate);
-        if (toDate != null)
-            posts = posts.Where(x => x.Date < toDate);
-        
-        return new MailData
+        var year = fromDate?.Year ?? DateTime.UtcNow.Year;
+        var metaCache = MetaCache.TryGetValue(year, out var siteMeta) && siteMeta.CreatedDate < DateTime.UtcNow.Add(CacheDuration)
+            ? siteMeta
+            : null;
+
+        if (metaCache == null)
         {
-            Posts = posts.ToList() 
+            var metaJson = await AppData.BaseUrl.CombineWith($"/meta/{year}/all.json").GetJsonFromUrlAsync();
+            metaCache = metaJson.FromJson<SiteMeta>();
+            metaCache.CreatedDate = DateTime.UtcNow;
+            MetaCache[year] = metaCache;
+        }
+
+        var results = new SiteMeta
+        {
+            CreatedDate = metaCache.CreatedDate,
+            Pages = WithinRange(metaCache.Pages, fromDate, toDate).ToList(),
+            Posts = WithinRange(metaCache.Posts, fromDate, toDate).ToList(),
+            WhatsNew = WithinRange(metaCache.WhatsNew, fromDate, toDate).ToList(),
+            Videos = WithinRange(metaCache.Videos, fromDate, toDate).ToList(),
         };
+        return results;
+    }
+
+    private static IEnumerable<MarkdownFile> WithinRange(IEnumerable<MarkdownFile> docs, DateTime? fromDate, DateTime? toDate)
+    {
+        if (fromDate != null)
+            docs = docs.Where(x => x.Date >= fromDate);
+        if (toDate != null)
+            docs = docs.Where(x => x.Date < toDate);
+        return docs;
     }
 }

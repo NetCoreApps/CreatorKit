@@ -52,7 +52,7 @@ public class MailingServices : Service
             contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
             
             var viewRequest = new RenderCustomHtml { Layout = "marketing", Template = "verify-email" }.FromContact(contact);
-            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template, meta: MailData);
+            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, contact);
             await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage
@@ -175,13 +175,18 @@ public class MailingServices : Service
 
     public async Task<object> Any(ViewMailData request)
     {
-        if (request.Load == true)
-            await MailData.LoadAsync();
+        if (request.Force == true)
+            MailData.MetaCache.Clear();
+        
+        var year = request.Year ?? DateTime.UtcNow.Year;
+        var fromDate = new DateTime(year, request.Month ?? 1, 1);
+        var meta = await MailData.SearchAsync(fromDate: fromDate,
+            toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null);
         
         return new ViewMailDataResponse
         {
             LastUpdated = MailData.LastUpdated,
-            LatestPosts = MailData.Posts.OrderByDescending(x => x.Date).Take(10).ToList(),
+            SiteMeta = meta,
         };
     }
 
@@ -194,7 +199,7 @@ public class MailingServices : Service
         if (sub != null)
         {
             var viewRequest = new RenderCustomHtml { Layout = "marketing", Template = "newsletter-welcome" }.FromContact(sub);
-            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template, meta: MailData);
+            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template);
             var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
             await Renderer.CreateMessageAsync(Db, new MailMessage {
                 Message = new EmailMessage {

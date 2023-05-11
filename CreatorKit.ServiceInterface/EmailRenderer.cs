@@ -140,7 +140,7 @@ public class EmailRenderer
     }
 
     public ScriptContext CreateMailContext(string page, string? layout=null, 
-        Dictionary<string,object?>? args = null, MailData? meta=null)
+        Dictionary<string,object?>? args = null)
     {
         if (string.IsNullOrEmpty(page))
             throw new ArgumentNullException(nameof(page));
@@ -151,7 +151,7 @@ public class EmailRenderer
         if (!page.EndsWith(".html"))
             page += ".html";
         
-        var context = CreateScriptContext(args, meta);
+        var context = CreateScriptContext(args);
 
         var emailsDir = VirtualFiles.GetDirectory("emails");
         var layoutsDir = VirtualFiles.GetDirectory("emails/layouts");

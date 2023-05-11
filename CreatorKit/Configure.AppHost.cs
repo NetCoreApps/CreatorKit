@@ -27,9 +27,9 @@ public class AppHost : AppHostBase, IHostingStartup
                 PublicApiBaseUrl = publicApiBaseUrl,
             });
 
-            services.AddSingleton(MailData.Instance);
             services.AddSingleton(AppData.Instance);
             services.AddSingleton(EmailRenderer.Instance);
+            services.AddSingleton<MailData>();
         });
 
     public AppHost() : base("Creator Kit", typeof(MyServices).Assembly) {}
@@ -61,7 +61,6 @@ public class AppHost : AppHostBase, IHostingStartup
     public async Task LoadAsync(Container container)
     {
         container.Resolve<EmailRenderer>().Init(this);
-        await container.Resolve<MailData>().LoadAsync();
         await container.Resolve<AppData>().LoadAsync(this, 
             ContentRootDirectory.GetDirectory("emails"), RootDirectory.GetDirectory("img/mail"));
         ScriptContext.ScriptAssemblies.Add(typeof(Hello).Assembly);

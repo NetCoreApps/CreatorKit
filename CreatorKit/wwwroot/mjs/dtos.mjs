@@ -1,5 +1,5 @@
 /* Options:
-Date: 2023-05-10 17:45:41
+Date: 2023-05-10 18:28:56
 Version: 6.81
 Tip: To override a DTO option, remove "//" prefix before updating
 BaseUrl: https://localhost:5001
@@ -778,6 +778,15 @@ export class PreviewEmail {
     requestArgs;
     getTypeName() { return 'PreviewEmail' }
     getMethod() { return 'POST' }
+    createResponse() { return '' }
+}
+export class RenderDoc {
+    /** @param {{page?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    page;
+    getTypeName() { return 'RenderDoc' }
+    getMethod() { return 'GET' }
     createResponse() { return '' }
 }
 export class SimpleTextMailRun extends MailRunBase {

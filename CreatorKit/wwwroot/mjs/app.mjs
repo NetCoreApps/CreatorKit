@@ -17,9 +17,9 @@ const Components = {
 const alreadyMounted = el => el.__vue_app__
 
 /** Mount Vue3 Component
- * @param sel {string|Element} - Element or Selector where component should be mounted
+ * @param {string|Element} sel - Element or Selector where component should be mounted
  * @param component
- * @param [props] {any} */
+ * @param {any} props= */
 export function mount(sel, component, props) {
     if (!AppData.init) {
         init(globalThis)
@@ -33,6 +33,10 @@ export function mount(sel, component, props) {
     })
     app.use(ServiceStackVue)
     app.component('RouterLink', ServiceStackVue.component('RouterLink'))
+    if (component.components) {
+        Object.keys(component.components).forEach(name => app.component(name, component.components[name]))
+    }
+    
     app.mount(el)
     Apps.push(app)
     // Register custom input components

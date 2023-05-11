@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Script;
 using CreatorKit.ServiceModel;
+using Markdig;
+using Markdig.Syntax;
 
 namespace CreatorKit.ServiceInterface;
 
@@ -70,13 +74,61 @@ public class EmailRenderersServices : Service
             });
     }
 
+
+    private static char[] InvalidFileNameChars = { '\"', '<', '>', '|', '\0', ':', '*', '?', '\\', '/' };
+    public object Any(RenderDoc request)
+    {
+        var isValid = request.Page.IndexOf("..", StringComparison.Ordinal) == -1
+            && request.Page.IndexOfAny(InvalidFileNameChars) == -1; 
+        var file = isValid
+            ? VirtualFiles.GetFile($"/docs/{request.Page}")
+            : null;
+        if (file == null)
+            throw HttpError.NotFound("File not found");
+        
+        var pipeline = new MarkdownPipelineBuilder()
+            .UseYamlFrontMatter()
+            .UseAdvancedExtensions()
+            .Build();
+        
+        var writer = new StringWriter();
+        var renderer = new Markdig.Renderers.HtmlRenderer(writer);
+        pipeline.Setup(renderer);
+
+        var content = file.ReadAllText();
+        var document = Markdown.Parse(content, pipeline);
+        renderer.Render(document);
+
+        var block = document
+            .Descendants<Markdig.Extensions.Yaml.YamlFrontMatterBlock>()
+            .FirstOrDefault();
+
+        var doc = block?
+            .Lines // StringLineGroup[]
+            .Lines // StringLine[]
+            .Select(x => $"{x}\n")
+            .ToList()
+            .Select(x => x.Replace("---", string.Empty))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => KeyValuePairs.Create(x.LeftPart(':').Trim(), x.RightPart(':').Trim()))
+            .ToObjectDictionary()
+            .ConvertTo<MarkdownFile>();
+
+        var html = writer.ToString();
+        return html;
+    }
+
     public async Task<object> Any(RenderNewsletter request)
     {
         var year = request.Year ?? DateTime.UtcNow.Year;
         var fromDate = new DateTime(year, request.Month ?? 1, 1);
-        var context = Renderer.CreateMailContext(layout:"marketing", page:"newsletter",
-            meta: MailData.Search(fromDate: fromDate,
-                toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null));
+        var meta = await MailData.SearchAsync(fromDate: fromDate,
+            toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null);
+        
+        var context = Renderer.CreateMailContext(layout:"marketing", page:"newsletter", 
+            args:new() {
+                ["meta"] = meta
+            });
 
         return await Renderer.RenderToHtmlResultAsync(Db, context, request, args: new() {
             ["title"] = $"{fromDate:MMMM} {fromDate:yyyy}"

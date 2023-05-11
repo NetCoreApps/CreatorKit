@@ -8,9 +8,50 @@
             </p>
         </td>
     </tr>
+
+    {{#if meta.WhatsNew.Count > 0 }}
+    {{ 'divider' |> partial }}
+    {{ 'section' |> partial({ iconSrc:images.speaker_48x48, title:'New Release' }) }}
+    {{ var first = meta.WhatsNew[0] }}
+    {{ 'title' |> partial({ title:first.Group, fontSize:60 }) }}
+    <tr>
+        <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
+            {{#each meta.WhatsNew.where(x => x.Group == first.Group) }}
+            <div style="margin-bottom:50px">
+                <div style="margin-bottom:2em">
+                    <a href="{{ it.url }}"><img src="{{ it.Image }}"></a>
+                </div>
+                <h3 style="margin:1em 0 0 0;text-align:center;"><a href="{{ it.url }}" style="font-size:18px;color:#4f46e5!important;text-decoration:none;" target="_blank">{{ it.title }} →</a></h3>
+                {{ it.Content |> emailmarkdown }}
+            </div>
+            {{/each}}
+        </td>
+    </tr>
+    {{/if}}
+
+    {{#if meta.Videos.Count > 0 }}
+    {{ 'divider' |> partial }}
+    {{ 'section' |> partial({ iconSrc:images.video_48x48, title:'New Videos' }) }}
+    <tr>
+        <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
+            {{#each meta.Videos }}
+            <div style="margin-bottom:30px">
+                <div style="margin-bottom:2em">
+                    <a href="{{ it.url }}" title="{{ it.title }}">
+                        <img src="https://i3.ytimg.com/vi/{{ it.url.lastRightPart('/') }}/maxresdefault.jpg">
+                    </a>
+                </div>
+                <h3 style="margin:1em 0 0 0;text-align:center;"><a href="{{ it.url }}" style="font-size:18px;color:#4f46e5!important;text-decoration:none;" target="_blank">{{ it.title }} →</a></h3>
+                {{ it.Content |> emailmarkdown }}
+            </div>
+            {{/each}}
+        </td>
+    </tr>
+    {{/if}}
+    
+    {{#if meta.Posts.Count > 0 }}
     {{ 'divider' |> partial }}
     {{ 'section' |> partial({ iconSrc:images.blog_48x48, title:'New Posts' }) }}
-    
     <tr>
         <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
             {{#each meta.Posts }}
@@ -19,6 +60,8 @@
             {{/each}}
         </td>
     </tr>
+    {{/if}}
+
     {{#if body}}
     <tr>
         <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
