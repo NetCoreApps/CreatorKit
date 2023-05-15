@@ -252,7 +252,8 @@ const Comment = {
                 </div>
             </div>
             <div class="py-2 text-gray-900 dark:text-gray-50">
-                {{comment.content}}
+                <span v-if="comment.flagReason" class="text-gray-500 text-sm">[flagged]</span>
+                <span v-else>{{comment.content}}</span>
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-300 flex justify-between h-6">
                 <div class="flex items-center">

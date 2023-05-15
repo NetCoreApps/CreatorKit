@@ -23,7 +23,6 @@ public class GetThreadUserDataResponse
 
 [Tag(Tag.Posts)]
 [AutoApply(Behavior.AuditQuery)]
-[AutoFilter(QueryTerm.Ensure, nameof(Comment.FlagReason), Template = SqlTemplate.IsNull)]
 public class QueryComments : QueryDb<Comment, CommentResult>,
     IJoin<Comment,AppUser>
 {

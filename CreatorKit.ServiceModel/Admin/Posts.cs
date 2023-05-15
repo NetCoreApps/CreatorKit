@@ -58,6 +58,7 @@ public class AdminUpdateComment : IPatchDb<Comment>, IReturn<Comment>
     public string? FlagReason { get; set; }
     public string? Notes { get; set; }
     public int? AppUserId { get; set; }
+    public DateTime? DeletedDate { get; set; }
     [Input(Type = "textarea"), FieldCss(Field = "col-span-12", Input = "h-36")]
     public string Content { get; set; }
 }

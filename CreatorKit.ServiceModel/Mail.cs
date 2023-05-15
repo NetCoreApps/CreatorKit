@@ -123,6 +123,7 @@ public class MarkdownFile
     public DateTime Date { get; set; }
     public string? Url { get; set; }
     public string? Group { get; set; }
+    public int? Order { get; set; }
     public int? WordCount { get; set; }
     public int? LineCount { get; set; }
     public int MinutesToRead => (int)Math.Ceiling((WordCount ?? 1) / (double)225);
