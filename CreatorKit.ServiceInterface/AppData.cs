@@ -20,7 +20,7 @@ public class AppData
     {
         instance.ReplaceTokensInVars["{{" + nameof(BaseUrl) + "}}"] = instance.BaseUrl;
         instance.ReplaceTokensInVars["{{" + nameof(AppBaseUrl) + "}}"] = instance.AppBaseUrl;
-        instance.ReplaceTokensInVars["{{" + nameof(PublicApiBaseUrl) + "}}"] = instance.PublicApiBaseUrl;
+        instance.ReplaceTokensInVars["{{" + nameof(PublicAppBaseUrl) + "}}"] = instance.PublicAppBaseUrl;
         Instance = instance;
     }
 
@@ -29,7 +29,7 @@ public class AppData
     /// <summary>
     /// Images in emails need to be hosted from publicly accessible URLs 
     /// </summary>
-    public string PublicApiBaseUrl { get; init; }
+    public string PublicAppBaseUrl { get; init; }
 
     public Dictionary<string, string> ReplaceTokensInVars { get; set; } = new();
     
@@ -112,7 +112,7 @@ public class AppData
         }
 
         var images = Vars["images"] = new Dictionary<string, string>();
-        var imgBaseUrl = PublicApiBaseUrl.CombineWith(EmailImagesDir.VirtualPath);
+        var imgBaseUrl = PublicAppBaseUrl.CombineWith(EmailImagesDir.VirtualPath);
         var delims = new[] { '@', '.', '-' };
         foreach (var file in EmailImagesDir.GetFiles())
         {

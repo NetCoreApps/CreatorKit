@@ -14,7 +14,7 @@ public class AppHost : AppHostBase, IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
         .ConfigureServices((context,services) => {
-            var publicApiBaseUrl = "https://" + (Environment.GetEnvironmentVariable("DEPLOY_HOST") ??
+            var publicAppBaseUrl = "https://" + (Environment.GetEnvironmentVariable("DEPLOY_HOST") ??
                                    "ssg-services.servicestack.net");
             AppData.Set(new AppData
             {
@@ -23,8 +23,8 @@ public class AppHost : AppHostBase, IHostingStartup
                     : "https://servicestack.net",
                 AppBaseUrl = context.HostingEnvironment.IsDevelopment()
                     ? "https://localhost:5001"
-                    : publicApiBaseUrl,
-                PublicApiBaseUrl = publicApiBaseUrl,
+                    : publicAppBaseUrl,
+                PublicAppBaseUrl = publicAppBaseUrl,
             });
 
             services.AddSingleton(AppData.Instance);
