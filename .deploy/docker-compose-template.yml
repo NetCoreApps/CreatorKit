@@ -12,6 +12,26 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     volumes:
       - ${APP_NAME}-mydb:/app/App_Data
+
+  ${APP_NAME}-litestream:
+    image: litestream/litestream
+    restart: always
+    profiles: 
+      - litestream-backup
+    command: replicate -config /config/litestream.yml
+    volumes:
+      - ${APP_NAME}-mydb:/data
+      - ./${APP_NAME}/config:/config
+
+  ${APP_NAME}-restore:
+    image: litestream/litestream
+    restart: "no"
+    profiles:
+      - litestream
+    command: restore -if-db-not-exists -if-replica-exists -config /config/litestream.yml /data/db.sqlite
+    volumes:
+      - ${APP_NAME}-mydb:/data
+
   ${APP_NAME}-migration:
     image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
     restart: "no"
