@@ -68,23 +68,25 @@ export const MailPreferences = {
         <div class="flex justify-center">
           <svg class="my-4 w-16 h-16 text-green-600" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path fill="none" stroke="currentColor" d="M4 7.5L7 10l4-5m-3.5 9.5a7 7 0 1 1 0-14a7 7 0 0 1 0 14Z"/></svg>
         </div>
-        <h2 class="mb-3 inline sm:block lg:inline xl:block">Updated!</h2>
-        <p class="inline sm:block lg:inline xl:block">Your email preferences have been saved.</p>
+        <h2 class="mb-3 inline sm:block lg:inline xl:block">{{ updatedHeading || 'Updated!' }}</h2>
+        <p class="inline sm:block lg:inline xl:block">{{ updatedMessage || 'Your email preferences have been saved.' }}</p>
       </div>
       <div v-else-if="unsubscribed" class="text-gray-900 sm:text-4xl lg:col-span-7">
         <div class="flex justify-center">
           <svg class="my-4 w-16 h-16 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="4"><path d="m35 26.614l-19.854-19.3a2.928 2.928 0 0 0-4.259.188a3.334 3.334 0 0 0 .18 4.544l10.024 9.93"/><path stroke-linejoin="round" d="M21.09 21.976L10.178 11.155a3.486 3.486 0 0 0-4.735-.161a3.032 3.032 0 0 0-.18 4.417l10.993 11.203"/><path d="M16.255 26.614L10 20.5a3.299 3.299 0 0 0-4.633-.08a3.233 3.233 0 0 0-.093 4.588c9.23 9.536 14.02 14.04 15.817 15.545C24 42.99 29.735 44 32.73 42c2.995-2 5.702-4.846 6.987-7.671c.765-1.683 2.25-6.87 4.458-15.561a3.305 3.305 0 0 0-2.46-4.034a3.5 3.5 0 0 0-4.166 2.493L35 26.614m-3.284-13.948a19.597 19.597 0 0 0-8.752-7.187M5.194 33.776a19.599 19.599 0 0 0 8.364 7.635"/></g></svg>
         </div>
-        <h2 class="mb-3 text-3xl font-bold tracking-tight inline sm:block lg:inline xl:block">Updated!</h2>
-        <p class="text-2xl inline sm:block lg:inline xl:block">You've been unsubscribed from all email subscriptions, we're sorry to see you go!</p>
+        <h2 class="mb-3 text-3xl font-bold tracking-tight inline sm:block lg:inline xl:block">{{ unsubscribeHeading || 'Updated!' }}</h2>
+        <p class="text-2xl inline sm:block lg:inline xl:block">
+          {{ unsubscribeMessage || "You've been unsubscribed from all email subscriptions, we're sorry to see you go!" }}
+        </p>
       </div>
       <div v-else-if="contact">
         <div v-if="unsubscribeView">
           <p class="mb-3">
-            Unsubscribe from all future email communications:
+            {{ unsubscribePrompt || 'Unsubscribe from all future email communications:' }}
           </p>
           <div class="my-8 flex justify-center">
-            <PrimaryButton type="button" color="red" @click="submitUnsubscribe">Unsubscribe</PrimaryButton>
+            <PrimaryButton type="button" color="red" @click="submitUnsubscribe">{{ submitUnsubscribeLabel || 'Unsubscribe' }}</PrimaryButton>
           </div>
         </div>
         <p class="mb-3">
@@ -98,21 +100,22 @@ export const MailPreferences = {
                 <label class="select-none ml-3 text-sm font-medium leading-6 text-gray-900 dark:text-gray-50" :for="'chk-'+value">{{mailingListType.enumDescriptions[index] || mailingListType.enumNames[index]}}</label>
               </div>
             </div>
-            <PrimaryButton class="mt-8">Save Changes</PrimaryButton>
+            <PrimaryButton class="mt-8">{{ submitLabel || 'Save Changes' }}</PrimaryButton>
           </div>
         </form>
       </div>
       <div v-else>
         <p>
-          Enter your email to manage your email preferences:
+          {{ emailPrompt || 'Enter your email to manage your email preferences:' }}
         </p>
         <ErrorSummary class="my-3" />
         <form @submit.prevent="findContact" class="space-x-4 flex items-end">
           <div><TextInput id="email" v-model="email" label="" placeholder="Enter your email" /></div>
-          <div><PrimaryButton>Submit</PrimaryButton></div>
+          <div><PrimaryButton>{{ submitEmailLabel || 'Submit' }}</PrimaryButton></div>
         </form>
       </div>
     </div>`,
+    props:['emailPrompt','submitEmailPrompt','updatedHeading','updatedMessage','unsubscribePrompt','unsubscribeHeading','unsubscribeMessage','submitLabel','submitUnsubscribeLabel'],
     setup(props) {
         const client = useClient()
         const contact = ref()
