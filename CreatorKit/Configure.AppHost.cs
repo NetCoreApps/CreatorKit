@@ -49,6 +49,7 @@ public class AppHost : AppHostBase, IHostingStartup
                 "http://localhost:5000",
                 "http://localhost:8080",
                 "https://servicestack.net",
+                "https://razor-ssg.web-templates.io",
                 "https://diffusion.works",
             }, allowCredentials: true));
         Plugins.Add(new CleanUrlsFeature());
