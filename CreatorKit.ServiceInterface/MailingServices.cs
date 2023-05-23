@@ -251,8 +251,8 @@ public class MailingServices : Service
         var appData = AppData.Instance;
         return new ViewAppDataResponse
         {
+            WebsiteBaseUrl = appData.WebsiteBaseUrl,
             BaseUrl = appData.BaseUrl,
-            AppBaseUrl = appData.AppBaseUrl,
             Vars = appData.Vars,
             BannedUserIds = appData.BannedUsersMap.Keys.ToList(),
         };

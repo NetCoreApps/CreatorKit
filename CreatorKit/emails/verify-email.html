@@ -22,7 +22,7 @@ Thank you, <br>
 
 <div style="padding:20px 50px">
     {{markdown |> emailmarkdown}}
-    {{ 'button-centered' |> partial({ label:'Verify your email address', href:`${urls.AppBaseUrl}/verify/email/${ExternalRef}` }) }}
+    {{ 'button-centered' |> partial({ label:'Verify your email address', href:`${urls.BaseUrl}/verify/email/${ExternalRef}` }) }}
 
     <p style="margin:10px 0">&nbsp;</p>
     <p style="margin:10px 0;font-size:13px;color:#999999;text-align: center">If you did not make this request, you can ignore this email.</p>

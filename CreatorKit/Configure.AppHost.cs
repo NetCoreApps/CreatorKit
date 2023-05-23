@@ -1,8 +1,4 @@
-using System.Data;
 using Funq;
-using ServiceStack;
-using ServiceStack.OrmLite;
-using ServiceStack.Web;
 using CreatorKit.ServiceInterface;
 using CreatorKit.ServiceModel;
 
@@ -14,19 +10,7 @@ public class AppHost : AppHostBase, IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
         .ConfigureServices((context,services) => {
-            var publicAppBaseUrl = "https://" + (Environment.GetEnvironmentVariable("DEPLOY_HOST") ??
-                                   "ssg-services.servicestack.net");
-            AppData.Set(new AppData
-            {
-                BaseUrl = context.HostingEnvironment.IsDevelopment()
-                    ? "https://localhost:5002"
-                    : "https://servicestack.net",
-                AppBaseUrl = context.HostingEnvironment.IsDevelopment()
-                    ? "https://localhost:5001"
-                    : publicAppBaseUrl,
-                PublicAppBaseUrl = publicAppBaseUrl,
-            });
-
+            AppData.Set(context.Configuration);
             services.AddSingleton(AppData.Instance);
             services.AddSingleton(EmailRenderer.Instance);
             services.AddSingleton<MailData>();
@@ -41,21 +25,14 @@ public class AppHost : AppHostBase, IHostingStartup
             UseSameSiteCookies = false,
             AllowFileExtensions = { "json" }
         });
-        
-        Plugins.Add(new CorsFeature(allowedHeaders: "Content-Type,Authorization",
-            allowOriginWhitelist: new[]{
-                "https://localhost:5002",
-                "https://localhost:5001",
-                "http://localhost:5000",
-                "http://localhost:8080",
-                "https://servicestack.net",
-                "https://razor-ssg.web-templates.io",
-                "https://diffusion.works",
-            }, allowCredentials: true));
+
+        Plugins.Add(new CorsFeature(AppSettings)
+            .AppendOriginWhitelist(new[] {
+                AppData.Instance.WebsiteBaseUrl,
+            }));
         Plugins.Add(new CleanUrlsFeature());
         
         MarkdownConfig.Transformer = new MarkdigTransformer();
-
         LoadAsync(container).GetAwaiter().GetResult();
     }
 
@@ -70,7 +47,7 @@ public class AppHost : AppHostBase, IHostingStartup
     }
 
     public static void RegisterLicense() =>
-        Licensing.RegisterLicense("OSS BSD-3-Clause 2023 https://github.com/NetCoreApps/ssg-services JyPOp3PjQXHkwYmxCq86NLwnfZuqLTdSCNJ2ymUdIhPcr+z8cvx3XZW//rLsHjHDWhzmSxnMV+0ql2N9RTOvJHeyjq22infs0PExajdpKXfGK9j+EWwB4eKK/uod1h3lUIyCVnp6DLsMQS6yIWT37F2W3xeT1+iH7y5qMfAVYF0=");
+        Licensing.RegisterLicense("OSS BSD-3-Clause 2023 https://github.com/NetCoreApps/CreatorKit uxZ7vM7ILRPT6vsqcNZOji4nqjOuCh4vvtk7SRwIcos4yW4aQHZZdTZ6858df/i8ZS+sIBUGb/ysSWWYLMbCjsgVrZ3kbBunomMXYD5g0eeM8TM8Dn2q23Jp7wCoCRV5DrsBdPDR62CAwMfVarbdHrJP+AIKQWyqdB6Q/F8px1E=");
 }
 
 public class MarkdigTransformer : IMarkdownTransformer
