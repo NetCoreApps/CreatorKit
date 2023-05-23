@@ -277,8 +277,8 @@ public class DeleteMailRunMessage : IDeleteDb<MailMessageRun>, IReturnVoid
 public class ViewAppData : IGet, IReturn<ViewAppDataResponse> {}
 public class ViewAppDataResponse
 {
+    public string WebsiteBaseUrl { get; set; }
     public string BaseUrl { get; set; }
-    public string AppBaseUrl { get; set; }
     public Dictionary<string, Dictionary<string, string>> Vars { get; set; }
     public List<int> BannedUserIds { get; set; }
     public ResponseStatus ResponseStatus { get; set; }

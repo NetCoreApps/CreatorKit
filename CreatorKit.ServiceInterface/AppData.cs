@@ -9,6 +9,7 @@ using ServiceStack.Html;
 using ServiceStack.IO;
 using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
+using Microsoft.Extensions.Configuration;
 using ServiceStack.Auth;
 
 namespace CreatorKit.ServiceInterface;
@@ -16,20 +17,28 @@ namespace CreatorKit.ServiceInterface;
 public class AppData
 {
     public static AppData Instance { get; private set; } = new();
+
+    public static void Set(IConfiguration config)
+    {
+        var instance = new AppData();
+        config.Bind(nameof(AppData), instance);
+        Set(instance);
+    }
+    
     public static void Set(AppData instance)
     {
+        instance.ReplaceTokensInVars["{{" + nameof(PublicBaseUrl) + "}}"] = instance.PublicBaseUrl;
         instance.ReplaceTokensInVars["{{" + nameof(BaseUrl) + "}}"] = instance.BaseUrl;
-        instance.ReplaceTokensInVars["{{" + nameof(AppBaseUrl) + "}}"] = instance.AppBaseUrl;
-        instance.ReplaceTokensInVars["{{" + nameof(PublicAppBaseUrl) + "}}"] = instance.PublicAppBaseUrl;
+        instance.ReplaceTokensInVars["{{" + nameof(WebsiteBaseUrl) + "}}"] = instance.WebsiteBaseUrl;
         Instance = instance;
     }
 
+    public string WebsiteBaseUrl { get; init; }
     public string BaseUrl { get; init; }
-    public string AppBaseUrl { get; init; }
     /// <summary>
     /// Images in emails need to be hosted from publicly accessible URLs 
     /// </summary>
-    public string PublicAppBaseUrl { get; init; }
+    public string PublicBaseUrl { get; init; }
 
     public Dictionary<string, string> ReplaceTokensInVars { get; set; } = new();
     
@@ -112,7 +121,7 @@ public class AppData
         }
 
         var images = Vars["images"] = new Dictionary<string, string>();
-        var imgBaseUrl = PublicAppBaseUrl.CombineWith(EmailImagesDir.VirtualPath);
+        var imgBaseUrl = PublicBaseUrl.CombineWith(EmailImagesDir.VirtualPath);
         var delims = new[] { '@', '.', '-' };
         foreach (var file in EmailImagesDir.GetFiles())
         {

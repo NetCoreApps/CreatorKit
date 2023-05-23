@@ -30,7 +30,7 @@ public class MailData
 
         if (metaCache == null)
         {
-            var metaJson = await AppData.BaseUrl.CombineWith($"/meta/{year}/all.json").GetJsonFromUrlAsync();
+            var metaJson = await AppData.WebsiteBaseUrl.CombineWith($"/meta/{year}/all.json").GetJsonFromUrlAsync();
             metaCache = metaJson.FromJson<SiteMeta>();
             metaCache.CreatedDate = DateTime.UtcNow;
             MetaCache[year] = metaCache;
