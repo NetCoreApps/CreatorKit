@@ -1,11 +1,8 @@
-import { $$, enc, JsonApiClient } from "@servicestack/client";
-import { createApp, reactive } from "vue";
+import { $$, JsonApiClient, leftPart } from "@servicestack/client"
+import { createApp, reactive } from "vue"
 import ServiceStackVue from "@servicestack/vue"
 
-export const BaseUrl = location.origin === 'https://localhost:5002'
-    ? 'https://localhost:5001'
-    : 'https://ssg-services.servicestack.net'
-
+export const BaseUrl = leftPart(import.meta.url, '/mjs')
 
 let AppData = {
     init: false,
