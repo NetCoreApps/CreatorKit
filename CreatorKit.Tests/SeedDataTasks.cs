@@ -38,7 +38,7 @@ public class SeedDataTasks
                 ? roles
                 : null;
         }
-        File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/users.txt"), users.ToCsv());
+        File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/users.csv"), users.ToCsv());
     }
     
     [Test]
@@ -48,7 +48,7 @@ public class SeedDataTasks
         
         using var db = ResolveDbFactory().Open();
         var contacts = db.Select<SeedContact>(db.From<Contact>());
-        File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/subscribers.txt"), contacts.ToCsv());
+        File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/subscribers.csv"), contacts.ToCsv());
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class SeedDataTasks
     {
         var hostDir = GetHostDir();
 
-        EmailRenderer.SaveMailingListEnum(seedPath:Path.Combine(hostDir, "Migrations/seed/mailinglists.txt"),
+        EmailRenderer.SaveMailingListEnum(seedPath:Path.Combine(hostDir, "Migrations/seed/mailinglists.csv"),
             savePath:Path.Combine(hostDir, "../CreatorKit.ServiceModel/Types/MailingList.cs"));
     }
 }
