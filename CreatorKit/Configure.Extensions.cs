@@ -7,8 +7,7 @@ namespace CreatorKit;
 public class ConfigureExtensions : IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
-        .ConfigureServices((context, services) =>
-        {
+        .ConfigureServices((context, services) => {
             services.AddSingleton<WebsiteData>();
         })
         .ConfigureAppHost(appHost => {
