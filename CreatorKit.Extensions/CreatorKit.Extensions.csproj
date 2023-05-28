@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Markdig" Version="0.30.*" />
+        <PackageReference Include="ServiceStack" Version="6.*" />
+        <PackageReference Include="ServiceStack.Server" Version="6.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CreatorKit.Extensions.ServiceModel\CreatorKit.Extensions.ServiceModel.csproj" />
+        <ProjectReference Include="..\CreatorKit.ServiceInterface\CreatorKit.ServiceInterface.csproj" />
+        <ProjectReference Include="..\CreatorKit.ServiceModel\CreatorKit.ServiceModel.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -26,24 +26,12 @@
         </div>
         <nav class="flex flex-1 flex-col">
             <ul role="list" class="flex flex-1 flex-col gap-y-7">
-                <li>
+                <li v-for="group in new Set(Object.keys(sections).flatMap(k => sections[k].group))">
+                    <div v-if="group" class="text-sm font-semibold leading-6 text-gray-400">{{group}}</div>
                     <ul role="list" class="-mx-2 space-y-1">
-                        <li v-for="section in sections">
-                            <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
+                        <li v-for="section in Object.keys(sections).map(k => sections[k].group === group ? sections[k] : null).filter(x => !!x)">
                             <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
-                                <div v-html="section.icon"></div>
-                                {{section.label}}
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <div class="text-sm font-semibold leading-6 text-gray-400">Manage Posts</div>
-                    <ul role="list" class="-mx-2 space-y-1">
-                        <li v-for="section in postSections">
-                            <!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
-                            <a @click.prevent="navTo(section.id)" :class="[activeSection.id === section.id ? 'bg-gray-50 text-indigo-600' : 'cursor-pointer text-gray-700 hover:text-indigo-600 hover:bg-gray-50', 'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold select-none']" @click="$forceUpdate()">
-                                <div v-html="section.icon"></div>
+                                <icon :svg="section.icon" class="h-6 w-6 shrink-0 text-indigo-600"></icon>
                                 {{section.label}}
                             </a>
                         </li>
@@ -51,7 +39,7 @@
                 </li>
                 <li class="-mx-6 mt-auto">
                     <div v-if="showUserMenu" class="font-normal absolute z-10 -mt-10 left-6 w-60 origin-top-right rounded-md bg-white dark:bg-black py-1 shadow-lg ring-1 ring-black dark:ring-gray-600 ring-opacity-5 focus:outline-none right-2" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
-                        <a href="/auth/logout" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800" role="menuitem" tabindex="-1">Logout</a>
+                        <a href="/auth/logout?continue=/portal/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800" role="menuitem" tabindex="-1">Logout</a>
                     </div>
                     <span v-if="user" @click="showUserMenu=!showUserMenu" class="flex cursor-pointer bg-gray-50 items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50">
                         <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
@@ -72,11 +60,16 @@
     
     <main class="lg:pl-72">
         <div class="px-4 sm:px-6 lg:px-8">
-            <!-- Your content -->
             <sign-in v-if="!user"></sign-in>
+            <div v-else-if="!isAdmin" class="mt-20">
+                <div>
+                    <alert class="mb-3">Admin Role Required</alert>
+                    <secondary-button href="/auth/logout?continue=/portal/">Sign Out</secondary-button>
+                </div>
+            </div>
             <div v-else>
                 <h1 class="hidden lg:block pt-4 mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">{{ activeSection.label }}</h1>
-                <component :key="refreshKey" :is="activeSection.component" @nav="navTo"></component>
+                <component :key="refreshKey" :is="activeSection.component" @nav="navTo" :type="activeSection.type"></component>
             </div>
         </div>
     </main>
@@ -276,22 +269,7 @@ const Dashboard = {
         const client = useClient()
         const api = ref(new ApiResult())
         
-        const tableSections = {
-            Contacts: 'contacts',
-            Comments: 'comments',
-            Users: 'users',
-            Messages: 'messages',
-            MailRuns: 'mailruns',
-            MailRunMessages: 'mailrunmsgs',
-            Threads: 'threads',
-            CommentVotes: 'votes',
-            CommentReports: 'reports',
-        }
-        
-        const numFormat = new Intl.NumberFormat() 
-        function formatNumber(value) { 
-            return numFormat.format(value) 
-        }
+        const formatNumber = value => new Intl.NumberFormat().format(value)
         
         const last30Days = computed(() => ['Contacts','Comments','Users']
             .map(x => ({ 
@@ -299,36 +277,27 @@ const Dashboard = {
                 total: api.value.response?.totals[x] || 0,
                 before30DayTotal: api.value.response?.before30DayTotals[x] || 0,
                 last30DayTotal: api.value.response?.last30DayTotals[x] || 0,
-                section: tableSections[x],
+                section: x,
             })))
         
         const totals = computed(() => ['Messages','MailRuns','MailRunMessages','Threads','CommentVotes','CommentReports']
             .map(x => ({
                 label:`Total ${humanize(x)}`,
                 total: api.value.response?.totals[x] || 0,
-                section: tableSections[x],
+                section: x,
             })))
 
         const archivedTotals = computed(() => ['Messages','MailRuns','MailRunMessages']
             .map(x => ({
                 label:`Total ${humanize(x)}`,
                 total: api.value.response?.archivedTotals[x] || 0,
-                section: 'archive',
+                section: 'Archive',
                 sectionArgs: { tab:`Archive${x}` }
             })))
 
         onMounted(async () => await client.swr(new ViewAppStats(), r => api.value = r))
         
         return { formatNumber, last30Days, totals, archivedTotals }
-    }
-}
-const Contacts = {
-    template:`
-      <AutoQueryGrid type="Contact" hide="copyApiUrl" selectedColumns="id,email,firstName,lastName,mailinglists,source,createdDate" />
-    `,
-    emits: ['nav'],
-    setup(props) {
-        return {}
     }
 }
 
@@ -366,7 +335,7 @@ const MailRuns = {
             {{op.description || op.name}}
           </button>      
       </div>
-      <AutoQueryGrid ref="grid" type="MailRun" hide="newItem,copyApiUrl" selected-columns="id,mailingList,layout,page,generator,emailsCount,createdDate,sentDate">
+      <AutoQueryGrid ref="grid" :type="type" hide="newItem,copyApiUrl" selected-columns="id,mailingList,layout,page,generator,emailsCount,createdDate,sentDate">
         <template #toolbarbuttons>
           <div class="pl-2 mt-1">
             <ArchiveButton type="mailRuns" @done="grid.update()" />
@@ -405,7 +374,7 @@ const MailRuns = {
         function done() { selectOp(null) }
         function save(model) {
             grid.value?.createSave()
-            emit('nav','mailruns', { edit:model.id })
+            emit('nav','MailRuns', { edit:model.id })
         }
 
         /** @type {InputInfo[]} inputs */
@@ -502,7 +471,7 @@ const Messages = {
             {{op.description || op.name}}
           </button>
       </div>
-      <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
+      <AutoQueryGrid ref="grid" :type="type" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
                      selectedColumns="id,email,layout,page,renderer,rendererArgs,completedDate">
         <template #toolbarbuttons>
           <div class="pl-2 mt-1">
@@ -581,7 +550,7 @@ const Messages = {
 const MailRunMessages = {
     components: { MessageView },
     template:`
-      <AutoQueryGrid ref="grid" type="MailMessageRun" hide="copyApiUrl,downloadCsv" selected-columns="id,mailRunId,contactId,contact,renderer,rendererArgs,completedDate">
+      <AutoQueryGrid ref="grid" :type="type" hide="copyApiUrl,downloadCsv" selected-columns="id,mailRunId,contactId,contact,renderer,rendererArgs,completedDate">
         <template #formfooter="{ id, model }">
           <MessageView :model="model" />
         </template>
@@ -598,7 +567,7 @@ const MailRunMessages = {
 const Drafts = {
     components: { MessageView, EmailPreview, ArchiveButton },
     template:`
-      <AutoQueryGrid ref="grid" type="MailMessage" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
+      <AutoQueryGrid ref="grid" :type="type" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
                      :filters="{ completedDateIsNull:'',draft:true }"
                      selectedColumns="id,email,layout,page,renderer,rendererArgs,createdDate">
         <template #renderer="{ renderer, rendererArgs }">
@@ -620,7 +589,6 @@ const Drafts = {
         </template>
       </AutoQueryGrid>
     `,
-    emits: ['nav'],
     setup(props, { emit }) {
         const client = useClient()
         const { indentJson } = useFormatters()
@@ -668,87 +636,73 @@ const Drafts = {
                  updateModel, submitForm }
     }
 }
-
-const ArchiveMessages = {
-    template:`<AutoQueryGrid ref="grid" type="ArchiveMessage" ></AutoQueryGrid>`,
+const ArchiveTabs = {
+    ArchiveMessages: {
+        template:`<AutoQueryGrid ref="grid" type="ArchiveMessage" ></AutoQueryGrid>`,
+    },
+    ArchiveMailRuns: {
+        template:`<AutoQueryGrid ref="grid" type="ArchiveRun" ></AutoQueryGrid>`,
+    },
+    ArchiveMailRunMessages: {
+        template:`<AutoQueryGrid ref="grid" type="ArchiveMessageRun" ></AutoQueryGrid>`,
+    },
 }
-const ArchiveMailRuns = {
-    template:`<AutoQueryGrid ref="grid" type="ArchiveRun" ></AutoQueryGrid>`,
-}
-const ArchiveMailRunMessages = {
-    template:`<AutoQueryGrid ref="grid" type="ArchiveMessageRun" ></AutoQueryGrid>`,
-}
-const ArchiveTabs = { ArchiveMessages, ArchiveMailRuns, ArchiveMailRunMessages }
-
 const Archive = {
-    components: { ...ArchiveTabs },
-    template:`
-      <Tabs :tabs="ArchiveTabs" :selected="selected"></Tabs>
-    `,
+    components: ArchiveTabs,
+    template:`<Tabs :tabs="ArchiveTabs" :selected="selected"></Tabs>`,
     setup(props) {
         const selected = ref('')
-        
+
         onMounted(() => {
             const qs = queryString(location.href)
             selected.value = qs.tab
         })
-        
+
         return { ArchiveTabs, selected }
     }
 }
 
 const sections = {
-    dashboard: {
-        id: 'dashboard',
-        label: 'Dashboard',
-        component: Dashboard,
+    Dashboard: {
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>`,
+        component: Dashboard,
     },
-    contacts: {
-        id: 'contacts',
-        label: 'Contacts',
-        component: Contacts,
+    Contacts: {
+        type: 'Contact',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='currentColor' d='M5 3a3 3 0 1 1 6 0a3 3 0 0 1-6 0zm7.001 4h-.553l-3.111 6.316L9.5 7.5L8 6L6.5 7.5l1.163 5.816L4.552 7h-.554c-1.999 0-1.999 1.344-1.999 3v5h12v-5c0-1.656 0-3-1.999-3z'/></svg>`,
+        component: {
+            template:`<AutoQueryGrid :type="type" hide="copyApiUrl" selectedColumns="id,email,firstName,lastName,mailinglists,source,createdDate" />`,
+        },
     },
-    messages: {
-        id: 'messages',
-        label: 'Messages',
+    Messages: {
+        type: 'MailMessage',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,
         component: Messages,
-        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,
     },
-    drafts: {
-        id: 'drafts',
-        label: 'Drafts',
-        component: Drafts,
+    Drafts: {
+        type: 'MailMessage',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2a1 1 0 0 1 1 1v3.757l-2 2V4H5v16h14v-2.758l2-2V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16Zm1.778 6.808l1.414 1.414L15.414 18l-1.416-.002l.002-1.412l7.778-7.778ZM13 12v2H8v-2h5Zm3-4v2H8V8h8Z"/></svg>`,
+        component: Drafts,
     },
-    mailruns: {
-        id: 'mailruns',
-        label: 'Mail Runs',
-        component: MailRuns,
+    MailRuns: {
+        type: 'MailRun',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M21 3a1 1 0 0 1 1 1v16.007a1 1 0 0 1-.992.993H2.992A.993.993 0 0 1 2 20.007V19h18V7.3l-8 7.2l-10-9V4a1 1 0 0 1 1-1h18ZM8 15v2H0v-2h8Zm-3-5v2H0v-2h5Zm14.566-5H4.434L12 11.81L19.566 5Z'/></svg>`,
+        component: MailRuns,
     },
-    mailrunmsgs: {
-        id: 'mailrunmsgs',
-        label: 'Mail Run Messages',
-        component: MailRunMessages,
+    MailRunMessages: {
+        type: 'MailMessageRun',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,
+        component: MailRunMessages,
     },
-    archive: {
-        id: 'archive',
-        label: 'Archive',
-        component: Archive,
+    Archive: {
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.413-.588T3 19V6.5q0-.375.125-.675t.325-.575l1.4-1.7q.2-.275.5-.413T6 3h12q.35 0 .65.137t.5.413l1.4 1.7q.2.275.325.575T21 6.5V19q0 .825-.588 1.413T19 21H5Zm.4-15h13.2l-.85-1H6.25L5.4 6ZM5 8v11h14V8H5Zm7 10l4-4l-1.4-1.4l-1.6 1.6V10h-2v4.2l-1.6-1.6L8 14l4 4Zm-7 1h14H5Z"/></svg>`,
-    }
-}
-
-const postSections = {
-    users: {
-        id: 'users',
-        label: 'Users',
+        component: Archive,
+    },
+    Users: {
+        type: 'AppUser',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 22h-2v-2a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v2H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2Zm-8-9a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-2a4 4 0 1 0 0-8a4 4 0 0 0 0 8Z"/></svg>`,
         component: {
-            template:`<AutoQueryGrid type="AppUser" hide="copyApiUrl" @rowSelected="view" 
+            template:`<AutoQueryGrid :type="type" hide="copyApiUrl" @rowSelected="view" 
                          selectedColumns="id,profileUrl,email,displayName,handle,lastLoginIp,lastLoginDate,createdDate"
                          :headerTitles="{ profileUrl:'Profile' }">
                 <template #toolbarbuttons>
@@ -770,22 +724,20 @@ const postSections = {
             }
         },
     },
-    threads: {
-        id: 'threads',
-        label: 'Threads',
+    Threads: {
+        type: 'Thread',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'><path d='M3 21c-.667-.667 3.262-6.236 11.785-16.709a3.5 3.5 0 1 1 5.078 4.791C9.288 17.694 3.667 21.667 3 21zM17.5 6.5l-1 1'/><path d='M17 7c-2.333-2.667-3.5-4-5-4s-2 1-2 2c0 4 8.161 8.406 6 11c-1.056 1.268-3.363 1.285-5.75.808m-4.511-1.383C4.346 14.86 2 13.5 2 12m17.5-2.5L21 11'/></g></svg>`,
         component: {
-            template:`<AutoQueryGrid type="Thread" apis="AdminQueryThreads,AdminUpdateThread,AdminDeleteThread" 
+            template:`<AutoQueryGrid :type="type" apis="AdminQueryThreads,AdminUpdateThread,AdminDeleteThread" 
                 selectedColumns="id,url,description,viewCount,likesCount,commentsCount,createdDate" />`,
         },
     },
-    comments: {
-        id: 'comments',
-        label: 'Comments',
+    Comments: {
+        type: 'Comment',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linejoin="round"><path stroke-linecap="round" stroke-width="1.5" d="M12 21a9 9 0 1 0-8-4.873L3 21l4.873-1c1.236.639 2.64 1 4.127 1Z"/><path stroke-width="2.25" d="M7.5 12h.01v.01H7.5zm4.5 0h.01v.01H12zm4.5 0h.01v.01h-.01z"/></g></svg>`,
         component: {
             template:`
-                <AutoQueryGrid type="Comment" apis="AdminQueryComments,AdminUpdateComment,AdminDeleteComment" 
+                <AutoQueryGrid :type="type" apis="AdminQueryComments,AdminUpdateComment,AdminDeleteComment" 
                     selectedColumns="id,threadId,replyId,content,upVotes,downVotes,flagReason,appUserId,displayName,profileUrl,createdId"
                     :headerTitles="{ threadId:'Thread', replyId:'Reply', profileUrl:'Profile', appUserId:'User' }" 
                     :visibleFrom="{ displayName:'never',profileUrl:'never' }">
@@ -798,20 +750,20 @@ const postSections = {
                 </AutoQueryGrid>`,
         },
     },
-    votes: {
-        id: 'votes',
+    CommentVotes: {
+        type: 'CommentVote',
         label: 'Votes',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M12.781 2.375c-.381-.475-1.181-.475-1.562 0l-8 10A1.001 1.001 0 0 0 4 14h4v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-7h4a1.001 1.001 0 0 0 .781-1.625l-8-10zM15 12h-1v8h-4v-8H6.081L12 4.601L17.919 12H15z'/></svg>`,
         component: {
-            template:`<AutoQueryGrid type="CommentVote" apis="AdminQueryCommentVotes,AdminUpdateCommentVote,AdminDeleteCommentVote" />`,
+            template:`<AutoQueryGrid :type="type" apis="AdminQueryCommentVotes,AdminUpdateCommentVote,AdminDeleteCommentVote" />`,
         },
     },
-    reports: {
-        id: 'reports',
+    CommentReports: {
+        type: 'CommentReport',
         label: 'Reports',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"></path></svg>`,
         component: {
-            template:`<AutoQueryGrid type="CommentReport" apis="AdminQueryCommentReports,AdminUpdateCommentReport,AdminDeleteCommentReport">
+            template:`<AutoQueryGrid :type="type" apis="AdminQueryCommentReports,AdminUpdateCommentReport,AdminDeleteCommentReport">
                 <template #formfooter="{ commendId }">
                     
                 </template>
@@ -819,20 +771,30 @@ const postSections = {
         },
     },
 }
+"Users,Threads,Comments,CommentVotes,CommentReports"
+    .split(',').forEach(id => sections[id].group='Manage Posts')
+
+Object.keys(sections).map(id => {
+    const section = sections[id]
+    section.id = id
+    section.label = section.label || humanize(id)
+    section.component.props = section.component.props || ['type']
+    section.component.emits = section.component.emits || ['nav']
+})
 
 const App = {
     setup() {
-        const { user } = useAuth()
+        const { user, hasRole } = useAuth()
         const sidebar = ref()
         const refreshKey = ref(1)
         const showUserMenu = ref(false)
-        const allSections = { ...sections, ...postSections }
-        const activeSection = shallowRef(allSections[rightPart(leftPart(location.hash,'?'), '#')] || sections.dashboard)
-        
+        const init = ref(false)
+        const activeSection = shallowRef(sections[rightPart(leftPart(location.hash,'?'), '#')] || sections.Dashboard)
+        const isAdmin = computed(() => hasRole('Admin'))
         function navTo(section, args, pushState=true) {
             if (!args) args = {}
             refreshKey.value++
-            activeSection.value = allSections[section] || sections.dashboard
+            activeSection.value = sections[section] || sections.Dashboard
             console.log('navTo', { section, ...args }, appendQueryString(`#${section}`, args))
             if (pushState) history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
             sidebar.value.toggle(false)
@@ -844,7 +806,7 @@ const App = {
             })
         })
         
-        return { sidebar, user, sections, postSections, activeSection, navTo, refreshKey, showUserMenu }
+        return { init, sidebar, user, isAdmin, sections, activeSection, navTo, refreshKey, showUserMenu }
     }
 }
 mount('#app', App)

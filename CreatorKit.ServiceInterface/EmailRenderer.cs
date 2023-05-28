@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.IO;
@@ -9,6 +10,7 @@ using ServiceStack.OrmLite;
 using ServiceStack.Script;
 using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
+using ServiceStack.Text;
 
 namespace CreatorKit.ServiceInterface;
 
@@ -28,6 +30,11 @@ public class EmailRenderer
     }
     
     public string CreateRef() => Guid.NewGuid().ToString("N");
+    public MailRunResponse CreateMailRunResponse() => new()
+    {
+        StartedAt = DateTime.UtcNow, 
+        CreatedIds = new()
+    };
 
     public async Task<MailMessage> CreateMessageAsync(IDbConnection db, MailMessage msg)
     {
@@ -165,6 +172,37 @@ public class EmailRenderer
         }
 
         return context;
+    }
+
+    public static void SaveMailingListEnum(string seedPath, string savePath)
+    {
+        var seedMailingLists = File.ReadAllText(seedPath);
+        var enumSrc = GenerateMailingListEnum(seedMailingLists);
+        File.WriteAllText(savePath, enumSrc);
+    }
+    
+    public static string GenerateMailingListEnum(string contents)
+    {
+        var sb = StringBuilderCache.Allocate().Append(@"using System;
+using ServiceStack.DataAnnotations;
+
+namespace CreatorKit.ServiceModel.Types;
+
+[Flags]
+public enum MailingList
+{
+");
+        var i = 0;
+        foreach (var line in contents.ReadLines())
+        {
+            sb.AppendLine($"    [Description(\"{line.RightPart(',')}\")]");
+            var enumValue = i == 0 ? 0 : 1 << (i - 1); 
+            var enumValueStr = i == 0 ? "0" : "1 << " + (i - 1);
+            sb.AppendLine($"    {line.LeftPart(',').SafeVarName()} = {enumValueStr},".PadRight(40) + $" //{enumValue}");
+            i++;
+        }
+        sb.AppendLine("}");
+        return StringBuilderCache.ReturnAndFree(sb);
     }
 }
 

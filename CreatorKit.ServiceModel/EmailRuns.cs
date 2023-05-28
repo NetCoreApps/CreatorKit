@@ -49,14 +49,3 @@ public class CustomHtmlMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
     [Input(Type = "MarkdownEmailInput", Label = ""), FieldCss(Field = "col-span-12", Input = "h-56")]
     public string? Body { get; set; }
 }
-
-[Renderer(typeof(RenderNewsletter))]
-[Tag(Tag.Emails)]
-[ValidateIsAdmin]
-[Description("Generate Newsletter")]
-[Icon(Svg = Icons.Newsletter)]
-public class NewsletterMailRun : MailRunBase, IPost, IReturn<MailRunResponse>
-{
-    public int? Month { get; set; }
-    public int? Year { get; set; }
-}

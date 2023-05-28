@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using CreatorKit.ServiceInterface;
 using CreatorKit.ServiceModel.Types;
 using NUnit.Framework;
 using ServiceStack;
 using ServiceStack.Auth;
 using ServiceStack.Data;
 using ServiceStack.OrmLite;
-using ServiceStack.Text;
 
 namespace CreatorKit.Tests;
 
@@ -49,5 +49,14 @@ public class SeedDataTasks
         using var db = ResolveDbFactory().Open();
         var contacts = db.Select<SeedContact>(db.From<Contact>());
         File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/subscribers.txt"), contacts.ToCsv());
+    }
+
+    [Test]
+    public void Save_MailingLists_Enum()
+    {
+        var hostDir = GetHostDir();
+
+        EmailRenderer.SaveMailingListEnum(seedPath:Path.Combine(hostDir, "Migrations/seed/mailinglists.txt"),
+            savePath:Path.Combine(hostDir, "../CreatorKit.ServiceModel/Types/MailingList.cs"));
     }
 }
