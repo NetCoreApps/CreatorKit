@@ -15,7 +15,6 @@ public class MailingServices : Service
 {
     public EmailProvider EmailProvider { get; set; }
     public EmailRenderer Renderer { get; set; }
-    public MailData MailData { get; set; }
 
     public async Task Any(SubscribeToMailingList request)
     {
@@ -170,23 +169,6 @@ public class MailingServices : Service
         var msg = await Db.SingleByIdAsync<MailMessageRun>(request.Id);
         return new HttpResult(msg.Message.BodyHtml) {
             ContentType = MimeTypes.Html
-        };
-    }
-
-    public async Task<object> Any(ViewMailData request)
-    {
-        if (request.Force == true)
-            MailData.MetaCache.Clear();
-        
-        var year = request.Year ?? DateTime.UtcNow.Year;
-        var fromDate = new DateTime(year, request.Month ?? 1, 1);
-        var meta = await MailData.SearchAsync(fromDate: fromDate,
-            toDate: request.Month != null ? new DateTime(year, request.Month.Value, 1).AddMonths(1) : null);
-        
-        return new ViewMailDataResponse
-        {
-            LastUpdated = MailData.LastUpdated,
-            SiteMeta = meta,
         };
     }
 

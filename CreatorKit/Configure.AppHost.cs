@@ -14,7 +14,6 @@ public class AppHost : AppHostBase, IHostingStartup
             AppData.Set(context.Configuration);
             services.AddSingleton(AppData.Instance);
             services.AddSingleton(EmailRenderer.Instance);
-            services.AddSingleton<MailData>();
         });
 
     public AppHost() : base("Creator Kit", typeof(MyServices).Assembly, typeof(CustomEmailServices).Assembly) {}

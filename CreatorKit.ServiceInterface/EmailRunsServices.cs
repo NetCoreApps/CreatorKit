@@ -9,7 +9,6 @@ public class EmailRunsServices : Service
 {
     public EmailProvider EmailProvider { get; set; }
     public EmailRenderer Renderer { get; set; }
-    public MailData MailData { get; set; }
 
     public async Task<object> Any(SimpleTextMailRun request)
     {
