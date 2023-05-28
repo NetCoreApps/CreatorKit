@@ -1,3 +1,4 @@
+using CreatorKit.Extensions;
 using Funq;
 using CreatorKit.ServiceInterface;
 using CreatorKit.ServiceModel;
@@ -16,7 +17,7 @@ public class AppHost : AppHostBase, IHostingStartup
             services.AddSingleton<MailData>();
         });
 
-    public AppHost() : base("Creator Kit", typeof(MyServices).Assembly) {}
+    public AppHost() : base("Creator Kit", typeof(MyServices).Assembly, typeof(CustomEmailServices).Assembly) {}
 
     public override void Configure(Container container)
     {

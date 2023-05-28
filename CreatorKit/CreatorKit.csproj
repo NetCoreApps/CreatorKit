@@ -23,8 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CreatorKit.Extensions\CreatorKit.Extensions.csproj" />
     <ProjectReference Include="..\CreatorKit.ServiceInterface\CreatorKit.ServiceInterface.csproj" />
     <ProjectReference Include="..\CreatorKit.ServiceModel\CreatorKit.ServiceModel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
 
 </Project>

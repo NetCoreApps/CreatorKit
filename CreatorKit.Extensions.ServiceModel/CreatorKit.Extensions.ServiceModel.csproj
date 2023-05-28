@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>CreatorKit.ServiceModel</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="ServiceStack.Interfaces" Version="6.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CreatorKit.ServiceModel\CreatorKit.ServiceModel.csproj" />
+    </ItemGroup>
+
+</Project>

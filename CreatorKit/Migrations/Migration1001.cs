@@ -1,4 +1,5 @@
-﻿using ServiceStack.DataAnnotations;
+﻿using CreatorKit.ServiceInterface;
+using ServiceStack.DataAnnotations;
 using ServiceStack.OrmLite;
 using CreatorKit.ServiceModel;
 
@@ -126,22 +127,7 @@ public class Migration1001 : MigrationBase
     }
 
     [Flags]
-    public enum MailingList
-    {
-        None = 0,
-        [Description("Test Group")]
-        TestGroup         = 1 << 0,     //1
-        [Description("Monthly Newsletter")]
-        MonthlyNewsletter = 1 << 1,     //2
-        [Description("New Blog Posts")]
-        BlogPostReleases  = 1 << 2,     //4
-        [Description("New Videos")]
-        VideoReleases     = 1 << 3,     //8
-        [Description("New Product Releases")]
-        ProductReleases   = 1 << 4,     //16
-        [Description("Yearly Updates")]
-        YearlyUpdates     = 1 << 5,     //32
-    }
+    public enum MailingList { None = 0 }
 
     public class MailTo
     {
@@ -183,6 +169,9 @@ public class Migration1001 : MigrationBase
         Db.CreateTable<MailMessage>();
         Db.CreateTable<MailRun>();
         Db.CreateTable<MailMessageRun>();
+
+        EmailRenderer.SaveMailingListEnum(seedPath: "Migrations/seed/mailinglists.txt",
+            savePath: "../CreatorKit.ServiceModel/Types/MailingList.cs");
         
         var seedContacts = File.ReadAllText("Migrations/seed/subscribers.txt").FromCsv<List<SeedContact>>();
         foreach (var contact in seedContacts)

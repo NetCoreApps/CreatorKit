@@ -1,0 +1,7 @@
+None,None
+TestGroup,Test Group
+MonthlyNewsletter,Monthly Newsletter
+BlogPostReleases,New Blog Posts
+VideoReleases,New Videos
+ProductReleases,New Product Releases
+YearlyUpdates,Yearly Updates
