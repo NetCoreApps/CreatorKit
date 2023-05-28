@@ -174,14 +174,20 @@ public class EmailRenderer
         return context;
     }
 
+    public class SeedMailingList
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+    }
+
     public static void SaveMailingListEnum(string seedPath, string savePath)
     {
-        var seedMailingLists = File.ReadAllText(seedPath);
+        var seedMailingLists = File.ReadAllText(seedPath).FromCsv<List<SeedMailingList>>();
         var enumSrc = GenerateMailingListEnum(seedMailingLists);
         File.WriteAllText(savePath, enumSrc);
     }
     
-    public static string GenerateMailingListEnum(string contents)
+    public static string GenerateMailingListEnum(IEnumerable<SeedMailingList> seedMailingLists)
     {
         var sb = StringBuilderCache.Allocate().Append(@"using System;
 using ServiceStack.DataAnnotations;
@@ -193,12 +199,12 @@ public enum MailingList
 {
 ");
         var i = 0;
-        foreach (var line in contents.ReadLines())
+        foreach (var mailingList in seedMailingLists)
         {
-            sb.AppendLine($"    [Description(\"{line.RightPart(',')}\")]");
+            sb.AppendLine($"    [Description(\"{mailingList.Description}\")]");
             var enumValue = i == 0 ? 0 : 1 << (i - 1); 
             var enumValueStr = i == 0 ? "0" : "1 << " + (i - 1);
-            sb.AppendLine($"    {line.LeftPart(',').SafeVarName()} = {enumValueStr},".PadRight(40) + $" //{enumValue}");
+            sb.AppendLine($"    {mailingList.Name.SafeVarName()} = {enumValueStr},".PadRight(40) + $" //{enumValue}");
             i++;
         }
         sb.AppendLine("}");
