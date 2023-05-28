@@ -9,7 +9,7 @@ public class CustomEmailServices : Service
 {
     public EmailProvider EmailProvider { get; set; }
     public EmailRenderer Renderer { get; set; }
-    public MailData MailData { get; set; }
+    public WebsiteData WebsiteData { get; set; }
 
     public async Task<object> Any(MarkdownEmail request)
     {

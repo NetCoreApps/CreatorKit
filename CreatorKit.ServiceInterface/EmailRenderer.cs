@@ -18,14 +18,11 @@ public class EmailRenderer
 {
     public static EmailRenderer Instance { get; } = new();
     public IVirtualFiles VirtualFiles { get; private set; }
-    public MailData MailData { get; private set; }
     public IMessageService MessageService { get; private set; }
 
     public void Init(IAppHost appHost)
     {
         VirtualFiles = appHost.VirtualFiles;
-        MailData = appHost.Resolve<MailData>();
-        MailData = appHost.Resolve<MailData>();
         MessageService = appHost.Resolve<IMessageService>();
     }
     
@@ -118,7 +115,7 @@ public class EmailRenderer
         return html;
     }
 
-    public ScriptContext CreateScriptContext(Dictionary<string, object?>? args=null, MailData? meta=null)
+    public ScriptContext CreateScriptContext(Dictionary<string, object?>? args=null)
     {
         var context = new ScriptContext
         {
@@ -127,7 +124,6 @@ public class EmailRenderer
             ScriptMethods = { new EmailMarkdownScriptMethods() },
             Args = {
                 [nameof(AppData)] = AppData.Instance,
-                ["meta"] = meta ?? MailData,
             }
         };
         foreach (var entry in AppData.Instance.Vars)

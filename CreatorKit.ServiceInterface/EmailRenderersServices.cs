@@ -15,7 +15,6 @@ public class EmailRenderersServices : Service
 {
     public EmailProvider EmailProvider { get; set; }
     public EmailRenderer Renderer { get; set; }
-    public MailData MailData { get; set; }
 
     public async Task<object> Any(PreviewEmail request)
     {
@@ -73,49 +72,4 @@ public class EmailRenderersServices : Service
                 ["body"] = evalBody,
             });
     }
-
-
-    private static char[] InvalidFileNameChars = { '\"', '<', '>', '|', '\0', ':', '*', '?', '\\', '/' };
-    public object Any(RenderDoc request)
-    {
-        var isValid = request.Page.IndexOf("..", StringComparison.Ordinal) == -1
-            && request.Page.IndexOfAny(InvalidFileNameChars) == -1; 
-        var file = isValid
-            ? VirtualFiles.GetFile($"/docs/{request.Page}")
-            : null;
-        if (file == null)
-            throw HttpError.NotFound("File not found");
-        
-        var pipeline = new MarkdownPipelineBuilder()
-            .UseYamlFrontMatter()
-            .UseAdvancedExtensions()
-            .Build();
-        
-        var writer = new StringWriter();
-        var renderer = new Markdig.Renderers.HtmlRenderer(writer);
-        pipeline.Setup(renderer);
-
-        var content = file.ReadAllText();
-        var document = Markdown.Parse(content, pipeline);
-        renderer.Render(document);
-
-        var block = document
-            .Descendants<Markdig.Extensions.Yaml.YamlFrontMatterBlock>()
-            .FirstOrDefault();
-
-        var doc = block?
-            .Lines // StringLineGroup[]
-            .Lines // StringLine[]
-            .Select(x => $"{x}\n")
-            .ToList()
-            .Select(x => x.Replace("---", string.Empty))
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => KeyValuePairs.Create(x.LeftPart(':').Trim(), x.RightPart(':').Trim()))
-            .ToObjectDictionary()
-            .ConvertTo<MarkdownFile>();
-
-        var html = writer.ToString();
-        return html;
-    }
-
 }

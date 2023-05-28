@@ -1,19 +1,18 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ServiceStack;
 using CreatorKit.ServiceModel;
+using Markdig;
+using Markdig.Syntax;
+using ServiceStack.IO;
 
 namespace CreatorKit.ServiceInterface;
 
-public class MailData
+public class WebsiteData
 {
     public DateTime LastUpdated { get; set; }
     public AppData AppData { get; }
 
-    public MailData(AppData appData)
+    public WebsiteData(AppData appData)
     {
         AppData = appData;
     }
@@ -54,5 +53,48 @@ public class MailData
         if (toDate != null)
             docs = docs.Where(x => x.Date < toDate);
         return docs;
+    }
+
+    private static readonly char[] InvalidFileNameChars = { '\"', '<', '>', '|', '\0', ':', '*', '?', '\\', '/' };
+    public static string RenderDoc(IVirtualFiles vfs, string page)
+    {
+        var isValid = !page.Contains("..")
+                      && page.IndexOfAny(InvalidFileNameChars) == -1; 
+        var file = isValid
+            ? vfs.GetFile($"/docs/{page}")
+            : null;
+        if (file == null)
+            throw HttpError.NotFound("File not found");
+        
+        var pipeline = new MarkdownPipelineBuilder()
+            .UseYamlFrontMatter()
+            .UseAdvancedExtensions()
+            .Build();
+        
+        var writer = new StringWriter();
+        var renderer = new Markdig.Renderers.HtmlRenderer(writer);
+        pipeline.Setup(renderer);
+
+        var content = file.ReadAllText();
+        var document = Markdown.Parse(content, pipeline);
+        renderer.Render(document);
+
+        var block = document
+            .Descendants<Markdig.Extensions.Yaml.YamlFrontMatterBlock>()
+            .FirstOrDefault();
+
+        var doc = block?
+            .Lines // StringLineGroup[]
+            .Lines // StringLine[]
+            .Select(x => $"{x}\n")
+            .ToList()
+            .Select(x => x.Replace("---", string.Empty))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => KeyValuePairs.Create(x.LeftPart(':').Trim(), x.RightPart(':').Trim()))
+            .ToObjectDictionary()
+            .ConvertTo<MarkdownFile>();
+
+        var html = writer.ToString();
+        return html;
     }
 }
