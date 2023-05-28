@@ -1,8 +1,6 @@
-# Creator Kit
-
 [![](https://servicestack.net/img/pages/creatorkit/creatorkit-screenshot-intro.png)](https://servicestack.net/creatorkit/)
 
-### Links
+### CreatorKit Links
 
  - [Documentation](https://servicestack.net/creatorkit/)
 
