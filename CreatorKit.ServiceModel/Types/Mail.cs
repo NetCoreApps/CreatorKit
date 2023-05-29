@@ -91,14 +91,17 @@ public class MailMessageRun
     public ResponseStatus? Error { get; set; }
 }
 
+[Tag(Tag.Archive)]
 [Icon(Svg = Icons.Mail)]
 [NamedConnection("archive")]
 public class ArchiveMessage : MailMessage {}
 
+[Tag(Tag.Archive)]
 [Icon(Svg = Icons.MailRun)]
 [NamedConnection("archive")]
 public class ArchiveRun : MailRun {}
 
+[Tag(Tag.Archive)]
 [Icon(Svg = Icons.Mail)]
 [NamedConnection("archive")]
 public class ArchiveMessageRun

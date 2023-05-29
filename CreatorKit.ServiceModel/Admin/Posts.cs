@@ -5,7 +5,7 @@ using ServiceStack.DataAnnotations;
 
 namespace CreatorKit.ServiceModel.Admin;
 
-[Tag(Tag.Admin)]
+[Tag(TagNames.Auth)]
 [ValidateIsAdmin]
 public class AdminQueryAppUsers : QueryDb<AppUser> {}
 
