@@ -268,10 +268,15 @@ public class ArchiveMailResponse
 }
 
 [Tag(Tag.Archive)]
+[ValidateIsAdmin]
 public class QueryArchiveMessages : QueryDb<ArchiveMessage> {}
+
 [Tag(Tag.Archive)]
+[ValidateIsAdmin]
 public class QueryArchiveRuns : QueryDb<ArchiveRun> {}
+
 [Tag(Tag.Archive)]
+[ValidateIsAdmin]
 public class QueryArchiveMessageRuns : QueryDb<ArchiveMessageRun> {}
 
 public static class MailingExtensions
