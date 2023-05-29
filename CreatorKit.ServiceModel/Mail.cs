@@ -267,8 +267,11 @@ public class ArchiveMailResponse
     public ResponseStatus ResponseStatus { get; set; }
 }
 
+[Tag(Tag.Archive)]
 public class QueryArchiveMessages : QueryDb<ArchiveMessage> {}
+[Tag(Tag.Archive)]
 public class QueryArchiveRuns : QueryDb<ArchiveRun> {}
+[Tag(Tag.Archive)]
 public class QueryArchiveMessageRuns : QueryDb<ArchiveMessageRun> {}
 
 public static class MailingExtensions
