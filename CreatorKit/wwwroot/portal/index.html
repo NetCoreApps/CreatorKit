@@ -50,7 +50,7 @@
             </ul>
         </nav>
         <template #mobiletitlebar>
-            <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.label }}</div>
+            <div class="flex-1 text-sm font-semibold leading-6 text-gray-900">{{ activeSection.title }}</div>
             <span v-if="user" class="cursor-pointer bg-gray-50">
                 <span class="sr-only">Your profile</span>
                 <img class="h-8 w-8 rounded-full bg-gray-50" :src="user.profileUrl" alt="">
@@ -68,7 +68,7 @@
                 </div>
             </div>
             <div v-else>
-                <h1 class="hidden lg:block pt-4 mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">{{ activeSection.label }}</h1>
+                <h1 class="hidden lg:block pt-4 mb-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">{{ activeSection.title }}</h1>
                 <component :key="refreshKey" :is="activeSection.component" @nav="navTo" :type="activeSection.type"></component>
             </div>
         </div>
@@ -778,6 +778,7 @@ Object.keys(sections).map(id => {
     const section = sections[id]
     section.id = id
     section.label = section.label || humanize(id)
+    section.title = section.title || section.label
     section.component.props = section.component.props || ['type']
     section.component.emits = section.component.emits || ['nav']
 })
@@ -804,6 +805,9 @@ const App = {
             window.addEventListener('popstate', event => {
                 navTo(event.state?.section, {}, false)
             })
+            
+            // Update to latest metadata behind the scenes
+            nextTick(async () => await loadMetadata({ olderThan: 0 }))
         })
         
         return { init, sidebar, user, isAdmin, sections, activeSection, navTo, refreshKey, showUserMenu }
