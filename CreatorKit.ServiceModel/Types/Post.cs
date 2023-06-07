@@ -73,7 +73,7 @@ public class CommentVote
 }
 
 [Icon(Svg = Icons.Report)]
-public class CommentReport : AuditBase
+public class CommentReport
 {
     [AutoIncrement]
     public long Id { get; set; }

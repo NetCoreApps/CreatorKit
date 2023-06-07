@@ -128,7 +128,7 @@ public class Migration1000 : MigrationBase
     }
 
     [Icon(Svg = Icons.Report)]
-    public class CommentReport : AuditBase
+    public class CommentReport
     {
         [AutoIncrement]
         public long Id { get; set; }
