@@ -19,7 +19,6 @@ public class AdminQueryThreads : QueryDb<Thread>
 }
 [Tag(Tag.Admin)]
 [ValidateIsAdmin]
-[AutoApply(Behavior.AuditModify)]
 public class AdminUpdateThread : IPatchDb<Thread>, IReturn<Thread>
 {
     public int Id { get; set; }
@@ -77,7 +76,6 @@ public class AdminQueryCommentVotes : QueryDb<CommentVote> {}
 
 [Tag(Tag.Admin)]
 [ValidateIsAdmin]
-[AutoApply(Behavior.AuditModify)]
 public class AdminUpdateCommentVote : IPatchDb<CommentVote>, IReturn<CommentVote>
 {
     public long Id { get; set; }
@@ -87,7 +85,6 @@ public class AdminUpdateCommentVote : IPatchDb<CommentVote>, IReturn<CommentVote
 }
 [Tag(Tag.Admin)]
 [ValidateIsAdmin]
-[AutoApply(Behavior.AuditDelete)]
 public class AdminDeleteCommentVote : IDeleteDb<CommentVote>, IReturnVoid
 {
     public int Id { get; set; }
@@ -100,7 +97,6 @@ public class AdminQueryCommentReports : QueryDb<CommentReport> {}
 
 [Tag(Tag.Admin)]
 [ValidateIsAdmin]
-[AutoApply(Behavior.AuditModify)]
 public class AdminUpdateCommentReport : IPatchDb<CommentReport>, IReturn<CommentReport>
 {
     [Input(Type = "hidden")]
@@ -121,7 +117,6 @@ public class AdminUpdateCommentReport : IPatchDb<CommentReport>, IReturn<Comment
 
 [Tag(Tag.Admin)]
 [ValidateIsAdmin]
-[AutoApply(Behavior.AuditDelete)]
 public class AdminDeleteCommentReport : IDeleteDb<CommentReport>, IReturnVoid
 {
     public int Id { get; set; }
