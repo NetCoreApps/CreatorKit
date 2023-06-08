@@ -76,7 +76,7 @@ public class BackgroundMqServices : Service
     static long InBackgroundTasks = 0;
     public async Task<object> Any(BackgroundTasks request)
     {
-        var ret = new BackgroundTasks();
+        var ret = new BackgroundTasksResponse();
         if (Interlocked.CompareExchange(ref InBackgroundTasks, 1, 0) > 0)
             return ret;
         
