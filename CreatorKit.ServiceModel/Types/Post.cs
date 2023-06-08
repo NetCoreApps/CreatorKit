@@ -58,7 +58,7 @@ public class ThreadLike
 
 [Icon(Svg = Icons.Vote)]
 [UniqueConstraint(nameof(CommentId), nameof(AppUserId))]
-public class CommentVote
+public class CommentVote : AuditBase
 {
     [AutoIncrement]
     public long Id { get; set; }
@@ -69,11 +69,10 @@ public class CommentVote
     [References(typeof(AppUser))]
     public int AppUserId { get; set; }
     public int Vote { get; set; } // -1 / 1
-    public DateTime CreatedDate { get; set; }
 }
 
 [Icon(Svg = Icons.Report)]
-public class CommentReport
+public class CommentReport : AuditBase
 {
     [AutoIncrement]
     public long Id { get; set; }
@@ -90,7 +89,6 @@ public class CommentReport
     public PostReport PostReport { get; set; }
     public string Description { get; set; }
 
-    public DateTime CreatedDate { get; set; }
     public ModerationDecision Moderation { get; set; }
     public string? Notes { get; set; }
 }
