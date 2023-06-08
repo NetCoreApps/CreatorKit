@@ -87,33 +87,9 @@
 
 <script type="module">
 import { mount } from "/mjs/app.mjs"
-import { RenderDoc } from "/mjs/dtos.mjs"
-import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult, humanize } from "@servicestack/client"
-import { useAuth, useClient, useMetadata, useUtils, useFormatters, css } from "@servicestack/vue"
-import { ref, computed, onMounted, onUnmounted, shallowRef, watch, nextTick } from "vue"
-
-const MarkdownPage = {
-    template:`
-      <div class="prose">
-        <div v-html="html"></div>
-      </div>`,
-    props:['page'],
-    setup(props) {
-        const client = useClient()
-        const cacheKey = `/docs/${props.page}`
-        const html = ref(localStorage.getItem(cacheKey) || '')
-        
-        onMounted(async () => {
-            const api = await client.api(new RenderDoc({ page: props.page }))
-            if (api.succeeded) {
-                html.value = api.response
-                localStorage.setItem(cacheKey, html.value)
-            }
-        })
-        
-        return { html }
-    }
-}
+import { leftPart, rightPart, appendQueryString, humanize } from "@servicestack/client"
+import { useAuth } from "@servicestack/vue"
+import { ref, onMounted, shallowRef } from "vue"
 
 const sections = {
     home: {
@@ -203,20 +179,12 @@ const sections = {
                 </dl>
               </div>
               
-              <div class="px-6 pt-24 sm:px-6 sm:pt-32 lg:px-8">
                 <div class="mx-auto max-w-2xl text-center">
-                  <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                    Start capturing your audience's engagement.
-                  </h2>
-                  <p class="mx-auto mt-6 max-w-xl text-lg leading-8 text-gray-600">
-                    Download, customize CreatorKit to your brand and start
-                    building an engaged community around your website content today!
-                  </p>
-                  <div class="mt-10 flex items-center justify-center gap-x-6">
-                    <a href="https://docs.servicestack.net/creatorkit/" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Get started</a>
+                  <div class="mt-10 flex items-center justify-center gap-x-4">
+                    <primary-button color="red" href="/portal/">Admin Portal</primary-button>
+                    <primary-button href="https://servicestack.net/creatorkit/install">Documentation</primary-button>
                   </div>
                 </div>
-              </div>
               
             </div>
             `
@@ -238,7 +206,6 @@ Object.keys(sections).forEach(id => {
 })
 
 const App = {
-    components: { MarkdownPage },
     setup() {
         const { user } = useAuth()
         const refreshKey = ref(1)
