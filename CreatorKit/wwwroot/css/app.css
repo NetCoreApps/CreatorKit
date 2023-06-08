@@ -1373,10 +1373,6 @@ select{
   max-width: 28rem;
 }
 
-.max-w-xl {
-  max-width: 36rem;
-}
-
 .max-w-xs {
   max-width: 20rem;
 }
@@ -2074,11 +2070,6 @@ select{
   padding-right: 0.75rem;
 }
 
-.px-3\.5 {
-  padding-left: 0.875rem;
-  padding-right: 0.875rem;
-}
-
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -2122,11 +2113,6 @@ select{
 .py-2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-}
-
-.py-2\.5 {
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
 }
 
 .py-3 {
@@ -2268,10 +2254,6 @@ select{
 
 .pt-2 {
   padding-top: 0.5rem;
-}
-
-.pt-24 {
-  padding-top: 6rem;
 }
 
 .pt-4 {
@@ -2962,11 +2944,6 @@ select{
   background-color: rgb(199 210 254 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-indigo-500:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(99 102 241 / var(--tw-bg-opacity));
-}
-
 .hover\:bg-indigo-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(67 56 202 / var(--tw-bg-opacity));
@@ -3198,22 +3175,6 @@ select{
 
 .focus\:ring-offset-green-50:focus {
   --tw-ring-offset-color: #f0fdf4;
-}
-
-.focus-visible\:outline:focus-visible {
-  outline-style: solid;
-}
-
-.focus-visible\:outline-2:focus-visible {
-  outline-width: 2px;
-}
-
-.focus-visible\:outline-offset-2:focus-visible {
-  outline-offset: 2px;
-}
-
-.focus-visible\:outline-indigo-600:focus-visible {
-  outline-color: #4f46e5;
 }
 
 .disabled\:border-slate-200:disabled {
@@ -3928,10 +3889,6 @@ select{
 
   .sm\:pr-6 {
     padding-right: 1.5rem;
-  }
-
-  .sm\:pt-32 {
-    padding-top: 8rem;
   }
 
   .sm\:text-left {
