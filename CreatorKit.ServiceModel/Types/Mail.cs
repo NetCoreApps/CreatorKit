@@ -122,6 +122,8 @@ public enum Source
     Unknown,
     UI,
     Website,
+    System,
+    Migration,
 }
 
 public class MailTo
