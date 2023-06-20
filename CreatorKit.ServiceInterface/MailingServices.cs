@@ -65,6 +65,30 @@ public class MailingServices : Service
         return contact;
     }
 
+    public async Task<object?> Any(AdminCreateContact request)
+    {
+        var mailingList = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
+        var contact = await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
+        if (contact == null)
+        {
+            contact = new Contact
+            {
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                MailingLists = mailingList,
+                Source = request.Source,
+                EmailLower = request.Email.ToLower(),
+                NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
+                ExternalRef = Renderer.CreateRef(),
+                CreatedDate = DateTime.UtcNow,
+                VerifiedDate = request.VerifiedDate,
+            };
+            contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
+        }
+        return contact;
+    }
+
     public async Task Any(UpdateContactMailingLists request)
     {
         var mailingLists = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
