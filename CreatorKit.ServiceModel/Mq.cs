@@ -31,6 +31,7 @@ public class BackgroundTasksResponse
     public ResponseStatus ResponseStatus { get; set; }
 }
 
+[ExcludeMetadata]
 [Tag(Tag.Mq), ValidateIsAdmin]
 public class ViewMqMessages : IGet, IReturn<ViewMqMessagesResponse>
 {
