@@ -32,6 +32,9 @@ public class AppHost : AppHostBase, IHostingStartup
             }));
         Plugins.Add(new CleanUrlsFeature());
         
+        ConfigurePlugin<NativeTypesFeature>(x => 
+            x.MetadataTypesConfig.GlobalNamespace = nameof(CreatorKit));
+        
         MarkdownConfig.Transformer = new MarkdigTransformer();
         LoadAsync(container).GetAwaiter().GetResult();
     }
