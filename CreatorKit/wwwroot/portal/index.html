@@ -800,14 +800,12 @@ const App = {
             if (pushState) history.pushState({ section, ...args }, null, appendQueryString(`#${section}`, args))
             sidebar.value.toggle(false)
         }
-        
+
+        loadMetadata({ olderThan: 0 })
         onMounted(() => {
             window.addEventListener('popstate', event => {
                 navTo(event.state?.section, {}, false)
             })
-            
-            // Update to latest metadata behind the scenes
-            nextTick(async () => await loadMetadata({ olderThan: 0 }))
         })
         
         return { init, sidebar, user, isAdmin, sections, activeSection, navTo, refreshKey, showUserMenu }
