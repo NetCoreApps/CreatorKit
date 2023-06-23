@@ -8,6 +8,15 @@
             </p>
         </td>
     </tr>
+    {{#if header}}
+    {{ 'divider' |> partial }}
+    {{ 'section-icon' |> partial({ iconSrc: images.mail_48x48 }) }}
+    <tr>
+        <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
+            {{ header |> emailmarkdown }}
+        </td>
+    </tr>
+    {{/if}}
 
     {{#if meta.WhatsNew.Count > 0 }}
     {{ 'divider' |> partial }}
@@ -62,10 +71,11 @@
     </tr>
     {{/if}}
 
-    {{#if body}}
+    {{#if footer}}
+    {{ 'divider' |> partial }}
     <tr>
         <td width="100%" align="left" valign="top" style="padding:30px 40px;border-collapse:collapse;font-family:'Google Sans Text',Roboto,sans-serif;font-size:16px;line-height:21px;color:#000000">
-            {{ body |> emailmarkdown }}
+            {{ footer |> emailmarkdown }}
         </td>
     </tr>
     {{/if}}
