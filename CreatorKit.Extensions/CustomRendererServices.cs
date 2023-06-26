@@ -42,8 +42,8 @@ public class CustomRendererServices : Service
 
         return await Renderer.RenderToHtmlResultAsync(Db, context, request, args: new() {
             ["title"] = $"{toDate:MMMM} {toDate:yyyy}",
-            ["header"] = request.Header != null ? await context.RenderScriptAsync(request.Header, Renderer.PassContactArgs) : null,
-            ["footer"] = request.Footer != null ? await context.RenderScriptAsync(request.Footer, Renderer.PassContactArgs) : null,
+            ["header"] = request.Header != null ? await context.RenderScriptAsync(request.Header, request.ToObjectDictionary()) : null,
+            ["footer"] = request.Footer != null ? await context.RenderScriptAsync(request.Footer, request.ToObjectDictionary()) : null,
         });
     }
 }
