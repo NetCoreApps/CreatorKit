@@ -176,11 +176,19 @@ public class EmailRenderer
 
     public string ReplaceContactArgs(string html, Contact contact)
     {
-        return html
-            .Replace("{{FirstName}}", contact.FirstName)
-            .Replace("{{LastName}}", contact.LastName)
-            .Replace("{{Email}}", contact.Email)
-            .Replace("{{ExternalRef}}", contact.ExternalRef);
+        var args = new Dictionary<string, string>
+        {
+            [nameof(contact.FirstName)] = contact.LastName,
+            [nameof(contact.LastName)] = contact.LastName,
+            [nameof(contact.Email)] = contact.Email,
+            [nameof(contact.ExternalRef)] = contact.ExternalRef,
+        };
+        foreach (var entry in args)
+        {
+            html = html.Replace("{{" + entry.Key + "}}", entry.Value);
+            html = html.Replace("%7B%7B" + entry.Key + "%7D%7D", entry.Value);
+        }
+        return html;
     }
 
     public class SeedMailingList
