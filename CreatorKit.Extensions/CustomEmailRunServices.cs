@@ -31,7 +31,7 @@ public class CustomEmailRunServices : Service
                 {
                     To = sub.ToMailTos(),
                     Subject = string.Format(AppData.Info.NewsletterFmt, $"{newsletterDate:MMMM} {newsletterDate:yyyy}"),
-                    BodyHtml = bodyHtml,
+                    BodyHtml = Renderer.ReplaceContactArgs(bodyHtml, sub),
                 }
             }.FromRequest(viewRequest), mailRun, sub));
         }
