@@ -67,6 +67,26 @@ public class QueryContacts : QueryDb<Contact>
 [Tag(Tag.Mail)]
 [ValidateIsAdmin]
 [AutoPopulate(nameof(Contact.MailingLists), Eval = "dto.MailingLists.fromEnumFlagsList(typeof('MailingList'))")]
+public class AdminCreateContact : IReturn<Contact>
+{
+    [ValidateNotEmpty]
+    public string Email { get; set; }
+    [ValidateNotEmpty]
+    public string FirstName { get; set; }
+    [ValidateNotEmpty]
+    public string LastName { get; set; }
+    public Source Source { get; set; }
+    [ValidateNotEmpty]
+    [Input(Type = "tag", EvalAllowableValues = "AppData.MailingListValues"), FieldCss(Field = "col-span-12")]
+    public List<string> MailingLists { get; set; }
+    public DateTime? VerifiedDate { get; set; }
+    public int? AppUserId { get; set; }
+    public DateTime? CreatedDate { get; set; }
+}
+
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
+[AutoPopulate(nameof(Contact.MailingLists), Eval = "dto.MailingLists.fromEnumFlagsList(typeof('MailingList'))")]
 public class UpdateContact : IPatchDb<Contact>, IReturn<Contact>
 {
     public int Id { get; set; }

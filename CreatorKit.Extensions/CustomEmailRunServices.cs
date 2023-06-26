@@ -13,13 +13,8 @@ public class CustomEmailRunServices : Service
 
     public async Task<object> Any(NewsletterMailRun request)
     {
+        var newsletterDate = request.ToDate ?? DateTime.UtcNow;
         var response = Renderer.CreateMailRunResponse();
-        request.Year ??= DateTime.UtcNow.Year;
-        request.Month ??= DateTime.UtcNow.Month;
-
-        var viewRequest = request.ConvertTo<RenderNewsletter>();
-        var fromDate = new DateTime(request.Year.Value, request.Month.Value, 1);
-        var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
 
         var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun {
             Layout = "marketing",
@@ -28,12 +23,14 @@ public class CustomEmailRunServices : Service
         
         foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
         {
+            var viewRequest = request.ConvertTo<RenderNewsletter>().FromContact(sub);
+            var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
             response.AddMessage(await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
             {
                 Message = new EmailMessage
                 {
                     To = sub.ToMailTos(),
-                    Subject = string.Format(AppData.Info.NewsletterFmt, $"{fromDate:MMMM} {fromDate:yyyy}"),
+                    Subject = string.Format(AppData.Info.NewsletterFmt, $"{newsletterDate:MMMM} {newsletterDate:yyyy}"),
                     BodyHtml = bodyHtml,
                 }
             }.FromRequest(viewRequest), mailRun, sub));

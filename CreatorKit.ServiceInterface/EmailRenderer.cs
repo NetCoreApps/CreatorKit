@@ -170,6 +170,27 @@ public class EmailRenderer
         return context;
     }
 
+    public Dictionary<string, object> PassContactArgs { get; } = new(
+        new[] { "FirstName", "LastName", "Email", "ExternalRef" }
+            .Map(x => KeyValuePairs.Create(x, "{{" + x + "}}")));
+
+    public string ReplaceContactArgs(string html, Contact contact)
+    {
+        var args = new Dictionary<string, string>
+        {
+            [nameof(contact.FirstName)] = contact.LastName,
+            [nameof(contact.LastName)] = contact.LastName,
+            [nameof(contact.Email)] = contact.Email,
+            [nameof(contact.ExternalRef)] = contact.ExternalRef,
+        };
+        foreach (var entry in args)
+        {
+            html = html.Replace("{{" + entry.Key + "}}", entry.Value);
+            html = html.Replace("%7B%7B" + entry.Key + "%7D%7D", entry.Value);
+        }
+        return html;
+    }
+
     public class SeedMailingList
     {
         public string Name { get; set; }
