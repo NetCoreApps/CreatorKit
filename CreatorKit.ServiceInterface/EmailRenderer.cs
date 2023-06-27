@@ -249,9 +249,13 @@ public static class EmailRendererUtils
         if (mailingList == MailingList.None)
             throw new ArgumentNullException(nameof(mailingList));
             
-        return await db.SelectAsync(db.From<Contact>()
+        return await db.SelectAsync(db.From<Contact>(db.TableAlias("c"))
             .Where(x => x.DeletedDate == null && x.UnsubscribedDate == null && x.VerifiedDate != null
-                        && (mailingList & x.MailingLists) == mailingList));
+                        && (mailingList & x.MailingLists) == mailingList)
+            .WhereNotExists(db.From<InvalidEmail>()
+                .Where<Contact,InvalidEmail>((c,e) => e.EmailLower == Sql.TableAlias(c.EmailLower, "c"))
+                .Select(x => x.Id))
+        );
     }
 
     public static void Set(this Dictionary<string, object> map, string name, object? value)

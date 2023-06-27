@@ -30,6 +30,26 @@ public class Contact
     public DateTime? UnsubscribedDate { get; set; }
 }
 
+public enum InvalidEmailStatus
+{
+    Invalid,
+    /// <summary>
+    /// Email servers for these domains do not provide a definitive verification response
+    /// </summary>
+    AcceptAll,
+    Unknown,
+    Disposable,
+}
+
+public class InvalidEmail
+{
+    [AutoIncrement]
+    public int Id { get; set; }
+    public string Email { get; set; }
+    public string EmailLower { get; set; }
+    public InvalidEmailStatus Status { get; set; }
+}
+
 [Icon(Svg = Icons.Mail)]
 public class MailMessage
 {

@@ -111,3 +111,18 @@ public class DeleteContact : IDeleteDb<Contact>, IReturnVoid
 {
     public int Id { get; set; }
 }
+
+/// <summary>
+/// Soft Delete Contact so invalid Contact Emails are prevented from being re-added
+/// </summary>
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
+public class InvalidateEmails : IReturn<ErrorResponse>
+{
+    public InvalidEmailStatus Status { get; set; } 
+    public List<string> Emails { get; set; } = new();
+}
+
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
+public class QueryInvalidEmails : QueryDb<InvalidEmail> {}
