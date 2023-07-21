@@ -674,6 +674,13 @@ const sections = {
             template:`<AutoQueryGrid :type="type" hide="copyApiUrl" selectedColumns="id,email,firstName,lastName,mailinglists,source,createdDate" />`,
         },
     },
+    InvalidEmails: {
+        type: 'InvalidEmail',
+        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M13.5 19H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6"/><path d="m3 7l9 6l9-6m1 15l-5-5m0 5l5-5"/></g></svg>`,
+        component: {
+            template:`<AutoQueryGrid :type="type" hide="copyApiUrl" />`,
+        },
+    },
     Messages: {
         type: 'MailMessage',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,

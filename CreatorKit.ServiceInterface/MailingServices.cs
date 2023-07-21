@@ -36,6 +36,11 @@ public class MailingServices : Service
         }
         else
         {
+            var emailLower = request.Email.ToLower();
+            var invalidEmail = await Db.SingleAsync<InvalidEmail>(x => x.EmailLower == emailLower);
+            if (invalidEmail != null)
+                throw new Exception($"Email is blacklisted as {invalidEmail.Status}");
+            
             contact = new Contact
             {
                 Email = request.Email,
@@ -43,7 +48,7 @@ public class MailingServices : Service
                 LastName = request.LastName,
                 MailingLists = mailingList,
                 Source = request.Source,
-                EmailLower = request.Email.ToLower(),
+                EmailLower = emailLower,
                 NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
                 ExternalRef = Renderer.CreateRef(),
                 CreatedDate = DateTime.UtcNow,
@@ -71,6 +76,11 @@ public class MailingServices : Service
         var contact = await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
         if (contact == null)
         {
+            var emailLower = request.Email.ToLower();
+            var invalidEmail = await Db.SingleAsync<InvalidEmail>(x => x.EmailLower == emailLower);
+            if (invalidEmail != null)
+                throw new Exception($"Email is blacklisted as {invalidEmail.Status}");
+            
             contact = new Contact
             {
                 Email = request.Email,
