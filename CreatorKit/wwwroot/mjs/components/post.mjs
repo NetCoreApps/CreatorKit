@@ -575,31 +575,6 @@ export const PostComments = {
             }
             await refreshUserData()
         }
-        
-        async function toggleLike() {
-            if (!user.value) {
-                showDialog('SignInDialog')
-                return
-            }
-            
-            const threadId = store.thread?.id
-            if (!threadId || !store.userData) return
-
-            const liked = store.userData.liked
-            
-            store.userData.liked = !liked 
-            store.thread.likesCount += liked ? -1 : 1
-            
-            const request = !liked
-                ? new CreateThreadLike({ threadId })
-                : new DeleteThreadLike({ threadId })
-            const api = await client.apiVoid(request)
-            if (!api.succeeded) {
-                store.userData.liked = liked
-                store.thread.likesCount += liked ? 1 : -1
-            }
-            instance?.proxy.$forceUpdate()
-        }
 
         onMounted(async () => {
             store.events.subscribe('thread', refresh)
@@ -612,7 +587,6 @@ export const PostComments = {
             hide,
             threadId,
             comments,
-            toggleLike,
             user,
             loading: client.loading,
             refresh,
