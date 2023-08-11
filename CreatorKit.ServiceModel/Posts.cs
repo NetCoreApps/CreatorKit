@@ -87,7 +87,7 @@ public class CreateThreadLike : ICreateDb<ThreadLike>, IReturnVoid
 [Tag(Tag.Posts)]
 [ValidateIsAuthenticated]
 [AutoFilter(QueryTerm.Ensure, nameof(Comment.AppUserId), Eval = "userAuthIntId()")]
-public class DeleteThreadLike : IDeleteDb<ThreadLike>, IReturnVoid
+public class DeleteThreadLike : IDeleteDb<ThreadLike>, IReturn<EmptyResponse>
 {
     public int ThreadId { get; set; }
 }
