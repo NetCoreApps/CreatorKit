@@ -489,6 +489,12 @@ export const PostVotesEmbed = {
 
         watch(() => user.value, refresh)
 
+        onMounted(() => {
+            store.events.subscribe('thread', () => {
+                instance?.proxy?.$forceUpdate()
+            })
+        })
+
         return { store, toggleLike }
     }
 }
