@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Markdig" Version="0.30.*" />
-    <PackageReference Include="ServiceStack" Version="6.*" />
-    <PackageReference Include="ServiceStack.Server" Version="6.*" />
+    <PackageReference Include="Markdig" Version="0.37.*" />
+    <PackageReference Include="ServiceStack" Version="8.*" />
+    <PackageReference Include="ServiceStack.Server" Version="8.*" />
   </ItemGroup>
 
   <ItemGroup>
