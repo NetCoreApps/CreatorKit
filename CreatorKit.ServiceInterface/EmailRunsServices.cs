@@ -5,22 +5,20 @@ using CreatorKit.ServiceModel.Types;
 
 namespace CreatorKit.ServiceInterface;
 
-public class EmailRunsServices : Service
+public class EmailRunsServices(EmailRenderer renderer, IMailProvider mail) : Service
 {
-    public EmailProvider EmailProvider { get; set; }
-    public EmailRenderer Renderer { get; set; }
-
-    public async Task<object> Any(SimpleTextMailRun request)
+    public object Any(SimpleTextMailRun request)
     {
-        var response = Renderer.CreateMailRunResponse();
+        var response = renderer.CreateMailRunResponse();
 
-        var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun(), request);
-        foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
+        using var mailDb = mail.OpenMonthDb();
+        var mailRun = renderer.CreateMailRun(mailDb, new MailRun(), request);
+        foreach (var sub in Db.GetActiveSubscribers(request.MailingList))
         {
             var viewRequest = request.ConvertTo<RenderSimpleText>().FromContact(sub);
-            var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
+            var bodyHtml = (string) Gateway.Send(typeof(string), viewRequest);
 
-            response.AddMessage(await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
+            response.AddMessage(renderer.CreateMessageRun(mailDb, new MailMessageRun
             {
                 Message = new EmailMessage
                 {
@@ -32,33 +30,34 @@ public class EmailRunsServices : Service
             }, mailRun, sub));
         }
         
-        await Db.CompletedMailRunAsync(mailRun, response);
+        mailDb.CompletedMailRun(mailRun, response);
         return response;
     }
         
-    public async Task<object> Any(MarkdownMailRun request)
+    public object Any(MarkdownMailRun request)
     {
         var to = request.ConvertTo<CustomHtmlMailRun>();
         to.Layout = "basic";
         to.Template = "empty";
-        return await Any(to);
+        return Any(to);
     }
 
-    public async Task<object> Any(CustomHtmlMailRun request)
+    public object Any(CustomHtmlMailRun request)
     {
-        var response = Renderer.CreateMailRunResponse();
+        var response = renderer.CreateMailRunResponse();
         
-        var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun {
+        using var mailDb = mail.OpenMonthDb();
+        var mailRun = renderer.CreateMailRun(mailDb, new MailRun {
             Layout = request.Layout,
             Template = request.Template,
         }, request);
         
-        foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
+        foreach (var sub in Db.GetActiveSubscribers(request.MailingList))
         {
             var viewRequest = request.ConvertTo<RenderCustomHtml>().FromContact(sub);
-            var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
+            var bodyHtml = (string) Gateway.Send(typeof(string), viewRequest);
 
-            response.AddMessage(await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
+            response.AddMessage(renderer.CreateMessageRun(mailDb, new MailMessageRun
             {
                 Message = new EmailMessage
                 {
@@ -70,7 +69,7 @@ public class EmailRunsServices : Service
             }.FromRequest(viewRequest), mailRun, sub));
         }
         
-        await Db.CompletedMailRunAsync(mailRun, response);
+        mailDb.CompletedMailRun(mailRun, response);
         return response;
     }
 }

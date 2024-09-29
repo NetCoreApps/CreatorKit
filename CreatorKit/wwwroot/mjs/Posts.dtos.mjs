@@ -1,8 +1,8 @@
 /* Options:
-Date: 2023-05-10 18:28:56
-Version: 6.81
+Date: 2024-09-27 18:50:53
+Version: 8.41
 Tip: To override a DTO option, remove "//" prefix before updating
-BaseUrl: https://localhost:5001
+BaseUrl: https://localhost:5003
 
 //AddServiceStackTypes: True
 //AddDocAnnotations: True
@@ -175,93 +175,84 @@ export class CommentResult {
     /** @type {string} */
     modifiedDate;
 }
-export class AppUser {
-    /** @param {{id?:number,email?:string,userName?:string,displayName?:string,firstName?:string,lastName?:string,handle?:string,company?:string,profileUrl?:string,avatar?:string,lastLoginIp?:string,isArchived?:boolean,archivedDate?:string,lastLoginDate?:string,phoneNumber?:string,birthDate?:string,birthDateRaw?:string,address?:string,address2?:string,city?:string,state?:string,country?:string,culture?:string,fullName?:string,gender?:string,language?:string,mailAddress?:string,nickname?:string,postalCode?:string,timeZone?:string,meta?:{ [index: string]: string; },primaryEmail?:string,roles?:string[],permissions?:string[],refId?:number,refIdStr?:string,invalidLoginAttempts?:number,lastLoginAttempt?:string,lockedDate?:string,banUntilDate?:string,createdDate?:string,modifiedDate?:string}} [init] */
+/** @typedef TKey {any} */
+export class IdentityUser {
+    /** @param {{id?:TKey,userName?:string,normalizedUserName?:string,email?:string,normalizedEmail?:string,emailConfirmed?:boolean,passwordHash?:string,securityStamp?:string,concurrencyStamp?:string,phoneNumber?:string,phoneNumberConfirmed?:boolean,twoFactorEnabled?:boolean,lockoutEnd?:string,lockoutEnabled?:boolean,accessFailedCount?:number}} [init] */
     constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
+    /** @type {TKey} */
     id;
-    /** @type {string} */
-    email;
-    /** @type {string} */
+    /** @type {?string} */
     userName;
-    /** @type {string} */
-    displayName;
-    /** @type {string} */
+    /** @type {?string} */
+    normalizedUserName;
+    /** @type {?string} */
+    email;
+    /** @type {?string} */
+    normalizedEmail;
+    /** @type {boolean} */
+    emailConfirmed;
+    /** @type {?string} */
+    passwordHash;
+    /** @type {?string} */
+    securityStamp;
+    /** @type {?string} */
+    concurrencyStamp;
+    /** @type {?string} */
+    phoneNumber;
+    /** @type {boolean} */
+    phoneNumberConfirmed;
+    /** @type {boolean} */
+    twoFactorEnabled;
+    /** @type {?string} */
+    lockoutEnd;
+    /** @type {boolean} */
+    lockoutEnabled;
+    /** @type {number} */
+    accessFailedCount;
+}
+export class AppUser extends IdentityUser {
+    /** @param {{firstName?:string,lastName?:string,displayName?:string,profileUrl?:string,avatar?:string,handle?:string,refId?:number,refIdStr?:string,isArchived?:boolean,archivedDate?:string,lastLoginIp?:string,lastLoginDate?:string,createdDate?:string,modifiedDate?:string,lockedDate?:string,banUntilDate?:string,facebookUserId?:string,googleUserId?:string,googleProfilePageUrl?:string,microsoftUserId?:string,id?:TKey,userName?:string,normalizedUserName?:string,email?:string,normalizedEmail?:string,emailConfirmed?:boolean,passwordHash?:string,securityStamp?:string,concurrencyStamp?:string,phoneNumber?:string,phoneNumberConfirmed?:boolean,twoFactorEnabled?:boolean,lockoutEnd?:string,lockoutEnabled?:boolean,accessFailedCount?:number}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {?string} */
     firstName;
-    /** @type {string} */
+    /** @type {?string} */
     lastName;
     /** @type {?string} */
-    handle;
-    /** @type {string} */
-    company;
+    displayName;
     /** @type {?string} */
     profileUrl;
     /** @type {?string} */
     avatar;
     /** @type {?string} */
-    lastLoginIp;
+    handle;
+    /** @type {?number} */
+    refId;
+    /** @type {string} */
+    refIdStr;
     /** @type {boolean} */
     isArchived;
     /** @type {?string} */
     archivedDate;
     /** @type {?string} */
+    lastLoginIp;
+    /** @type {?string} */
     lastLoginDate;
-    /** @type {string} */
-    phoneNumber;
-    /** @type {?string} */
-    birthDate;
-    /** @type {string} */
-    birthDateRaw;
-    /** @type {string} */
-    address;
-    /** @type {string} */
-    address2;
-    /** @type {string} */
-    city;
-    /** @type {string} */
-    state;
-    /** @type {string} */
-    country;
-    /** @type {string} */
-    culture;
-    /** @type {string} */
-    fullName;
-    /** @type {string} */
-    gender;
-    /** @type {string} */
-    language;
-    /** @type {string} */
-    mailAddress;
-    /** @type {string} */
-    nickname;
-    /** @type {string} */
-    postalCode;
-    /** @type {string} */
-    timeZone;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    /** @type {string} */
-    primaryEmail;
-    /** @type {string[]} */
-    roles;
-    /** @type {string[]} */
-    permissions;
-    /** @type {?number} */
-    refId;
-    /** @type {string} */
-    refIdStr;
-    /** @type {number} */
-    invalidLoginAttempts;
-    /** @type {?string} */
-    lastLoginAttempt;
-    /** @type {?string} */
-    lockedDate;
-    /** @type {?string} */
-    banUntilDate;
     /** @type {string} */
     createdDate;
     /** @type {string} */
     modifiedDate;
+    /** @type {?string} */
+    lockedDate;
+    /** @type {?string} */
+    banUntilDate;
+    /** @type {?string} */
+    facebookUserId;
+    /** @type {?string} */
+    googleUserId;
+    /** @type {?string} */
+    googleProfilePageUrl;
+    /** @type {?string} */
+    microsoftUserId;
 }
 export class Thread {
     /** @param {{id?:number,url?:string,description?:string,externalRef?:string,viewCount?:number,likesCount?:number,commentsCount?:number,refId?:number,refIdStr?:string,createdDate?:string,closedDate?:string,deletedDate?:string}} [init] */
@@ -339,6 +330,12 @@ export class GetThreadResponse {
     /** @type {ResponseStatus} */
     responseStatus;
 }
+export class EmptyResponse {
+    /** @param {{responseStatus?:ResponseStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {ResponseStatus} */
+    responseStatus;
+}
 /** @typedef T {any} */
 export class QueryResponse {
     /** @param {{offset?:number,total?:number,results?:T[],meta?:{ [index: string]: string; },responseStatus?:ResponseStatus}} [init] */
@@ -392,7 +389,7 @@ export class DeleteThreadLike {
     threadId;
     getTypeName() { return 'DeleteThreadLike' }
     getMethod() { return 'DELETE' }
-    createResponse() { }
+    createResponse() { return new EmptyResponse() }
 }
 export class CreateCommentVote {
     /** @param {{commentId?:number,vote?:number}} [init] */

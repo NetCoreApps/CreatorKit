@@ -8,23 +8,22 @@ using ServiceStack.OrmLite;
 using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
 using ServiceStack.Data;
+using ServiceStack.Jobs;
 
 namespace CreatorKit.ServiceInterface;
 
-public class MailingServices : Service
+public class MailingServices(IBackgroundJobs jobs, EmailRenderer renderer, IMailProvider mail) 
+    : Service
 {
-    public EmailProvider EmailProvider { get; set; }
-    public EmailRenderer Renderer { get; set; }
-
-    public async Task Any(SubscribeToMailingList request)
+    public void Any(SubscribeToMailingList request)
     {
-        await Any(request.ConvertTo<CreateContact>());
+        Any(request.ConvertTo<CreateContact>());
     }
     
-    public async Task<object> Any(CreateContact request)
+    public object Any(CreateContact request)
     {
         var mailingList = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
-        var contact = await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
+        var contact = Db.Single<Contact>(x => x.EmailLower == request.Email.ToLower());
         if (contact != null)
         {
             contact.FirstName = request.FirstName;
@@ -32,12 +31,12 @@ public class MailingServices : Service
             contact.MailingLists |= mailingList;
             contact.UnsubscribedDate = null;
             contact.DeletedDate = null;
-            await Db.UpdateAsync(contact);
+            Db.Update(contact);
         }
         else
         {
             var emailLower = request.Email.ToLower();
-            var invalidEmail = await Db.SingleAsync<InvalidEmail>(x => x.EmailLower == emailLower);
+            var invalidEmail = Db.Single<InvalidEmail>(x => x.EmailLower == emailLower);
             if (invalidEmail != null)
                 throw new Exception($"Email is blacklisted as {invalidEmail.Status}");
             
@@ -50,15 +49,16 @@ public class MailingServices : Service
                 Source = request.Source,
                 EmailLower = emailLower,
                 NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
-                ExternalRef = Renderer.CreateRef(),
+                ExternalRef = renderer.CreateRef(),
                 CreatedDate = DateTime.UtcNow,
             };
-            contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
+            contact.Id = (int)Db.Insert(contact, selectIdentity: true);
             
             var viewRequest = new RenderCustomHtml { Layout = "marketing", Template = "verify-email" }.FromContact(contact);
-            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template);
-            var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, contact);
-            await Renderer.CreateMessageAsync(Db, new MailMessage {
+            var context = renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template);
+            var bodyHtml = renderer.RenderToHtml(Db, context, contact);
+            using var mailDb = mail.OpenMonthDb();
+            renderer.CreateMessage(mailDb, new MailMessage {
                 Message = new EmailMessage
                 {
                     To = contact.ToMailTos(),
@@ -70,14 +70,14 @@ public class MailingServices : Service
         return contact;
     }
 
-    public async Task<object?> Any(AdminCreateContact request)
+    public object? Any(AdminCreateContact request)
     {
         var mailingList = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
-        var contact = await Db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
+        var contact = Db.Single<Contact>(x => x.EmailLower == request.Email.ToLower());
         if (contact == null)
         {
             var emailLower = request.Email.ToLower();
-            var invalidEmail = await Db.SingleAsync<InvalidEmail>(x => x.EmailLower == emailLower);
+            var invalidEmail = Db.Single<InvalidEmail>(x => x.EmailLower == emailLower);
             if (invalidEmail != null)
                 throw new Exception($"Email is blacklisted as {invalidEmail.Status}");
             
@@ -90,134 +90,91 @@ public class MailingServices : Service
                 Source = request.Source,
                 EmailLower = request.Email.ToLower(),
                 NameLower = $"{request.FirstName} {request.LastName}".ToLower(),
-                ExternalRef = Renderer.CreateRef(),
+                ExternalRef = renderer.CreateRef(),
                 CreatedDate = DateTime.UtcNow,
                 VerifiedDate = request.VerifiedDate,
             };
-            contact.Id = (int) await Db.InsertAsync(contact, selectIdentity: true);
+            contact.Id = (int) Db.Insert(contact, selectIdentity: true);
         }
         return contact;
     }
 
-    public async Task Any(UpdateContactMailingLists request)
+    public void Any(UpdateContactMailingLists request)
     {
         var mailingLists = EnumUtils.FromEnumFlagsList<MailingList>(request.MailingLists);
-        var existing = await Db.SingleAsync<Contact>(x => x.ExternalRef == request.Ref);
+        var existing = Db.Single<Contact>(x => x.ExternalRef == request.Ref);
         if (existing == null)
             throw HttpError.NotFound("Mail subscription not found");
 
         if (request.UnsubscribeAll == true)
         {
-            await Db.UpdateOnlyAsync(() => new Contact { MailingLists = MailingList.None, UnsubscribedDate = DateTime.UtcNow },
+            Db.UpdateOnly(() => new Contact { MailingLists = MailingList.None, UnsubscribedDate = DateTime.UtcNow },
                 where: x => x.Id == existing.Id);
         }
         else
         {
-            await Db.UpdateOnlyAsync(() => new Contact { MailingLists = mailingLists, UnsubscribedDate = null, DeletedDate = null },
+            Db.UpdateOnly(() => new Contact { MailingLists = mailingLists, UnsubscribedDate = null, DeletedDate = null },
                 where: x => x.Id == existing.Id);
         }
     }
 
-    public async Task<object> Any(FindContact request)
+    public object Any(FindContact request)
     {
         var contact = request.Ref != null
-            ? await Db.SingleAsync<Contact>(x => x.ExternalRef == request.Ref)
+            ? Db.Single<Contact>(x => x.ExternalRef == request.Ref)
             : request.Email != null
-                ? await Db.SingleAsync<Contact>(x => x.Email == request.Email)
+                ? Db.Single<Contact>(x => x.Email == request.Email)
                 : throw HttpError.NotFound("Contact does not exist");
 
-        return new FindContactResponse
-        {
+        return new FindContactResponse {
             Result = contact
         };
     }
 
-    public async Task<object> Any(ViewMailMessage request)
+    public object Any(ViewMailMessage request)
     {
-        var msg = await Db.SingleByIdAsync<MailMessage>(request.Id);
+        using var mailDb = mail.OpenMonthDb();
+        var msg = mailDb.SingleById<MailMessage>(request.Id);
         return new HttpResult(msg.Message.BodyHtml) {
             ContentType = MimeTypes.Html
         };
     }
 
-    public async Task<object> Any(SendMailMessage request)
+    public async Task<object?> Any(SendMailMessage request)
     {
-        var msg = await Db.SingleByIdAsync<MailMessage>(request.Id);
-        if (msg.CompletedDate != null && request.Force != true)
-            throw new Exception($"Message {request.Id} has already been sent");
-
-        // ensure message is only sent once
-        if (await Db.UpdateOnlyAsync(() => new MailMessage { StartedDate = DateTime.UtcNow, Draft = false },
-                where: x => x.Id == request.Id && (x.StartedDate == null || request.Force == true)) == 1)
-        {
-            try
-            {
-                EmailProvider.Send(msg.Message);
-            }
-            catch (Exception e)
-            {
-                var error = e.ToResponseStatus();
-                await Db.UpdateOnlyAsync(() => new MailMessage { Error = error },
-                    where: x => x.Id == request.Id);
-                throw;
-            }
-
-            await Db.UpdateOnlyAsync(() => new MailMessage { CompletedDate = DateTime.UtcNow },
-                where: x => x.Id == request.Id);
-        }
-        
+        var msg = await jobs.RunCommandAsync<SendMailMessageCommand>(request);
         return msg;
     }
 
-    public async Task<object> Any(SendMailMessageRun request)
+    public async Task<object?> Any(SendMailMessageRun request)
     {
-        var msg = await Db.SingleByIdAsync<MailMessageRun>(request.Id);
-        if (msg.CompletedDate != null && request.Force != true)
-            throw new Exception($"Message {request.Id} has already been sent");
-
-        // ensure message is only sent once
-        if (await Db.UpdateOnlyAsync(() => new MailMessageRun { StartedDate = DateTime.UtcNow },
-                where: x => x.Id == request.Id && x.StartedDate == null) == 1)
-        {
-            try
-            {
-                EmailProvider.Send(msg.Message);
-            }
-            catch (Exception e)
-            {
-                var error = e.ToResponseStatus();
-                await Db.UpdateOnlyAsync(() => new MailMessageRun { Error = error },
-                    where: x => x.Id == request.Id);
-                throw;
-            }
-
-            await Db.UpdateOnlyAsync(() => new MailMessageRun { CompletedDate = DateTime.UtcNow },
-                where: x => x.Id == request.Id);
-        }
-        
+        var msg = await jobs.RunCommandAsync<SendMailMessageRunCommand>(request);
         return msg;
     }
 
-    public async Task<object> Any(ViewMailRunMessage request)
+    public object Any(ViewMailRunMessage request)
     {
-        var msg = await Db.SingleByIdAsync<MailMessageRun>(request.Id);
+        using var mailDb = mail.OpenMonthDb();
+        var msg = mailDb.SingleById<MailMessageRun>(request.Id);
         return new HttpResult(msg.Message.BodyHtml) {
             ContentType = MimeTypes.Html
         };
     }
 
-    public async Task<object> Any(VerifyEmailAddress request)
+    public object Any(VerifyEmailAddress request)
     {
-        var rowsAffected = await Db.UpdateOnlyAsync(() => new Contact { VerifiedDate = DateTime.UtcNow },
+        var rowsAffected = Db.UpdateOnly(() => new Contact { VerifiedDate = DateTime.UtcNow },
             where: x => x.ExternalRef == request.ExternalRef);
 
-        var sub = await Db.SingleAsync<Contact>(x => x.ExternalRef == request.ExternalRef);
+        var sub = Db.Single<Contact>(x => x.ExternalRef == request.ExternalRef);
         if (sub != null)
         {
             var viewRequest = new RenderCustomHtml { Layout = "marketing", Template = "newsletter-welcome" }.FromContact(sub);
-            var context = Renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template);
-            var bodyHtml = await Renderer.RenderToHtmlAsync(Db, context, sub);
-            await Renderer.CreateMessageAsync(Db, new MailMessage {
+            var context = renderer.CreateMailContext(layout:viewRequest.Layout, page:viewRequest.Template);
+            var bodyHtml = renderer.RenderToHtml(Db, context, sub);
+
+            using var mailDb = mail.OpenMonthDb();
+            renderer.CreateMessage(mailDb, new MailMessage {
                 Message = new EmailMessage {
                     To = sub.ToMailTos(),
                     Subject = $"{sub.FirstName}, welcome to {AppData.Info.Company}!",
@@ -231,24 +188,26 @@ public class MailingServices : Service
 
     public async Task Any(SendMailRun request)
     {
-        var msgIdsToSend = await Db.ColumnAsync<int>(Db.From<MailMessageRun>()
+        using var mailDb = mail.OpenMonthDb();
+        var msgIdsToSend = await mailDb.ColumnAsync<int>(mailDb.From<MailMessageRun>()
             .Where(x => x.MailRunId == request.Id && (x.CompletedDate == null && x.StartedDate == null))
             .Select(x => x.Id));
 
         if (msgIdsToSend.Count > 0)
         {
-            await Db.UpdateOnlyAsync(() => new MailRun { SentDate = DateTime.UtcNow }, 
+            await mailDb.UpdateOnlyAsync(() => new MailRun { SentDate = DateTime.UtcNow }, 
                 where:x => x.Id == request.Id && x.SentDate == null);
         }
-        
-        PublishMessage(new SendMessages {
+
+        var jobRef = jobs.RunCommand<SendMessagesCommand>(new SendMessages {
             MailRunMessageIds = msgIdsToSend
         });
     }
 
     public async Task<object> Any(ViewMailRunInfo request)
     {
-        var results = await Db.SingleAsync<(int, int)>(Db.From<MailMessageRun>()
+        using var mailDb = mail.OpenMonthDb();
+        var results = await mailDb.SingleAsync<(int, int)>(mailDb.From<MailMessageRun>()
             .Where(x => x.MailRunId == request.Id)
             .Select(x => new {
                 Completed = Sql.Count(nameof(MailMessageRun.CompletedDate)),
@@ -262,7 +221,7 @@ public class MailingServices : Service
         };
     }
 
-    public async Task<object> Any(ViewAppData request)
+    public object Any(ViewAppData request)
     {
         var appData = AppData.Instance;
         return new ViewAppDataResponse
@@ -277,15 +236,12 @@ public class MailingServices : Service
     public async Task<object> Any(ViewAppStats request)
     {
         var tables = new[] {
-            ("Users", nameof(AppUser)),
-            ("Contacts", nameof(Contact)),
-            ("Messages", nameof(MailMessage)),
-            ("MailRuns", nameof(MailRun)),
-            ("MailRunMessages", nameof(MailMessageRun)),
-            ("Threads", nameof(Thread)),
-            ("Comments", nameof(Comment)),
-            ("CommentReports", nameof(CommentReport)),
-            ("CommentVotes", nameof(CommentVote)),
+            ("Users",           "AspNetUsers"),
+            ("Contacts",        nameof(Contact)),
+            ("Threads",         nameof(Thread)),
+            ("Comments",        nameof(Comment)),
+            ("CommentReports",  nameof(CommentReport)),
+            ("CommentVotes",    nameof(CommentVote)),
         };
 
         var totalSql = tables
@@ -306,16 +262,16 @@ public class MailingServices : Service
             last30DayTotals[key] = totals[key] - before30DayTotals[key];
         }
 
-        var archivedTables = new[] {
-            ("Messages", nameof(ArchiveMessage)),
-            ("MailRuns", nameof(ArchiveRun)),
-            ("MailRunMessages", nameof(ArchiveMessageRun)),
+        var mailTables = new[] {
+            ("Messages",        nameof(MailMessage)),
+            ("MailRuns",        nameof(MailRun)),
+            ("MailRunMessages", nameof(MailMessageRun)),
         };
-        var archivedTotalSql = archivedTables
+        using var mailDb = mail.OpenMonthDb();
+        var mailTotalSql = mailTables
             .Map(x => $"SELECT '{x.Item1}' AS Name, (SELECT COUNT(*) FROM {x.Item2}) AS Total")
             .Join(" UNION ");
-        using var dbArchive = await DbFactory.OpenAsync("archive");
-        var archivedTotals = await dbArchive.DictionaryAsync<string, int>(archivedTotalSql);
+        var archivedTotals = await mailDb.DictionaryAsync<string, int>(mailTotalSql);
 
         return new ViewAppStatsResponse
         {
@@ -325,65 +281,6 @@ public class MailingServices : Service
             ArchivedTotals = archivedTotals,
         };
     }
-
-    public IDbConnectionFactory DbFactory { get; set; }
-    public async Task<object> Any(ArchiveMail request)
-    {
-        var messageIdsToDelete = new List<int>();
-        var mailRunIdsToDelete = new List<int>();
-        
-        var createdBefore = DateTime.UtcNow.AddDays(request.OlderThanDays!.Value * -1);
-        if (request.Messages == true)
-        {
-            var messages = await Db.SelectAsync<MailMessage>(x => x.CompletedDate != null && x.CreatedDate < createdBefore);
-            try
-            {
-                using var dbArchive = await DbFactory.OpenAsync("archive");
-                foreach (var message in messages)
-                {
-                    var archiveMessage = message.ConvertTo<ArchiveMessage>();
-                    await dbArchive.InsertAsync(archiveMessage);
-                    messageIdsToDelete.Add(message.Id);
-                }
-            }
-            finally
-            {
-                await Db.DeleteByIdsAsync<MailMessage>(messageIdsToDelete);
-            }
-        }
-        if (request.MailRuns == true)
-        {
-            var mailRuns = await Db.SelectAsync<MailRun>(x =>x.CompletedDate != null && x.CreatedDate < createdBefore);
-            try
-            {
-                using var dbArchive = await DbFactory.OpenAsync("archive");
-                foreach (var mailRun in mailRuns)
-                {
-                    var archiveMailRun = mailRun.ConvertTo<ArchiveRun>();
-                    var archiveId = (int) await dbArchive.InsertAsync(archiveMailRun, selectIdentity:true);
-                    var mailRunMessages = await Db.SelectAsync<MailMessageRun>(x => x.MailRunId == mailRun.Id);
-                    foreach (var message in mailRunMessages)
-                    {
-                        var archiveMessage = message.ConvertTo<ArchiveMessageRun>();
-                        archiveMessage.MailRunId = archiveId;
-                        await dbArchive.InsertAsync(archiveMessage);
-                    }
-                    mailRunIdsToDelete.Add(mailRun.Id);
-                }
-            }
-            finally
-            {
-                await Db.DeleteByIdsAsync<MailRun>(mailRunIdsToDelete);
-            }
-        }
-
-        return new ArchiveMailResponse
-        {
-            ArchivedMessageIds = messageIdsToDelete,
-            ArchivedMailRunIds = mailRunIdsToDelete,
-        };
-    }
-    
 }
 
 public static class MailMessageExtensions
@@ -396,9 +293,9 @@ public static class MailMessageExtensions
         return contact;
     }
     
-    public static async Task<Contact> GetOrCreateContact(this IDbConnection db, CreateEmailBase request)
+    public static Contact GetOrCreateContact(this IDbConnection db, CreateEmailBase request)
     {
-        var sub = await db.SingleAsync<Contact>(x => x.EmailLower == request.Email.ToLower());
+        var sub = db.Single<Contact>(x => x.EmailLower == request.Email.ToLower());
         if (sub == null)
         {
             sub = new Contact
@@ -412,7 +309,7 @@ public static class MailMessageExtensions
                 ExternalRef = Guid.NewGuid().ToString("N"),
                 CreatedDate = DateTime.UtcNow,
             };
-            sub.Id = (int) await db.InsertAsync(sub, selectIdentity: true);
+            sub.Id = (int) db.Insert(sub, selectIdentity: true);
         }
         return sub;
     }

@@ -15,12 +15,12 @@ public class DbTests
     IDbConnectionFactory ResolveDbFactory() => new ConfigureDb().ConfigureAndResolve<IDbConnectionFactory>();
 
     [Test]
-    public async Task Does_not_return_invalid_emails_in_ActiveSubscribers()
+    public void Does_not_return_invalid_emails_in_ActiveSubscribers()
     {
         using var db = ResolveDbFactory().OpenDbConnection();
         
         OrmLiteUtils.PrintSql();
-        var subs = await db.GetActiveSubscribersAsync(MailingList.MonthlyNewsletter);
+        var subs = db.GetActiveSubscribers(MailingList.MonthlyNewsletter);
         Console.WriteLine($"Subscribers: {subs.Count}");
     }    
 }

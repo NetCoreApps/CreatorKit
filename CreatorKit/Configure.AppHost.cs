@@ -13,7 +13,13 @@ public class AppHost : AppHostBase, IHostingStartup
         .ConfigureServices((context,services) => {
             AppData.Set(context.Configuration);
             services.AddSingleton(AppData.Instance);
-            services.AddSingleton(EmailRenderer.Instance);
+            services.AddSingleton<EmailRenderer>();
+            services.AddPlugin(new CleanUrlsFeature());
+            
+            var scripts = InitOptions.ScriptContext; 
+            scripts.ScriptAssemblies.Add(typeof(Hello).Assembly);
+            scripts.ScriptMethods.Add(new ValidationScripts());
+            scripts.Args[nameof(AppData)] = AppData.Instance;
         });
 
     public AppHost() : base("Creator Kit", typeof(MyServices).Assembly, typeof(CustomEmailServices).Assembly) {}
@@ -26,27 +32,12 @@ public class AppHost : AppHostBase, IHostingStartup
             AllowFileExtensions = { "json" }
         });
 
-        Plugins.Add(new CorsFeature(AppSettings)
-            .AppendOriginWhitelist(new[] {
-                AppData.Instance.WebsiteBaseUrl,
-            }));
-        Plugins.Add(new CleanUrlsFeature());
-        
         ConfigurePlugin<NativeTypesFeature>(x => 
             x.MetadataTypesConfig.GlobalNamespace = nameof(CreatorKit));
         
         MarkdownConfig.Transformer = new MarkdigTransformer();
-        LoadAsync(container).GetAwaiter().GetResult();
-    }
-
-    public async Task LoadAsync(Container container)
-    {
-        container.Resolve<EmailRenderer>().Init(this);
-        await container.Resolve<AppData>().LoadAsync(this, 
+        container.Resolve<AppData>().Load(this, 
             ContentRootDirectory.GetDirectory("emails"), RootDirectory.GetDirectory("img/mail"));
-        ScriptContext.ScriptAssemblies.Add(typeof(Hello).Assembly);
-        ScriptContext.ScriptMethods.Add(new ValidationScripts());
-        ScriptContext.Args[nameof(AppData)] = AppData.Instance;
     }
 
     public static void RegisterLicense() =>

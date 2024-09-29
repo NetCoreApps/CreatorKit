@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using CreatorKit.ServiceInterface;
+using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
 using NUnit.Framework;
 using ServiceStack;
@@ -35,7 +36,7 @@ public class SeedDataTasks
         foreach (var user in users)
         {
             user.Roles = roleLookup.TryGetValue(user.Id, out var roles)
-                ? roles
+                ? roles.ToArray()
                 : null;
         }
         File.WriteAllText(Path.Combine(hostDir, "Migrations/seed/users.csv"), users.ToCsv());

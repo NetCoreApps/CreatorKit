@@ -1,25 +1,26 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using ServiceStack;
 using ServiceStack.OrmLite;
+using ServiceStack.Jobs;
 using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
 
 namespace CreatorKit.ServiceInterface;
 
-public class PostServices : Service
+public class PostServices(IAutoQueryDb autoQuery, IBackgroundJobs jobs) : Service
 {
-    public IAutoQueryDb AutoQuery { get; set; } = default!;
+    [FromServices]
+    public SmtpConfig? SmtpConfig { get; set; }
     
-    public async Task<object> Get(GetThreadUserData request)
+    public object Get(GetThreadUserData request)
     {
-        var session = await SessionAsAsync<CustomUserSession>();
-        var userId = session.GetUserId();
-        var votes = await Db.SelectAsync(Db.From<CommentVote>().Join<Comment>()
+        var userId = Request.GetRequiredUserId();
+        var votes = Db.Select(Db.From<CommentVote>().Join<Comment>()
             .Where(x => x.AppUserId == userId)
             .And<Comment>(x => x.ThreadId == request.ThreadId));
-        var liked = await Db.ExistsAsync<ThreadLike>(x => x.ThreadId == request.ThreadId && x.AppUserId == userId);
+        var liked = Db.Exists<ThreadLike>(x => x.ThreadId == request.ThreadId && x.AppUserId == userId);
 
         var ret = new GetThreadUserDataResponse
         {
@@ -31,10 +32,10 @@ public class PostServices : Service
         return ret;
     }
 
-    public async Task<object> Get(GetThread request)
+    public object Get(GetThread request)
     {
         var result = request.Id != null
-            ? await Db.SingleByIdAsync<Thread>(request.Id)
+            ? Db.SingleById<Thread>(request.Id)
             : null;
 
         if (request.Url != null)
@@ -43,7 +44,7 @@ public class PostServices : Service
             normalizedUrl = normalizedUrl.LeftPart('?');
             if (normalizedUrl.EndsWith(".html"))
                 normalizedUrl.Substring(0, normalizedUrl.Length - 5);
-            result = await Db.SingleAsync(Db.From<Thread>().Where(x => x.Url == normalizedUrl));
+            result = Db.Single(Db.From<Thread>().Where(x => x.Url == normalizedUrl));
             if (result == null)
             {
                 result = new Thread {
@@ -52,53 +53,45 @@ public class PostServices : Service
                     CreatedDate = DateTime.UtcNow,
                     ExternalRef = Guid.NewGuid().ToString("N"),
                 };
-                result.Id = (int)await Db.InsertAsync(result, selectIdentity: true);
+                result.Id = (int)Db.Insert(result, selectIdentity: true);
             }
         }
         
         if (result == null)
             throw HttpError.NotFound("Thread does not exist");
 
-        await Db.UpdateAddAsync(() => new Thread { ViewCount = 1 }, where:x => x.Id == result.Id);
+        Db.UpdateAdd(() => new Thread { ViewCount = 1 }, where:x => x.Id == result.Id);
         
         return new GetThreadResponse {
             Result = result
         };
     }
     
-    async Task RefreshLikes(int threadId)
+    public void RefreshLikes(int threadId)
     {
-        var threadLikes = await Db.CountAsync<ThreadLike>(x => x.ThreadId == threadId);
-        await Db.UpdateOnlyAsync(() => new Thread { LikesCount = threadLikes + 1 }, where: x => x.Id == threadId);
+        var threadLikes = Db.Count<ThreadLike>(x => x.ThreadId == threadId);
+        Db.UpdateOnly(() => new Thread { LikesCount = threadLikes + 1 }, where: x => x.Id == threadId);
     }
 
-    public async Task Post(CreateThreadLike request)
+    public void Post(CreateThreadLike request)
     {
-        await AutoQuery.CreateAsync(request, base.Request);
-        await RefreshLikes(request.ThreadId);
+        autoQuery.Create(request, base.Request);
+        RefreshLikes(request.ThreadId);
     }
 
-    public async Task Delete(DeleteThreadLike request)
+    public void Delete(DeleteThreadLike request)
     {
-        await AutoQuery.DeleteAsync(request, base.Request);
-        await RefreshLikes(request.ThreadId);
+        autoQuery.Delete(request, base.Request);
+        RefreshLikes(request.ThreadId);
     }
-
-    //public async Task<object> Any(QueryComments query)
-    //{
-    //    using var db = AutoQuery.GetDb(query, base.Request);
-    //    var q = AutoQuery.CreateQuery(query, base.Request, db);
-    //    var response = await AutoQuery.ExecuteAsync(query, q, base.Request, db);
-    //    return response;
-    //}
     
-    async Task RefreshVotes(int commentId)
+    void RefreshVotes(int commentId)
     {
-        var commentVotes = await Db.SelectAsync<CommentVote>(x => x.CommentId == commentId);
+        var commentVotes = Db.Select<CommentVote>(x => x.CommentId == commentId);
         var upVotes = commentVotes.Count(x => x.Vote > 0);
         var downVotes = commentVotes.Count(x => x.Vote < 0);
         var votes = upVotes - downVotes;
-        await Db.UpdateOnlyAsync(() => new Comment
+        Db.UpdateOnly(() => new Comment
         {
             UpVotes = upVotes,
             DownVotes = downVotes,
@@ -106,15 +99,89 @@ public class PostServices : Service
         }, where: x => x.Id == commentId);
     }
 
-    public async Task Post(CreateCommentVote request)
+    public void Post(CreateCommentVote request)
     {
-        await AutoQuery.CreateAsync(request, base.Request);
-        await RefreshVotes(request.CommentId);
+        autoQuery.Create(request, base.Request);
+        RefreshVotes(request.CommentId);
     }
 
-    public async Task Delete(DeleteCommentVote request)
+    public void Delete(DeleteCommentVote request)
     {
-        await AutoQuery.DeleteAsync(request, base.Request);
-        await RefreshVotes(request.CommentId);
+        autoQuery.Delete(request, base.Request);
+        RefreshVotes(request.CommentId);
+    }
+
+    public object Any(CreateComment request)
+    {
+        var ret = autoQuery.Create(request, base.Request);
+        if (SmtpConfig?.NotificationsEmail == null && request.ReplyId == null)
+            return ret;
+
+        var thread = Db.SingleById<Thread>(request.ThreadId);
+        if (thread != null)
+        {
+            var replyUserId = request.ReplyId != null
+                ? Db.SingleById<Comment>(request.ReplyId.Value)?.AppUserId
+                : null;
+            var replyUser = replyUserId != null 
+                ? Db.Single<(string Email, string Name)>(Db.From<AppUser>()
+                    .Where(x => x.Id == replyUserId)
+                    .Select(x => new { x.Email, x.DisplayName }))
+                : new();
+
+            var toEmail = replyUser.Email ?? SmtpConfig?.NotificationsEmail;
+            if (toEmail != null)
+            {
+                var authorName = Request.GetClaimsPrincipal().GetNickName();
+                var domain = new Uri(thread.Url).Host;
+                var email = new SendEmail {
+                    To = toEmail,
+                    ToName = replyUser.Name ?? "Notification",
+                    Subject = replyUser.Name != null 
+                        ? $"New reply from {authorName} on {domain}"
+                        : $"New comment on {domain}",
+                    BodyText = $"""
+                                Comment by {authorName} on {thread.Url}:
+
+                                > {request.Content}
+                                """,
+                };
+                jobs.EnqueueCommand<SendEmailCommand>(email);
+            }
+        }
+        return ret;
+    }
+
+    public object Any(CreateCommentReport request)
+    {
+        var ret = autoQuery.Create(request, base.Request);
+        if (SmtpConfig?.NotificationsEmail == null)
+            return ret;
+        
+        var comment = Db.SingleById<Comment>(request.CommentId);
+        if (comment != null)
+        {
+            var thread = Db.SingleById<Thread>(comment.ThreadId);
+            if (thread != null)
+            {
+                var authorName = Request.GetClaimsPrincipal().GetNickName();
+                var domain = new Uri(thread.Url).Host;
+                var reason = request.Description != null ? "Reason:\n" + request.Description : "";
+                var email = new SendEmail {
+                    To = SmtpConfig.NotificationsEmail,
+                    ToName = "Notification",
+                    Subject = $"New report comment on {domain}",
+                    BodyText = $"""
+                                Comment Reported as {request.PostReport} by {authorName} on {thread.Url}:
+
+                                > {comment.Content}
+                                
+                                {reason}
+                                """,
+                };
+                jobs.EnqueueCommand<SendEmailCommand>(email);
+            }
+        }
+        return ret;
     }
 }

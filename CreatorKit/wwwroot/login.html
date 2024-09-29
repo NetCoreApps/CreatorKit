@@ -1,0 +1,138 @@
+<html class="h-full bg-white">
+<head>
+    <title>Admin Portal</title>
+    <link rel="icon" type="image/svg" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/typography.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "vue": "/lib/mjs/vue.mjs",
+                "@servicestack/client": "/lib/mjs/servicestack-client.mjs",
+                "@servicestack/vue": "/lib/mjs/servicestack-vue.mjs",
+                "app.mjs": "/mjs/app.mjs",
+                "dtos.mjs": "/mjs/dtos.mjs"
+            }
+        }
+    </script>
+</head>
+<body class="h-full">
+<div id="app" v-cloak>
+    <div class="min-h-full">
+        <div v-if="user" class="mt-8 mb-20 mx-auto max-w-fit text-center">
+            <h1 class="mb-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50 sm:text-4xl">My Profile</h1>
+            <svg class="w-36 h-36 text-gray-700 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M5.85 17.1q1.275-.975 2.85-1.537T12 15t3.3.563t2.85 1.537q.875-1.025 1.363-2.325T20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.475.488 2.775T5.85 17.1M12 13q-1.475 0-2.488-1.012T8.5 9.5t1.013-2.488T12 6t2.488 1.013T15.5 9.5t-1.012 2.488T12 13m0 9q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22"/></svg>
+            <div>{{ user.displayName }}</div>
+            <div v-if="user.userName != user.displayName">{{ user.userName }}</div>
+            <div class="mt-2">
+                <span v-for="role in user.roles ?? []" :key="role"
+                    class="ml-3 inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium leading-5 bg-indigo-100 text-indigo-800">
+                    {{ role }}
+                </span>
+            </div>
+            <secondary-button class="mt-8" @click="store.signOut()">Sign Out</secondary-button>
+        </div>        
+        <dialogs v-else :show="show" :comment-id="showTarget?.id" @done="onDone()" @show-dialog="show=$event"></dialogs>
+    </div>
+</div>
+
+<script type="module">
+import { EventBus } from "@servicestack/client"
+import ServiceStackVue, { useConfig, useAuth, useUtils } from "@servicestack/vue"
+import { ref, nextTick } from "vue"
+import { Authenticate, SignInDialog, SignUpDialog } from "/mjs/components/Auth.mjs"
+import { BaseUrl, mount, client } from "/mjs/components/init.mjs"
+
+class Store {
+    BaseUrl = BaseUrl
+    DefaultProfileUrl = 'data:image/svg+xml,%3Csvg style=\'color:rgb(8 145 178);border-radius: 9999px;overflow: hidden;\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Cpath fill=\'currentColor\' d=\'M200,100 a100,100 0 1 0 -167.3,73.9 a3.6,3.6 0 0 0 0.9,0.8 a99.9,99.9 0 0 0 132.9,0 l0.8,-0.8 A99.6,99.6 0 0 0 200,100 zm-192,0 a92,92 0 1 1 157.2,64.9 a75.8,75.8 0 0 0 -44.5,-34.1 a44,44 0 1 0 -41.4,0 a75.8,75.8 0 0 0 -44.5,34.1 A92.1,92.1 0 0 1 8,100 zm92,28 a36,36 0 1 1 36,-36 a36,36 0 0 1 -36,36 zm-59.1,42.4 a68,68 0 0 1 118.2,0 a91.7,91.7 0 0 1 -118.2,0 z\' /%3E%3C/svg%3E%0A'
+    /** @type {AuthenticateResponse|null} */
+    auth = null
+    /** @type {string|null} */
+    authKey = null
+    /** @type {JsonServiceClient} */
+    client = null
+    events = new EventBus()
+    config = {}
+
+    constructor(client) {
+        this.client = client
+        const { swrCacheKey } = useUtils()
+        this.authKey = swrCacheKey(new Authenticate())
+    }
+    signIn(auth) {
+        console.log('store.signIn', auth)
+        const { signIn } = useAuth()
+        this.auth = auth
+        signIn(auth)
+        auth._date = new Date().valueOf()
+        localStorage.setItem(this.authKey, JSON.stringify(auth))
+        this.events.publish('signIn', auth)
+    }
+    async signOut() {
+        this.auth = null
+        const { signOut } = useAuth()
+        localStorage.removeItem(this.authKey)
+        signOut()
+        await client.api(new Authenticate({ provider:'logout' }))
+        this.events.publish('signOut')
+    }
+    async loadUserData() {
+    }
+}
+
+export const Dialogs = {
+    components: { SignInDialog, SignUpDialog, },
+    template:`<div>
+        <SignInDialog v-if="show==='SignInDialog'" @done="$emit('done')"  @signup="$emit('showDialog','SignUpDialog')" />
+        <SignUpDialog v-if="show==='SignUpDialog'" @done="$emit('done')"  @signin="$emit('showDialog','SignInDialog')" />
+    </div>`,
+    emits:['showDialog','done'],
+    props: {
+        show:String,
+        commentId:Number
+    },
+    setup(props) {
+        return { }
+    }
+}
+
+const store = new Store(client)
+
+const App = {
+    components: { Dialogs },
+    setup() {
+        let show = ref('SignInDialog')
+        let showTarget = ref(null)
+        function showDialog(dialog,comment) {
+            show.value = dialog
+            showTarget.value = comment
+        }
+
+        const { user, isAuthenticated } = useAuth()
+        const { config } = useConfig()
+
+        function onDone() {
+            show.value = 'SignInDialog'
+        }
+        nextTick(async () => {
+            const [api] = await Promise.all([
+                client.api(new Authenticate()),
+            ])
+            if (api.succeeded) {
+                store.signIn(api.response)
+            } else {
+                store.signOut()
+            }
+        })
+        
+        return { store, user, show, showTarget, showDialog, onDone }
+    }
+}
+mount('#app', App, null, { 
+    mount(app, { client, AppData }) {
+        app.component('RouterLink', ServiceStackVue.component('RouterLink'))
+        app.provide('store', store)
+    }
+})
+</script>

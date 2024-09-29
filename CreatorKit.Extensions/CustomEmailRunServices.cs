@@ -5,27 +5,25 @@ using ServiceStack;
 
 namespace CreatorKit.Extensions;
 
-public class CustomEmailRunServices : Service
+public class CustomEmailRunServices(EmailRenderer renderer, IMailProvider mail)
+    : Service
 {
-    public EmailProvider EmailProvider { get; set; }
-    public EmailRenderer Renderer { get; set; }
-    public WebsiteData WebsiteData { get; set; }
-
-    public async Task<object> Any(NewsletterMailRun request)
+    public object Any(NewsletterMailRun request)
     {
         var newsletterDate = request.ToDate ?? DateTime.UtcNow;
-        var response = Renderer.CreateMailRunResponse();
+        var response = renderer.CreateMailRunResponse();
 
-        var mailRun = await Renderer.CreateMailRunAsync(Db, new MailRun {
+        using var mailDb = mail.OpenMonthDb();
+        var mailRun = renderer.CreateMailRun(mailDb, new MailRun {
             Layout = "marketing",
             Template = "newsletter",
         }, request);
         
-        foreach (var sub in await Db.GetActiveSubscribersAsync(request.MailingList))
+        foreach (var sub in Db.GetActiveSubscribers(request.MailingList))
         {
             var viewRequest = request.ConvertTo<RenderNewsletter>().FromContact(sub);
-            var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
-            response.AddMessage(await Renderer.CreateMessageRunAsync(Db, new MailMessageRun
+            var bodyHtml = (string) Gateway.Send(typeof(string), viewRequest);
+            response.AddMessage(renderer.CreateMessageRun(mailDb, new MailMessageRun
             {
                 Message = new EmailMessage
                 {
@@ -36,7 +34,7 @@ public class CustomEmailRunServices : Service
             }.FromRequest(viewRequest), mailRun, sub));
         }
 
-        await Db.CompletedMailRunAsync(mailRun, response);
+        mailDb.CompletedMailRun(mailRun, response);
         return response;
     }
 }

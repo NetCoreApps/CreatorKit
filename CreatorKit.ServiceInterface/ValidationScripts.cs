@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CreatorKit.Data;
+using CreatorKit.ServiceModel;
 using CreatorKit.ServiceModel.Types;
 using ServiceStack;
 using ServiceStack.OrmLite;
@@ -29,15 +31,14 @@ public class ActiveUserValidator : TypeValidator, IAuthTypeValidator
     {
         await IsAuthenticatedValidator.Instance.ThrowIfNotValidAsync(dto, request).ConfigAwait();
         
-        var session = await request.SessionAsAsync<CustomUserSession>();
-        var userId = session.UserAuthId.ToInt();
+        var userId = request.GetRequiredUserId();
+        var hasBannedDate = request.GetClaimsPrincipal()?.HasClaim(x => x.Type == nameof(AppUser.BanUntilDate)) == true;
         var appData = request.TryResolve<AppData>();
-        var checkDb = appData.BannedUsersMap.ContainsKey(userId) || session.LockedDate != null ||
-                      (session.BanUntilDate != null && session.BanUntilDate > DateTime.UtcNow);
+        var checkDb = appData.BannedUsersMap.ContainsKey(userId) || hasBannedDate;
         if (checkDb)
         {
             using var db = HostContext.AppHost.GetDbConnection(request);
-            var user = await db.SingleByIdAsync<AppUser>(userId);
+            var user = db.SingleById<AppUser>(userId);
             if (user == null)
                 throw new HttpError(ResolveStatusCode(), ResolveErrorCode(), "Your account no longer exists");
             

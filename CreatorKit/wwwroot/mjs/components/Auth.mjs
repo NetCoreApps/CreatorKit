@@ -15,7 +15,7 @@ export const SignInDialog = {
             <form @submit.prevent="submit">
                 <div class="flex flex-col gap-y-4">
                     <TextInput id="userName" label="Email" help="Email you signed up with" v-model="request.userName" placeholder="" />
-                    <TextInput id="password" type="password" help="6 characters or more" v-model="request.password" placeholder="" />
+                    <TextInput id="password" type="password" help="8 characters or more" v-model="request.password" placeholder="" />
                 </div>
                 <div class="mt-8">
                     <PrimaryButton class="w-full mb-4">Sign In</PrimaryButton>
@@ -59,8 +59,6 @@ export const SignInDialog = {
         /** @type {Ref<Authenticate>} */
         const request = ref(new Authenticate({ provider:'credentials' }))
 
-        const signInHref = computed(() =>
-            appendQueryString(combinePaths(store.BaseUrl, 'auth/google'), { redirect:location.origin }))
         const errorSummary = computed(() => '')
         const oauthProviders = [
             {
@@ -79,6 +77,7 @@ export const SignInDialog = {
                 icon: { svg: "<svg xmlns='http://www.w3.org/2000/svg' fill='currentColor' viewBox='0 0 20 20'><path d='M11.55 21H3v-8.55h8.55V21zM21 21h-8.55v-8.55H21V21zm-9.45-9.45H3V3h8.55v8.55zm9.45 0h-8.55V3H21v8.55z' fill='currentColor'/></svg>" }
             },
         ]
+        oauthProviders.length = 0 //disable OAuth
         function providerUrl(provider) {
             return appendQueryString(combinePaths(store.BaseUrl, provider.href), { 'continue': location.href })
         }
@@ -97,7 +96,7 @@ export const SignInDialog = {
             }
         }
 
-        return { request, signInHref, done, errorSummary, submit, oauthProviders, providerUrl, providerLabel, }
+        return { request, done, errorSummary, submit, oauthProviders, providerUrl, providerLabel, }
     }
 }
 
@@ -115,7 +114,7 @@ export const SignUpDialog = {
                 <div class="flex flex-col gap-y-4">
                     <TextInput id="email" v-model="request.email" placeholder="" />
                     <TextInput id="displayName" v-model="request.displayName" placeholder="" />
-                    <TextInput id="password" type="password" help="6 characters or more" v-model="request.password" placeholder="" />
+                    <TextInput id="password" type="password" help="8 characters or more" v-model="request.password" placeholder="" />
                     <TextInput id="confirmPassword" type="password" v-model="request.confirmPassword" placeholder="" />
                 </div>
                 <div class="mt-8">
@@ -143,8 +142,8 @@ export const SignUpDialog = {
                 client.setError({ fieldName:'confirmPassword', message:'Passwords do not match' })
                 return
             }
-            if (request.value.password.length < 6) {
-                client.setError({ fieldName:'password', message:'Minimum of 6 characters' })
+            if (request.value.password.length < 8) {
+                client.setError({ fieldName:'password', message:'Minimum of 8 characters' })
                 return
             }
             const api = await client.api(request.value)

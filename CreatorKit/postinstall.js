@@ -8,10 +8,12 @@ const files = {
       'vue.min.mjs':                     '/vue@3/dist/vue.esm-browser.prod.js',
       'servicestack-client.mjs':         '/@servicestack/client@2/dist/servicestack-client.mjs',
       'servicestack-client.min.mjs':     '/@servicestack/client@2/dist/servicestack-client.min.mjs',
-      'servicestack-vue.mjs':            '/@servicestack/vue@3/dist/servicestack-vue.mjs',
+      'servicestack-vue.mjs':            'd',
       'servicestack-vue.min.mjs':        '/@servicestack/vue@3/dist/servicestack-vue.min.mjs',
   },
 }
+
+const js = ['servicestack-vue.mjs','servicestack-vue.min.mjs']
 
 const defaultHostPrefix = 'https://raw.githubusercontent.com/NetCoreTemplates/razor-ssg/main/MyApp/'
 const hostFiles = [
@@ -48,6 +50,10 @@ Object.keys(files).forEach(dir => {
 
 ;(async () => {
     await Promise.all(requests)
+    js.forEach(file => {
+        const fromFile = path.join(writeTo,'mjs', file)
+        fs.copyFile(fromFile, path.join('./wwwroot/js', file))
+    })
 })()
 
 async function fetchDownload(url, toFile, retries) {

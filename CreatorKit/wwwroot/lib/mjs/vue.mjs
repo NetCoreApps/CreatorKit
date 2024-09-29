@@ -1,5 +1,5 @@
 /**
-* vue v3.5.5
+* vue v3.5.9
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
@@ -106,6 +106,12 @@ let _globalThis;
 const getGlobalThis = () => {
   return _globalThis || (_globalThis = typeof globalThis !== "undefined" ? globalThis : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : {});
 };
+function genCacheKey(source, options) {
+  return source + JSON.stringify(
+    options,
+    (_, val) => typeof val === "function" ? val.toString() : val
+  );
+}
 
 const PatchFlagNames = {
   [1]: `TEXT`,
@@ -532,7 +538,7 @@ class ReactiveEffect {
     /**
      * @internal
      */
-    this.nextEffect = void 0;
+    this.next = void 0;
     /**
      * @internal
      */
@@ -562,9 +568,7 @@ class ReactiveEffect {
       return;
     }
     if (!(this.flags & 8)) {
-      this.flags |= 8;
-      this.nextEffect = batchedEffect;
-      batchedEffect = this;
+      batch(this);
     }
   }
   run() {
@@ -625,7 +629,12 @@ class ReactiveEffect {
   }
 }
 let batchDepth = 0;
-let batchedEffect;
+let batchedSub;
+function batch(sub) {
+  sub.flags |= 8;
+  sub.next = batchedSub;
+  batchedSub = sub;
+}
 function startBatch() {
   batchDepth++;
 }
@@ -634,20 +643,26 @@ function endBatch() {
     return;
   }
   let error;
-  while (batchedEffect) {
-    let e = batchedEffect;
-    batchedEffect = void 0;
+  while (batchedSub) {
+    let e = batchedSub;
+    let next;
     while (e) {
-      const next = e.nextEffect;
-      e.nextEffect = void 0;
       e.flags &= ~8;
+      e = e.next;
+    }
+    e = batchedSub;
+    batchedSub = void 0;
+    while (e) {
       if (e.flags & 1) {
         try {
+          ;
           e.trigger();
         } catch (err) {
           if (!error) error = err;
         }
       }
+      next = e.next;
+      e.next = void 0;
       e = next;
     }
   }
@@ -682,7 +697,7 @@ function cleanupDeps(sub) {
 }
 function isDirty(sub) {
   for (let link = sub.deps; link; link = link.nextDep) {
-    if (link.dep.version !== link.version || link.dep.computed && refreshComputed(link.dep.computed) || link.dep.version !== link.version) {
+    if (link.dep.version !== link.version || link.dep.computed && (refreshComputed(link.dep.computed) || link.dep.version !== link.version)) {
       return true;
     }
   }
@@ -702,7 +717,7 @@ function refreshComputed(computed) {
   computed.globalVersion = globalVersion;
   const dep = computed.dep;
   computed.flags |= 2;
-  if (dep.version > 0 && !computed.isSSR && !isDirty(computed)) {
+  if (dep.version > 0 && !computed.isSSR && computed.deps && !isDirty(computed)) {
     computed.flags &= ~2;
     return;
   }
@@ -727,7 +742,7 @@ function refreshComputed(computed) {
     computed.flags &= ~2;
   }
 }
-function removeSub(link) {
+function removeSub(link, soft = false) {
   const { dep, prevSub, nextSub } = link;
   if (prevSub) {
     prevSub.nextSub = nextSub;
@@ -740,11 +755,17 @@ function removeSub(link) {
   if (dep.subs === link) {
     dep.subs = prevSub;
   }
+  if (dep.subsHead === link) {
+    dep.subsHead = nextSub;
+  }
   if (!dep.subs && dep.computed) {
     dep.computed.flags &= ~4;
     for (let l = dep.computed.deps; l; l = l.nextDep) {
-      removeSub(l);
+      removeSub(l, true);
     }
+  }
+  if (!soft && !--dep.sc && dep.map) {
+    dep.map.delete(dep.key);
   }
 }
 function removeDep(link) {
@@ -824,6 +845,16 @@ class Dep {
      * Doubly linked list representing the subscribing effects (tail)
      */
     this.subs = void 0;
+    /**
+     * For object property deps cleanup
+     */
+    this.target = void 0;
+    this.map = void 0;
+    this.key = void 0;
+    /**
+     * Subscriber counter
+     */
+    this.sc = 0;
     {
       this.subsHead = void 0;
     }
@@ -842,9 +873,7 @@ class Dep {
         activeSub.depsTail.nextDep = link;
         activeSub.depsTail = link;
       }
-      if (activeSub.flags & 4) {
-        addSub(link);
-      }
+      addSub(link);
     } else if (link.version === -1) {
       link.version = this.version;
       if (link.nextDep) {
@@ -897,7 +926,10 @@ class Dep {
         }
       }
       for (let link = this.subs; link; link = link.prevSub) {
-        link.sub.notify();
+        if (link.sub.notify()) {
+          ;
+          link.sub.dep.notify();
+        }
       }
     } finally {
       endBatch();
@@ -905,22 +937,25 @@ class Dep {
   }
 }
 function addSub(link) {
-  const computed = link.dep.computed;
-  if (computed && !link.dep.subs) {
-    computed.flags |= 4 | 16;
-    for (let l = computed.deps; l; l = l.nextDep) {
-      addSub(l);
+  link.dep.sc++;
+  if (link.sub.flags & 4) {
+    const computed = link.dep.computed;
+    if (computed && !link.dep.subs) {
+      computed.flags |= 4 | 16;
+      for (let l = computed.deps; l; l = l.nextDep) {
+        addSub(l);
+      }
     }
+    const currentTail = link.dep.subs;
+    if (currentTail !== link) {
+      link.prevSub = currentTail;
+      if (currentTail) currentTail.nextSub = link;
+    }
+    if (link.dep.subsHead === void 0) {
+      link.dep.subsHead = link;
+    }
+    link.dep.subs = link;
   }
-  const currentTail = link.dep.subs;
-  if (currentTail !== link) {
-    link.prevSub = currentTail;
-    if (currentTail) currentTail.nextSub = link;
-  }
-  if (link.dep.subsHead === void 0) {
-    link.dep.subsHead = link;
-  }
-  link.dep.subs = link;
 }
 const targetMap = /* @__PURE__ */ new WeakMap();
 const ITERATE_KEY = Symbol(
@@ -941,6 +976,9 @@ function track(target, type, key) {
     let dep = depsMap.get(key);
     if (!dep) {
       depsMap.set(key, dep = new Dep());
+      dep.target = target;
+      dep.map = depsMap;
+      dep.key = key;
     }
     {
       dep.track({
@@ -1021,8 +1059,8 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
   endBatch();
 }
 function getDepFromReactive(object, key) {
-  var _a;
-  return (_a = targetMap.get(object)) == null ? void 0 : _a.get(key);
+  const depMap = targetMap.get(object);
+  return depMap && depMap.get(key);
 }
 
 function reactiveReadArray(array) {
@@ -1817,13 +1855,15 @@ class RefImpl {
   }
 }
 function triggerRef(ref2) {
-  {
-    ref2.dep.trigger({
-      target: ref2,
-      type: "set",
-      key: "value",
-      newValue: ref2._value
-    });
+  if (ref2.dep) {
+    {
+      ref2.dep.trigger({
+        target: ref2,
+        type: "set",
+        key: "value",
+        newValue: ref2._value
+      });
+    }
   }
 }
 function unref(ref2) {
@@ -1966,8 +2006,10 @@ class ComputedRefImpl {
    */
   notify() {
     this.flags |= 16;
-    if (activeSub !== this) {
-      this.dep.notify();
+    if (!(this.flags & 8) && // avoid infinite self recursion
+    activeSub !== this) {
+      batch(this);
+      return true;
     }
   }
   get value() {
@@ -2115,20 +2157,12 @@ function watch$1(source, cb, options = EMPTY_OBJ) {
       remove(scope.effects, effect);
     }
   };
-  if (once) {
-    if (cb) {
-      const _cb = cb;
-      cb = (...args) => {
-        _cb(...args);
-        watchHandle();
-      };
-    } else {
-      const _getter = getter;
-      getter = () => {
-        _getter();
-        watchHandle();
-      };
-    }
+  if (once && cb) {
+    const _cb = cb;
+    cb = (...args) => {
+      _cb(...args);
+      watchHandle();
+    };
   }
   let oldValue = isMultiSource ? new Array(source.length).fill(INITIAL_WATCHER_VALUE) : INITIAL_WATCHER_VALUE;
   const job = (immediateFirstRun) => {
@@ -2577,7 +2611,9 @@ function flushPreFlushCbs(instance, seen, i = isFlushing ? flushIndex + 1 : 0) {
         cb.flags &= ~1;
       }
       cb();
-      cb.flags &= ~1;
+      if (!(cb.flags & 4)) {
+        cb.flags &= ~1;
+      }
     }
   }
 }
@@ -2633,7 +2669,9 @@ function flushJobs(seen) {
           job.i,
           job.i ? 15 : 14
         );
-        job.flags &= ~1;
+        if (!(job.flags & 4)) {
+          job.flags &= ~1;
+        }
       }
     }
   } finally {
@@ -3674,6 +3712,7 @@ function useId() {
       `useId() is called when there is no active component instance to be associated with.`
     );
   }
+  return "";
 }
 function markAsyncBoundary(instance) {
   instance.ids = [instance.ids[0] + instance.ids[2]++ + "-", 0, 0];
@@ -4432,6 +4471,11 @@ const hydrateOnIdle = (timeout = 1e4) => (hydrate) => {
   const id = requestIdleCallback(hydrate, { timeout });
   return () => cancelIdleCallback(id);
 };
+function elementIsVisibleInViewport(el) {
+  const { top, left, bottom, right } = el.getBoundingClientRect();
+  const { innerHeight, innerWidth } = window;
+  return (top > 0 && top < innerHeight || bottom > 0 && bottom < innerHeight) && (left > 0 && left < innerWidth || right > 0 && right < innerWidth);
+}
 const hydrateOnVisible = (opts) => (hydrate, forEach) => {
   const ob = new IntersectionObserver((entries) => {
     for (const e of entries) {
@@ -4441,7 +4485,15 @@ const hydrateOnVisible = (opts) => (hydrate, forEach) => {
       break;
     }
   }, opts);
-  forEach((el) => ob.observe(el));
+  forEach((el) => {
+    if (!(el instanceof Element)) return;
+    if (elementIsVisibleInViewport(el)) {
+      hydrate();
+      ob.disconnect();
+      return false;
+    }
+    ob.observe(el);
+  });
   return () => ob.disconnect();
 };
 const hydrateOnMediaQuery = (query) => (hydrate) => {
@@ -4486,7 +4538,10 @@ function forEachElement(node, cb) {
     let next = node.nextSibling;
     while (next) {
       if (next.nodeType === 1) {
-        cb(next);
+        const result = cb(next);
+        if (result === false) {
+          break;
+        }
       } else if (isComment(next)) {
         if (next.data === "]") {
           if (--depth === 0) break;
@@ -8273,11 +8328,12 @@ function doWatch(source, cb, options = EMPTY_OBJ) {
     } else if (!cb || immediate) {
       baseWatchOptions.once = true;
     } else {
-      return {
-        stop: NOOP,
-        resume: NOOP,
-        pause: NOOP
+      const watchStopHandle = () => {
       };
+      watchStopHandle.stop = NOOP;
+      watchStopHandle.resume = NOOP;
+      watchStopHandle.pause = NOOP;
+      return watchStopHandle;
     }
   }
   const instance = currentInstance;
@@ -9717,7 +9773,7 @@ function normalizeVNode(child) {
       // #3666, avoid reference pollution when reusing vnode
       child.slice()
     );
-  } else if (typeof child === "object") {
+  } else if (isVNode(child)) {
     return cloneIfMounted(child);
   } else {
     return createVNode(Text, null, String(child));
@@ -10462,7 +10518,7 @@ function isMemoSame(cached, memo) {
   return true;
 }
 
-const version = "3.5.5";
+const version = "3.5.9";
 const warn = warn$1 ;
 const ErrorTypeStrings = ErrorTypeStrings$1 ;
 const devtools = devtools$1 ;
@@ -10761,7 +10817,7 @@ function whenTransitionEnds(el, expectedType, explicitTimeout, resolve) {
       resolve();
     }
   };
-  if (explicitTimeout) {
+  if (explicitTimeout != null) {
     return setTimeout(resolveIfNotStale, explicitTimeout);
   }
   const { type, timeout, propCount } = getTransitionInfo(el, expectedType);
@@ -11972,7 +12028,7 @@ const vModelCheckbox = {
     setChecked(el, binding, vnode);
   }
 };
-function setChecked(el, { value, oldValue }, vnode) {
+function setChecked(el, { value }, vnode) {
   el._modelValue = value;
   let checked;
   if (isArray(value)) {
@@ -12022,19 +12078,19 @@ const vModelSelect = {
   },
   // set value in mounted & updated because <select> relies on its children
   // <option>s.
-  mounted(el, { value, modifiers: { number } }) {
+  mounted(el, { value }) {
     setSelected(el, value);
   },
   beforeUpdate(el, _binding, vnode) {
     el[assignKey] = getModelAssigner(vnode);
   },
-  updated(el, { value, modifiers: { number } }) {
+  updated(el, { value }) {
     if (!el._assigning) {
       setSelected(el, value);
     }
   }
 };
-function setSelected(el, value, number) {
+function setSelected(el, value) {
   const isMultiple = el.multiple;
   const isArrayValue = isArray(value);
   if (isMultiple && !isArrayValue && !isSet(value)) {
@@ -17288,7 +17344,7 @@ const transformModel$1 = (dir, node, context) => {
     );
     return createTransformProps();
   }
-  const rawExp = exp.loc.source;
+  const rawExp = exp.loc.source.trim();
   const expString = exp.type === 4 ? exp.content : rawExp;
   const bindingType = context.bindingMetadata[rawExp];
   if (bindingType === "props" || bindingType === "props-aliased") {
@@ -18075,15 +18131,7 @@ function compile(src, options = {}) {
 {
   initDev();
 }
-const compileCache = /* @__PURE__ */ new WeakMap();
-function getCache(options) {
-  let c = compileCache.get(options != null ? options : EMPTY_OBJ);
-  if (!c) {
-    c = /* @__PURE__ */ Object.create(null);
-    compileCache.set(options != null ? options : EMPTY_OBJ, c);
-  }
-  return c;
-}
+const compileCache = /* @__PURE__ */ Object.create(null);
 function compileToFunction(template, options) {
   if (!isString(template)) {
     if (template.nodeType) {
@@ -18093,9 +18141,8 @@ function compileToFunction(template, options) {
       return NOOP;
     }
   }
-  const key = template;
-  const cache = getCache(options);
-  const cached = cache[key];
+  const key = genCacheKey(template, options);
+  const cached = compileCache[key];
   if (cached) {
     return cached;
   }
@@ -18130,7 +18177,7 @@ ${codeFrame}` : message);
   }
   const render = new Function("Vue", code)(runtimeDom);
   render._rc = true;
-  return cache[key] = render;
+  return compileCache[key] = render;
 }
 registerRuntimeCompiler(compileToFunction);
 

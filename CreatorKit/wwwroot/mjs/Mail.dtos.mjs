@@ -1,8 +1,8 @@
 /* Options:
-Date: 2023-05-10 18:28:56
-Version: 6.81
+Date: 2024-09-27 18:50:53
+Version: 8.41
 Tip: To override a DTO option, remove "//" prefix before updating
-BaseUrl: https://localhost:5001
+BaseUrl: https://localhost:5003
 
 //AddServiceStackTypes: True
 //AddDocAnnotations: True
@@ -13,6 +13,24 @@ IncludeTypes: {Mail}
 */
 
 "use strict";
+/** @typedef {'Invalid'|'AcceptAll'|'Unknown'|'Disposable'} */
+export var InvalidEmailStatus;
+(function (InvalidEmailStatus) {
+    InvalidEmailStatus["Invalid"] = "Invalid"
+    InvalidEmailStatus["AcceptAll"] = "AcceptAll"
+    InvalidEmailStatus["Unknown"] = "Unknown"
+    InvalidEmailStatus["Disposable"] = "Disposable"
+})(InvalidEmailStatus || (InvalidEmailStatus = {}));
+export class CreateEmailBase {
+    /** @param {{email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+}
 /** @typedef {number} */
 export var MailingList;
 (function (MailingList) {
@@ -30,22 +48,14 @@ export class MailRunBase {
     /** @type {MailingList} */
     mailingList;
 }
-export class CreateEmailBase {
-    /** @param {{email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    firstName;
-    /** @type {string} */
-    lastName;
-}
-/** @typedef {'Unknown'|'UI'|'Website'} */
+/** @typedef {'Unknown'|'UI'|'Website'|'System'|'Migration'} */
 export var Source;
 (function (Source) {
     Source["Unknown"] = "Unknown"
     Source["UI"] = "UI"
     Source["Website"] = "Website"
+    Source["System"] = "System"
+    Source["Migration"] = "Migration"
 })(Source || (Source = {}));
 export class Contact {
     /** @param {{id?:number,email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:MailingList,token?:string,emailLower?:string,nameLower?:string,externalRef?:string,appUserId?:number,createdDate?:string,verifiedDate?:string,deletedDate?:string,unsubscribedDate?:string}} [init] */
@@ -103,6 +113,18 @@ export class QueryBase {
 export class QueryDb extends QueryBase {
     /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
+}
+export class InvalidEmail {
+    /** @param {{id?:number,email?:string,emailLower?:string,status?:InvalidEmailStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    emailLower;
+    /** @type {InvalidEmailStatus} */
+    status;
 }
 export class MailTo {
     /** @param {{email?:string,name?:string}} [init] */
@@ -244,6 +266,12 @@ export class MailMessageRun {
     /** @type {?ResponseStatus} */
     error;
 }
+export class ErrorResponse {
+    /** @param {{responseStatus?:ResponseStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {ResponseStatus} */
+    responseStatus;
+}
 export class MailRunResponse {
     /** @param {{id?:number,startedAt?:string,timeTaken?:string,createdIds?:number[],responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -279,12 +307,12 @@ export class ViewMailRunInfoResponse {
     responseStatus;
 }
 export class ViewAppDataResponse {
-    /** @param {{baseUrl?:string,appBaseUrl?:string,vars?:{ [index: string]: { [index:string]: string; }; },bannedUserIds?:number[],responseStatus?:ResponseStatus}} [init] */
+    /** @param {{websiteBaseUrl?:string,baseUrl?:string,vars?:{ [index: string]: { [index:string]: string; }; },bannedUserIds?:number[],responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {string} */
-    baseUrl;
+    websiteBaseUrl;
     /** @type {string} */
-    appBaseUrl;
+    baseUrl;
     /** @type {{ [index: string]: { [index:string]: string; }; }} */
     vars;
     /** @type {number[]} */
@@ -321,6 +349,17 @@ export class QueryResponse {
     /** @type {ResponseStatus} */
     responseStatus;
 }
+export class InvalidateEmails {
+    /** @param {{status?:InvalidEmailStatus,emails?:string[]}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {InvalidEmailStatus} */
+    status;
+    /** @type {string[]} */
+    emails;
+    getTypeName() { return 'InvalidateEmails' }
+    getMethod() { return 'POST' }
+    createResponse() { return new ErrorResponse() }
+}
 export class PreviewEmail {
     /** @param {{request?:string,renderer?:string,requestArgs?:{ [index: string]: Object; }}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -333,6 +372,59 @@ export class PreviewEmail {
     getTypeName() { return 'PreviewEmail' }
     getMethod() { return 'POST' }
     createResponse() { return '' }
+}
+export class UpdateMailMessageDraft {
+    /** @param {{id?:number,email?:string,renderer?:string,layout?:string,template?:string,subject?:string,body?:string,send?:boolean}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    renderer;
+    /** @type {?string} */
+    layout;
+    /** @type {?string} */
+    template;
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    /** @type {?boolean} */
+    send;
+    getTypeName() { return 'UpdateMailMessageDraft' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class SimpleTextEmail extends CreateEmailBase {
+    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    subject;
+    /** @type {string} */
+    body;
+    /** @type {?boolean} */
+    draft;
+    getTypeName() { return 'SimpleTextEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class CustomHtmlEmail extends CreateEmailBase {
+    /** @param {{layout?:string,template?:string,subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    layout;
+    /** @type {string} */
+    template;
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    /** @type {?boolean} */
+    draft;
+    getTypeName() { return 'CustomHtmlEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
 }
 export class SimpleTextMailRun extends MailRunBase {
     /** @param {{subject?:string,body?:string,mailingList?:MailingList}} [init] */
@@ -371,72 +463,6 @@ export class CustomHtmlMailRun extends MailRunBase {
     getMethod() { return 'POST' }
     createResponse() { return new MailRunResponse() }
 }
-export class UpdateMailMessageDraft {
-    /** @param {{id?:number,email?:string,renderer?:string,layout?:string,template?:string,subject?:string,body?:string,send?:boolean}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    renderer;
-    /** @type {?string} */
-    layout;
-    /** @type {?string} */
-    template;
-    /** @type {string} */
-    subject;
-    /** @type {?string} */
-    body;
-    /** @type {?boolean} */
-    send;
-    getTypeName() { return 'UpdateMailMessageDraft' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class SimpleTextEmail extends CreateEmailBase {
-    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    subject;
-    /** @type {string} */
-    body;
-    /** @type {?boolean} */
-    draft;
-    getTypeName() { return 'SimpleTextEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class MarkdownEmail extends CreateEmailBase {
-    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    subject;
-    /** @type {string} */
-    body;
-    /** @type {?boolean} */
-    draft;
-    getTypeName() { return 'MarkdownEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class CustomHtmlEmail extends CreateEmailBase {
-    /** @param {{layout?:string,template?:string,subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    layout;
-    /** @type {string} */
-    template;
-    /** @type {string} */
-    subject;
-    /** @type {?string} */
-    body;
-    /** @type {?boolean} */
-    draft;
-    getTypeName() { return 'CustomHtmlEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
 export class SubscribeToMailingList {
     /** @param {{email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[]}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -468,6 +494,29 @@ export class CreateContact {
     /** @type {?string[]} */
     mailingLists;
     getTypeName() { return 'CreateContact' }
+    getMethod() { return 'POST' }
+    createResponse() { return new Contact() }
+}
+export class AdminCreateContact {
+    /** @param {{email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[],verifiedDate?:string,appUserId?:number,createdDate?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+    /** @type {Source} */
+    source;
+    /** @type {string[]} */
+    mailingLists;
+    /** @type {?string} */
+    verifiedDate;
+    /** @type {?number} */
+    appUserId;
+    /** @type {?string} */
+    createdDate;
+    getTypeName() { return 'AdminCreateContact' }
     getMethod() { return 'POST' }
     createResponse() { return new Contact() }
 }
@@ -517,15 +566,6 @@ export class SendMailMessageRun {
     getMethod() { return 'GET' }
     createResponse() { return new MailMessage() }
 }
-export class ViewMailData {
-    /** @param {{load?:boolean}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {?boolean} */
-    load;
-    getTypeName() { return 'ViewMailData' }
-    getMethod() { return 'POST' }
-    createResponse () { };
-}
 export class SendMailRun {
     /** @param {{id?:number}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -556,6 +596,32 @@ export class ViewAppStats {
     getMethod() { return 'GET' }
     createResponse() { return new ViewAppStatsResponse() }
 }
+export class MarkdownEmail extends CreateEmailBase {
+    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    subject;
+    /** @type {string} */
+    body;
+    /** @type {?boolean} */
+    draft;
+    getTypeName() { return 'MarkdownEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class ViewMailData {
+    /** @param {{year?:number,month?:number,force?:boolean}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {?number} */
+    year;
+    /** @type {?number} */
+    month;
+    /** @type {?boolean} */
+    force;
+    getTypeName() { return 'ViewMailData' }
+    getMethod() { return 'POST' }
+    createResponse () { };
+}
 export class QueryContacts extends QueryDb {
     /** @param {{search?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
@@ -565,18 +631,29 @@ export class QueryContacts extends QueryDb {
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
-export class QueryMailMessages extends QueryDb {
+export class QueryInvalidEmails extends QueryDb {
     /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
+    getTypeName() { return 'QueryInvalidEmails' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
+export class QueryMailMessages extends QueryDb {
+    /** @param {{month?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {?string} */
+    month;
     getTypeName() { return 'QueryMailMessages' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
 export class QueryMailRuns extends QueryDb {
-    /** @param {{id?:number,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    /** @param {{id?:number,month?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
     /** @type {?number} */
     id;
+    /** @type {?string} */
+    month;
     getTypeName() { return 'QueryMailRuns' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
@@ -652,10 +729,12 @@ export class UpdateMailMessage {
     createResponse() { return new MailMessage() }
 }
 export class DeleteMailMessages {
-    /** @param {{id?:number}} [init] */
+    /** @param {{id?:number,month?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
+    /** @type {?string} */
+    month;
     getTypeName() { return 'DeleteMailMessages' }
     getMethod() { return 'DELETE' }
     createResponse() { }

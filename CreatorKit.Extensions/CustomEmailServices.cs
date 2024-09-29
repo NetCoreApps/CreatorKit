@@ -5,21 +5,18 @@ using ServiceStack;
 
 namespace CreatorKit.Extensions;
 
-public class CustomEmailServices : Service
+public class CustomEmailServices(EmailRenderer renderer, IMailProvider mail) : Service
 {
-    public EmailProvider EmailProvider { get; set; }
-    public EmailRenderer Renderer { get; set; }
-    public WebsiteData WebsiteData { get; set; }
-
-    public async Task<object> Any(MarkdownEmail request)
+    public object Any(MarkdownEmail request)
     {
-        var contact = await Db.GetOrCreateContact(request);
+        var contact = Db.GetOrCreateContact(request);
         var viewRequest = request.ConvertTo<RenderCustomHtml>().FromContact(contact);
         viewRequest.Layout = "basic";
         viewRequest.Template = "empty";
-        var bodyHtml = (string) await Gateway.SendAsync(typeof(string), viewRequest);
+        var bodyHtml = (string)Gateway.Send(typeof(string), viewRequest);
 
-        var email = await Renderer.CreateMessageAsync(Db, new MailMessage
+        using var mailDb = mail.OpenMonthDb();
+        var email = renderer.CreateMessage(mailDb, new MailMessage
         {
             Draft = request.Draft ?? false,
             Message = new EmailMessage

@@ -93,7 +93,10 @@ public class VerifyEmailAddress : IReturnVoid
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
-public class QueryMailMessages : QueryDb<MailMessage> {}
+public class QueryMailMessages : QueryDb<MailMessage>
+{
+    public DateTime? Month { get; set; }
+}
 
 [Tag(Tag.Mail), ValidateIsAdmin]
 public class UpdateMailMessage : IPatchDb<MailMessage>, IReturn<MailMessage>
@@ -141,6 +144,7 @@ public class UpdateMailMessageDraft : IReturn<MailMessage>
 public class DeleteMailMessages : IDeleteDb<MailMessage>, IReturnVoid
 {
     public int Id { get; set; }
+    public DateTime? Month { get; set; }
 }
 
 
@@ -148,6 +152,7 @@ public class DeleteMailMessages : IDeleteDb<MailMessage>, IReturnVoid
 public class QueryMailRuns : QueryDb<MailRun>
 {
     public int? Id { get; set; }
+    public DateTime? Month { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
@@ -186,6 +191,7 @@ public class UpdateMailRun : IUpdateDb<MailRun>, IReturn<MailRun>
 public class DeleteMailRun : IDeleteDb<MailRun>, IReturnVoid
 {
     public int Id { get; set; }
+    public DateTime? Month { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
@@ -209,7 +215,10 @@ public class ViewMailRunInfoResponse
 
 
 [Tag(Tag.Mail), ValidateIsAdmin]
-public class QueryMailRunMessages : QueryDb<MailMessageRun> {}
+public class QueryMailRunMessages : QueryDb<MailMessageRun>
+{
+    public DateTime? Month { get; set; }
+}
 
 [Tag(Tag.Mail), ValidateIsAdmin]
 public class UpdateMailRunMessage : IPatchDb<MailMessageRun>, IReturn<MailMessageRun>
@@ -227,6 +236,7 @@ public class UpdateMailRunMessage : IPatchDb<MailMessageRun>, IReturn<MailMessag
 public class DeleteMailRunMessage : IDeleteDb<MailMessageRun>, IReturnVoid
 {
     public int Id { get; set; }
+    public DateTime? Month { get; set; }
 }
 
 [Tag(Tag.Mail), ValidateIsAdmin]
@@ -251,33 +261,6 @@ public class ViewAppStatsResponse
     public Dictionary<string, int> ArchivedTotals { get; set; }
     public ResponseStatus ResponseStatus { get; set; }
 }
-
-
-public class ArchiveMail : IPost, IReturn<ArchiveMailResponse>
-{
-    public bool? Messages { get; set; }
-    public bool? MailRuns { get; set; }
-    [ValidateNotNull]
-    public int? OlderThanDays { get; set; }
-}
-public class ArchiveMailResponse
-{
-    public List<int> ArchivedMessageIds { get; set; }
-    public List<int> ArchivedMailRunIds { get; set; }
-    public ResponseStatus ResponseStatus { get; set; }
-}
-
-[Tag(Tag.Archive)]
-[ValidateIsAdmin]
-public class QueryArchiveMessages : QueryDb<ArchiveMessage> {}
-
-[Tag(Tag.Archive)]
-[ValidateIsAdmin]
-public class QueryArchiveRuns : QueryDb<ArchiveRun> {}
-
-[Tag(Tag.Archive)]
-[ValidateIsAdmin]
-public class QueryArchiveMessageRuns : QueryDb<ArchiveMessageRun> {}
 
 public static class MailingExtensions
 {

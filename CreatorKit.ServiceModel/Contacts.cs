@@ -126,3 +126,30 @@ public class InvalidateEmails : IReturn<ErrorResponse>
 [Tag(Tag.Mail)]
 [ValidateIsAdmin]
 public class QueryInvalidEmails : QueryDb<InvalidEmail> {}
+
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
+[AutoPopulate(nameof(InvalidEmail.EmailLower), Eval = "lower(Request.Dto.Email)")]
+public class CreateInvalidEmail : ICreateDb<InvalidEmail>, IReturnVoid
+{
+    [ValidateNotEmpty]
+    public string Email { get; set; }
+    public InvalidEmailStatus Status { get; set; }
+}
+
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
+[AutoPopulate(nameof(InvalidEmail.EmailLower), Eval = "lower(Request.Dto.Email)")]
+public class UpdateInvalidEmail : IPatchDb<InvalidEmail>, IReturnVoid
+{
+    public string? Email { get; set; }
+    public string? EmailLower { get; set; }
+    public InvalidEmailStatus? Status { get; set; }
+}
+
+[Tag(Tag.Mail)]
+[ValidateIsAdmin]
+public class DeleteInvalidEmail : IDeleteDb<InvalidEmail>, IReturnVoid
+{
+    public int? Id { get; set; }
+}

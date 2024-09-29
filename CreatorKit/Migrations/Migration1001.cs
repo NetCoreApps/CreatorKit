@@ -32,120 +32,13 @@ public class Migration1001 : MigrationBase
         public DateTime? UnsubscribedDate { get; set; }
     }
 
-    [Icon(Svg = Icons.Mail)]
-    public class MailMessage
-    {
-        [AutoIncrement]
-        public int Id { get; set; }
-        public string Email { get; set; }
-        public string? Layout { get; set; }
-        public string? Template { get; set; }
-        public string Renderer { get; set; }
-        public Dictionary<string,object> RendererArgs { get; set; }
-        public EmailMessage Message { get; set; }
-        public bool Draft { get; set; }
-        public string ExternalRef { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? StartedDate { get; set; }
-        public DateTime? CompletedDate { get; set; }
-        public ResponseStatus? Error { get; set; }
-    }
-
-    [Icon(Svg = Icons.MailRun)]
-    public class MailRun
-    {
-        [AutoIncrement]
-        public int Id { get; set; }
-        [FormatEnumFlags(nameof(MailingList))]
-        public MailingList MailingList { get; set; }
-        public string Generator { get; set; }
-        public Dictionary<string,object> GeneratorArgs { get; set; }
-        public string Layout { get; set; }
-        public string Template { get; set; }
-        public string ExternalRef { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? GeneratedDate { get; set; }
-        public DateTime? SentDate { get; set; }
-        public DateTime? CompletedDate { get; set; }
-        public int EmailsCount { get; set; }
-    }
-
-    [Icon(Svg = Icons.Mail)]
-    [UniqueConstraint(nameof(MailRunId), nameof(ContactId))]
-    public class MailMessageRun
-    {
-        [AutoIncrement]
-        public int Id { get; set; }
-        [ForeignKey(typeof(MailRun), OnDelete = "CASCADE")]
-        public int MailRunId { get; set; }
-        [Ref(Model = nameof(Contact), RefId = "Id", RefLabel = "Email")]
-        public int ContactId { get; set; }
-        [Reference]
-        [Format(FormatMethods.Hidden)]
-        public Contact Contact { get; set; }
-        public string Renderer { get; set; }
-        public Dictionary<string,object> RendererArgs { get; set; }
-        public string ExternalRef { get; set; }
-        public EmailMessage Message { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? StartedDate { get; set; }
-        public DateTime? CompletedDate { get; set; }
-        public ResponseStatus? Error { get; set; }
-    }
-
-    [Icon(Svg = Icons.Mail)]
-    [NamedConnection("archive")]
-    public class ArchiveMessage : MailMessage {}
-
-    [Icon(Svg = Icons.MailRun)]
-    [NamedConnection("archive")]
-    public class ArchiveRun : MailRun {}
-
-    [Icon(Svg = Icons.Mail)]
-    [NamedConnection("archive")]
-    public class ArchiveMessageRun
-    {
-        [AutoIncrement]
-        public int Id { get; set; }
-        public int MailRunId { get; set; }
-        public int ContactId { get; set; }
-        public string Renderer { get; set; }
-        public Dictionary<string,object> RendererArgs { get; set; }
-        public string ExternalRef { get; set; }
-        public EmailMessage Message { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? StartedDate { get; set; }
-        public DateTime? CompletedDate { get; set; }
-        public ResponseStatus? Error { get; set; }
-    }
-
     public enum Source
     {
-        Unknown,
         UI,
-        Website,
     }
 
     [Flags]
     public enum MailingList { None = 0 }
-
-    public class MailTo
-    {
-        public string Email { get; set; }
-        public string Name { get; set; }
-    }
-    public class EmailMessage
-    {
-        public List<MailTo> To { get; set; }
-        public List<MailTo> Cc { get; set; }
-        public List<MailTo> Bcc { get; set; }
-        public MailTo? From { get; set; }
-        public string Subject { get; set; }
-        public string? Body { get; set; }
-        public string? BodyHtml { get; set; }
-        public string? BodyText { get; set; }
-    }
-
 
     Contact CreateContact(string email, string firstName, string lastName, MailingList mailingList)
     {
@@ -162,13 +55,21 @@ public class Migration1001 : MigrationBase
             Source = Source.UI,
         };
     }
+    
+    public enum InvalidEmailStatus {}
+    public class InvalidEmail
+    {
+        [AutoIncrement]
+        public int Id { get; set; }
+        public string Email { get; set; }
+        public string EmailLower { get; set; }
+        public InvalidEmailStatus Status { get; set; }
+    }
 
     public override void Up()
     {
         Db.CreateTable<Contact>();
-        Db.CreateTable<MailMessage>();
-        Db.CreateTable<MailRun>();
-        Db.CreateTable<MailMessageRun>();
+        Db.CreateTable<InvalidEmail>();
 
         EmailRenderer.SaveMailingListEnum(seedPath: "Migrations/seed/mailinglists.csv",
             savePath: "../CreatorKit.ServiceModel/Types/MailingList.cs");
@@ -178,23 +79,11 @@ public class Migration1001 : MigrationBase
         {
             Db.Insert(CreateContact(contact.Email, contact.FirstName, contact.LastName, (MailingList)(int)contact.MailingLists));
         }
-
-        using var dbArchive = DbFactory.Open("archive");
-        dbArchive.CreateTable<ArchiveMessage>();
-        dbArchive.CreateTable<ArchiveRun>();
-        dbArchive.CreateTable<ArchiveMessageRun>();
     }
 
     public override void Down()
     {
-        Db.DropTable<MailMessageRun>();
-        Db.DropTable<MailRun>();
-        Db.DropTable<MailMessage>();
         Db.DropTable<Contact>();
-
-        using var dbArchive = DbFactory.Open("archive");
-        dbArchive.DropTable<ArchiveMessageRun>();
-        dbArchive.DropTable<ArchiveRun>();
-        dbArchive.DropTable<ArchiveMessage>();
+        Db.DropTable<InvalidEmail>();
     }
 }

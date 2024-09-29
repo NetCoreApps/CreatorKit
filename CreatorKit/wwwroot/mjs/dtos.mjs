@@ -1,8 +1,8 @@
 /* Options:
-Date: 2023-05-10 18:28:56
-Version: 6.81
+Date: 2024-09-27 18:50:53
+Version: 8.41
 Tip: To override a DTO option, remove "//" prefix before updating
-BaseUrl: https://localhost:5001
+BaseUrl: https://localhost:5003
 
 //AddServiceStackTypes: True
 //AddDocAnnotations: True
@@ -96,6 +96,24 @@ export class CommentReport {
     /** @type {?string} */
     notes;
 }
+/** @typedef {'Invalid'|'AcceptAll'|'Unknown'|'Disposable'} */
+export var InvalidEmailStatus;
+(function (InvalidEmailStatus) {
+    InvalidEmailStatus["Invalid"] = "Invalid"
+    InvalidEmailStatus["AcceptAll"] = "AcceptAll"
+    InvalidEmailStatus["Unknown"] = "Unknown"
+    InvalidEmailStatus["Disposable"] = "Disposable"
+})(InvalidEmailStatus || (InvalidEmailStatus = {}));
+export class CreateEmailBase {
+    /** @param {{email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+}
 /** @typedef {number} */
 export var MailingList;
 (function (MailingList) {
@@ -113,22 +131,14 @@ export class MailRunBase {
     /** @type {MailingList} */
     mailingList;
 }
-export class CreateEmailBase {
-    /** @param {{email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    firstName;
-    /** @type {string} */
-    lastName;
-}
-/** @typedef {'Unknown'|'UI'|'Website'} */
+/** @typedef {'Unknown'|'UI'|'Website'|'System'|'Migration'} */
 export var Source;
 (function (Source) {
     Source["Unknown"] = "Unknown"
     Source["UI"] = "UI"
     Source["Website"] = "Website"
+    Source["System"] = "System"
+    Source["Migration"] = "Migration"
 })(Source || (Source = {}));
 export class Contact {
     /** @param {{id?:number,email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:MailingList,token?:string,emailLower?:string,nameLower?:string,externalRef?:string,appUserId?:number,createdDate?:string,verifiedDate?:string,deletedDate?:string,unsubscribedDate?:string}} [init] */
@@ -212,6 +222,139 @@ export class QueryBase {
 export class QueryDb_1 extends QueryBase {
     /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
+}
+export class InvalidEmail {
+    /** @param {{id?:number,email?:string,emailLower?:string,status?:InvalidEmailStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    emailLower;
+    /** @type {InvalidEmailStatus} */
+    status;
+}
+/** @typedef From {any} */
+/** @typedef  Into {any} */
+export class QueryDb_2 extends QueryBase {
+    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+}
+export class CommentResult {
+    /** @param {{id?:number,threadId?:number,replyId?:number,content?:string,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,displayName?:string,handle?:string,profileUrl?:string,avatar?:string,createdDate?:string,modifiedDate?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
+    /** @type {number} */
+    threadId;
+    /** @type {?number} */
+    replyId;
+    /** @type {string} */
+    content;
+    /** @type {number} */
+    upVotes;
+    /** @type {number} */
+    downVotes;
+    /** @type {number} */
+    votes;
+    /** @type {?string} */
+    flagReason;
+    /** @type {?string} */
+    notes;
+    /** @type {number} */
+    appUserId;
+    /** @type {string} */
+    displayName;
+    /** @type {?string} */
+    handle;
+    /** @type {?string} */
+    profileUrl;
+    /** @type {?string} */
+    avatar;
+    /** @type {string} */
+    createdDate;
+    /** @type {string} */
+    modifiedDate;
+}
+/** @typedef TKey {any} */
+export class IdentityUser {
+    /** @param {{id?:TKey,userName?:string,normalizedUserName?:string,email?:string,normalizedEmail?:string,emailConfirmed?:boolean,passwordHash?:string,securityStamp?:string,concurrencyStamp?:string,phoneNumber?:string,phoneNumberConfirmed?:boolean,twoFactorEnabled?:boolean,lockoutEnd?:string,lockoutEnabled?:boolean,accessFailedCount?:number}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {TKey} */
+    id;
+    /** @type {?string} */
+    userName;
+    /** @type {?string} */
+    normalizedUserName;
+    /** @type {?string} */
+    email;
+    /** @type {?string} */
+    normalizedEmail;
+    /** @type {boolean} */
+    emailConfirmed;
+    /** @type {?string} */
+    passwordHash;
+    /** @type {?string} */
+    securityStamp;
+    /** @type {?string} */
+    concurrencyStamp;
+    /** @type {?string} */
+    phoneNumber;
+    /** @type {boolean} */
+    phoneNumberConfirmed;
+    /** @type {boolean} */
+    twoFactorEnabled;
+    /** @type {?string} */
+    lockoutEnd;
+    /** @type {boolean} */
+    lockoutEnabled;
+    /** @type {number} */
+    accessFailedCount;
+}
+export class AppUser extends IdentityUser {
+    /** @param {{firstName?:string,lastName?:string,displayName?:string,profileUrl?:string,avatar?:string,handle?:string,refId?:number,refIdStr?:string,isArchived?:boolean,archivedDate?:string,lastLoginIp?:string,lastLoginDate?:string,createdDate?:string,modifiedDate?:string,lockedDate?:string,banUntilDate?:string,facebookUserId?:string,googleUserId?:string,googleProfilePageUrl?:string,microsoftUserId?:string,id?:TKey,userName?:string,normalizedUserName?:string,email?:string,normalizedEmail?:string,emailConfirmed?:boolean,passwordHash?:string,securityStamp?:string,concurrencyStamp?:string,phoneNumber?:string,phoneNumberConfirmed?:boolean,twoFactorEnabled?:boolean,lockoutEnd?:string,lockoutEnabled?:boolean,accessFailedCount?:number}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {?string} */
+    firstName;
+    /** @type {?string} */
+    lastName;
+    /** @type {?string} */
+    displayName;
+    /** @type {?string} */
+    profileUrl;
+    /** @type {?string} */
+    avatar;
+    /** @type {?string} */
+    handle;
+    /** @type {?number} */
+    refId;
+    /** @type {string} */
+    refIdStr;
+    /** @type {boolean} */
+    isArchived;
+    /** @type {?string} */
+    archivedDate;
+    /** @type {?string} */
+    lastLoginIp;
+    /** @type {?string} */
+    lastLoginDate;
+    /** @type {string} */
+    createdDate;
+    /** @type {string} */
+    modifiedDate;
+    /** @type {?string} */
+    lockedDate;
+    /** @type {?string} */
+    banUntilDate;
+    /** @type {?string} */
+    facebookUserId;
+    /** @type {?string} */
+    googleUserId;
+    /** @type {?string} */
+    googleProfilePageUrl;
+    /** @type {?string} */
+    microsoftUserId;
 }
 export class MailTo {
     /** @param {{email?:string,name?:string}} [init] */
@@ -297,10 +440,6 @@ export class MailMessage {
     /** @type {?ResponseStatus} */
     error;
 }
-export class ArchiveMessage extends MailMessage {
-    /** @param {{id?:number,email?:string,layout?:string,template?:string,renderer?:string,rendererArgs?:{ [index: string]: Object; },message?:EmailMessage,draft?:boolean,externalRef?:string,createdDate?:string,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-}
 export class MailRun {
     /** @param {{id?:number,mailingList?:MailingList,generator?:string,generatorArgs?:{ [index: string]: Object; },layout?:string,template?:string,externalRef?:string,createdDate?:string,generatedDate?:string,sentDate?:string,completedDate?:string,emailsCount?:number}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -328,166 +467,6 @@ export class MailRun {
     completedDate;
     /** @type {number} */
     emailsCount;
-}
-export class ArchiveRun extends MailRun {
-    /** @param {{id?:number,mailingList?:MailingList,generator?:string,generatorArgs?:{ [index: string]: Object; },layout?:string,template?:string,externalRef?:string,createdDate?:string,generatedDate?:string,sentDate?:string,completedDate?:string,emailsCount?:number}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-}
-export class ArchiveMessageRun {
-    /** @param {{id?:number,mailRunId?:number,contactId?:number,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,createdDate?:string,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {number} */
-    mailRunId;
-    /** @type {number} */
-    contactId;
-    /** @type {string} */
-    renderer;
-    /** @type {{ [index: string]: Object; }} */
-    rendererArgs;
-    /** @type {string} */
-    externalRef;
-    /** @type {EmailMessage} */
-    message;
-    /** @type {string} */
-    createdDate;
-    /** @type {?string} */
-    startedDate;
-    /** @type {?string} */
-    completedDate;
-    /** @type {?ResponseStatus} */
-    error;
-}
-/** @typedef From {any} */
-/** @typedef  Into {any} */
-export class QueryDb_2 extends QueryBase {
-    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-}
-export class CommentResult {
-    /** @param {{id?:number,threadId?:number,replyId?:number,content?:string,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,displayName?:string,handle?:string,profileUrl?:string,avatar?:string,createdDate?:string,modifiedDate?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {number} */
-    threadId;
-    /** @type {?number} */
-    replyId;
-    /** @type {string} */
-    content;
-    /** @type {number} */
-    upVotes;
-    /** @type {number} */
-    downVotes;
-    /** @type {number} */
-    votes;
-    /** @type {?string} */
-    flagReason;
-    /** @type {?string} */
-    notes;
-    /** @type {number} */
-    appUserId;
-    /** @type {string} */
-    displayName;
-    /** @type {?string} */
-    handle;
-    /** @type {?string} */
-    profileUrl;
-    /** @type {?string} */
-    avatar;
-    /** @type {string} */
-    createdDate;
-    /** @type {string} */
-    modifiedDate;
-}
-export class AppUser {
-    /** @param {{id?:number,email?:string,userName?:string,displayName?:string,firstName?:string,lastName?:string,handle?:string,company?:string,profileUrl?:string,avatar?:string,lastLoginIp?:string,isArchived?:boolean,archivedDate?:string,lastLoginDate?:string,phoneNumber?:string,birthDate?:string,birthDateRaw?:string,address?:string,address2?:string,city?:string,state?:string,country?:string,culture?:string,fullName?:string,gender?:string,language?:string,mailAddress?:string,nickname?:string,postalCode?:string,timeZone?:string,meta?:{ [index: string]: string; },primaryEmail?:string,roles?:string[],permissions?:string[],refId?:number,refIdStr?:string,invalidLoginAttempts?:number,lastLoginAttempt?:string,lockedDate?:string,banUntilDate?:string,createdDate?:string,modifiedDate?:string}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    userName;
-    /** @type {string} */
-    displayName;
-    /** @type {string} */
-    firstName;
-    /** @type {string} */
-    lastName;
-    /** @type {?string} */
-    handle;
-    /** @type {string} */
-    company;
-    /** @type {?string} */
-    profileUrl;
-    /** @type {?string} */
-    avatar;
-    /** @type {?string} */
-    lastLoginIp;
-    /** @type {boolean} */
-    isArchived;
-    /** @type {?string} */
-    archivedDate;
-    /** @type {?string} */
-    lastLoginDate;
-    /** @type {string} */
-    phoneNumber;
-    /** @type {?string} */
-    birthDate;
-    /** @type {string} */
-    birthDateRaw;
-    /** @type {string} */
-    address;
-    /** @type {string} */
-    address2;
-    /** @type {string} */
-    city;
-    /** @type {string} */
-    state;
-    /** @type {string} */
-    country;
-    /** @type {string} */
-    culture;
-    /** @type {string} */
-    fullName;
-    /** @type {string} */
-    gender;
-    /** @type {string} */
-    language;
-    /** @type {string} */
-    mailAddress;
-    /** @type {string} */
-    nickname;
-    /** @type {string} */
-    postalCode;
-    /** @type {string} */
-    timeZone;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    /** @type {string} */
-    primaryEmail;
-    /** @type {string[]} */
-    roles;
-    /** @type {string[]} */
-    permissions;
-    /** @type {?number} */
-    refId;
-    /** @type {string} */
-    refIdStr;
-    /** @type {number} */
-    invalidLoginAttempts;
-    /** @type {?string} */
-    lastLoginAttempt;
-    /** @type {?string} */
-    lockedDate;
-    /** @type {?string} */
-    banUntilDate;
-    /** @type {string} */
-    createdDate;
-    /** @type {string} */
-    modifiedDate;
 }
 export class MailMessageRun {
     /** @param {{id?:number,mailRunId?:number,contactId?:number,contact?:Contact,renderer?:string,rendererArgs?:{ [index: string]: Object; },externalRef?:string,message?:EmailMessage,createdDate?:string,startedDate?:string,completedDate?:string,error?:ResponseStatus}} [init] */
@@ -545,11 +524,11 @@ export class Thread {
     /** @type {?string} */
     deletedDate;
 }
-export class ViewMqMessagesResponse {
-    /** @param {{messages?:{ [index: string]: IMessage[]; }}} [init] */
+export class ErrorResponse {
+    /** @param {{responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
-    /** @type {{ [index: string]: IMessage[]; }} */
-    messages;
+    /** @type {ResponseStatus} */
+    responseStatus;
 }
 export class MailRunResponse {
     /** @param {{id?:number,startedAt?:string,timeTaken?:string,createdIds?:number[],responseStatus?:ResponseStatus}} [init] */
@@ -586,12 +565,12 @@ export class ViewMailRunInfoResponse {
     responseStatus;
 }
 export class ViewAppDataResponse {
-    /** @param {{baseUrl?:string,appBaseUrl?:string,vars?:{ [index: string]: { [index:string]: string; }; },bannedUserIds?:number[],responseStatus?:ResponseStatus}} [init] */
+    /** @param {{websiteBaseUrl?:string,baseUrl?:string,vars?:{ [index: string]: { [index:string]: string; }; },bannedUserIds?:number[],responseStatus?:ResponseStatus}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {string} */
-    baseUrl;
+    websiteBaseUrl;
     /** @type {string} */
-    appBaseUrl;
+    baseUrl;
     /** @type {{ [index: string]: { [index:string]: string; }; }} */
     vars;
     /** @type {number[]} */
@@ -610,16 +589,6 @@ export class ViewAppStatsResponse {
     last30DayTotals;
     /** @type {{ [index: string]: number; }} */
     archivedTotals;
-    /** @type {ResponseStatus} */
-    responseStatus;
-}
-export class ArchiveMailResponse {
-    /** @param {{archivedMessageIds?:number[],archivedMailRunIds?:number[],responseStatus?:ResponseStatus}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number[]} */
-    archivedMessageIds;
-    /** @type {number[]} */
-    archivedMailRunIds;
     /** @type {ResponseStatus} */
     responseStatus;
 }
@@ -651,8 +620,14 @@ export class GetThreadResponse {
     /** @type {ResponseStatus} */
     responseStatus;
 }
+export class EmptyResponse {
+    /** @param {{responseStatus?:ResponseStatus}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {ResponseStatus} */
+    responseStatus;
+}
 export class AuthenticateResponse {
-    /** @param {{userId?:string,sessionId?:string,userName?:string,displayName?:string,referrerUrl?:string,bearerToken?:string,refreshToken?:string,profileUrl?:string,roles?:string[],permissions?:string[],responseStatus?:ResponseStatus,meta?:{ [index: string]: string; }}} [init] */
+    /** @param {{userId?:string,sessionId?:string,userName?:string,displayName?:string,referrerUrl?:string,bearerToken?:string,refreshToken?:string,refreshTokenExpiry?:string,profileUrl?:string,roles?:string[],permissions?:string[],responseStatus?:ResponseStatus,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {string} */
     userId;
@@ -668,56 +643,10 @@ export class AuthenticateResponse {
     bearerToken;
     /** @type {string} */
     refreshToken;
+    /** @type {?string} */
+    refreshTokenExpiry;
     /** @type {string} */
     profileUrl;
-    /** @type {string[]} */
-    roles;
-    /** @type {string[]} */
-    permissions;
-    /** @type {ResponseStatus} */
-    responseStatus;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-}
-export class AssignRolesResponse {
-    /** @param {{allRoles?:string[],allPermissions?:string[],meta?:{ [index: string]: string; },responseStatus?:ResponseStatus}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string[]} */
-    allRoles;
-    /** @type {string[]} */
-    allPermissions;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    /** @type {ResponseStatus} */
-    responseStatus;
-}
-export class UnAssignRolesResponse {
-    /** @param {{allRoles?:string[],allPermissions?:string[],meta?:{ [index: string]: string; },responseStatus?:ResponseStatus}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string[]} */
-    allRoles;
-    /** @type {string[]} */
-    allPermissions;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    /** @type {ResponseStatus} */
-    responseStatus;
-}
-export class RegisterResponse {
-    /** @param {{userId?:string,sessionId?:string,userName?:string,referrerUrl?:string,bearerToken?:string,refreshToken?:string,roles?:string[],permissions?:string[],responseStatus?:ResponseStatus,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    userId;
-    /** @type {string} */
-    sessionId;
-    /** @type {string} */
-    userName;
-    /** @type {string} */
-    referrerUrl;
-    /** @type {string} */
-    bearerToken;
-    /** @type {string} */
-    refreshToken;
     /** @type {string[]} */
     roles;
     /** @type {string[]} */
@@ -761,11 +690,16 @@ export class AdminUpdateCommentReport {
     getMethod() { return 'PATCH' }
     createResponse() { return new CommentReport() }
 }
-export class ViewMqMessages {
+export class InvalidateEmails {
+    /** @param {{status?:InvalidEmailStatus,emails?:string[]}} [init] */
     constructor(init) { Object.assign(this, init) }
-    getTypeName() { return 'ViewMqMessages' }
-    getMethod() { return 'GET' }
-    createResponse() { return new ViewMqMessagesResponse() }
+    /** @type {InvalidEmailStatus} */
+    status;
+    /** @type {string[]} */
+    emails;
+    getTypeName() { return 'InvalidateEmails' }
+    getMethod() { return 'POST' }
+    createResponse() { return new ErrorResponse() }
 }
 export class PreviewEmail {
     /** @param {{request?:string,renderer?:string,requestArgs?:{ [index: string]: Object; }}} [init] */
@@ -780,14 +714,58 @@ export class PreviewEmail {
     getMethod() { return 'POST' }
     createResponse() { return '' }
 }
-export class RenderDoc {
-    /** @param {{page?:string}} [init] */
+export class UpdateMailMessageDraft {
+    /** @param {{id?:number,email?:string,renderer?:string,layout?:string,template?:string,subject?:string,body?:string,send?:boolean}} [init] */
     constructor(init) { Object.assign(this, init) }
+    /** @type {number} */
+    id;
     /** @type {string} */
-    page;
-    getTypeName() { return 'RenderDoc' }
-    getMethod() { return 'GET' }
-    createResponse() { return '' }
+    email;
+    /** @type {string} */
+    renderer;
+    /** @type {?string} */
+    layout;
+    /** @type {?string} */
+    template;
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    /** @type {?boolean} */
+    send;
+    getTypeName() { return 'UpdateMailMessageDraft' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class SimpleTextEmail extends CreateEmailBase {
+    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    subject;
+    /** @type {string} */
+    body;
+    /** @type {?boolean} */
+    draft;
+    getTypeName() { return 'SimpleTextEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class CustomHtmlEmail extends CreateEmailBase {
+    /** @param {{layout?:string,template?:string,subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    layout;
+    /** @type {string} */
+    template;
+    /** @type {string} */
+    subject;
+    /** @type {?string} */
+    body;
+    /** @type {?boolean} */
+    draft;
+    getTypeName() { return 'CustomHtmlEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
 }
 export class SimpleTextMailRun extends MailRunBase {
     /** @param {{subject?:string,body?:string,mailingList?:MailingList}} [init] */
@@ -826,83 +804,6 @@ export class CustomHtmlMailRun extends MailRunBase {
     getMethod() { return 'POST' }
     createResponse() { return new MailRunResponse() }
 }
-export class NewsletterMailRun extends MailRunBase {
-    /** @param {{month?:number,year?:number,mailingList?:MailingList}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {?number} */
-    month;
-    /** @type {?number} */
-    year;
-    getTypeName() { return 'NewsletterMailRun' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailRunResponse() }
-}
-export class UpdateMailMessageDraft {
-    /** @param {{id?:number,email?:string,renderer?:string,layout?:string,template?:string,subject?:string,body?:string,send?:boolean}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {number} */
-    id;
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    renderer;
-    /** @type {?string} */
-    layout;
-    /** @type {?string} */
-    template;
-    /** @type {string} */
-    subject;
-    /** @type {?string} */
-    body;
-    /** @type {?boolean} */
-    send;
-    getTypeName() { return 'UpdateMailMessageDraft' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class SimpleTextEmail extends CreateEmailBase {
-    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    subject;
-    /** @type {string} */
-    body;
-    /** @type {?boolean} */
-    draft;
-    getTypeName() { return 'SimpleTextEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class MarkdownEmail extends CreateEmailBase {
-    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    subject;
-    /** @type {string} */
-    body;
-    /** @type {?boolean} */
-    draft;
-    getTypeName() { return 'MarkdownEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
-export class CustomHtmlEmail extends CreateEmailBase {
-    /** @param {{layout?:string,template?:string,subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    /** @type {string} */
-    layout;
-    /** @type {string} */
-    template;
-    /** @type {string} */
-    subject;
-    /** @type {?string} */
-    body;
-    /** @type {?boolean} */
-    draft;
-    getTypeName() { return 'CustomHtmlEmail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new MailMessage() }
-}
 export class SubscribeToMailingList {
     /** @param {{email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[]}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -934,6 +835,29 @@ export class CreateContact {
     /** @type {?string[]} */
     mailingLists;
     getTypeName() { return 'CreateContact' }
+    getMethod() { return 'POST' }
+    createResponse() { return new Contact() }
+}
+export class AdminCreateContact {
+    /** @param {{email?:string,firstName?:string,lastName?:string,source?:Source,mailingLists?:string[],verifiedDate?:string,appUserId?:number,createdDate?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    email;
+    /** @type {string} */
+    firstName;
+    /** @type {string} */
+    lastName;
+    /** @type {Source} */
+    source;
+    /** @type {string[]} */
+    mailingLists;
+    /** @type {?string} */
+    verifiedDate;
+    /** @type {?number} */
+    appUserId;
+    /** @type {?string} */
+    createdDate;
+    getTypeName() { return 'AdminCreateContact' }
     getMethod() { return 'POST' }
     createResponse() { return new Contact() }
 }
@@ -983,15 +907,6 @@ export class SendMailMessageRun {
     getMethod() { return 'GET' }
     createResponse() { return new MailMessage() }
 }
-export class ViewMailData {
-    /** @param {{load?:boolean}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {?boolean} */
-    load;
-    getTypeName() { return 'ViewMailData' }
-    getMethod() { return 'POST' }
-    createResponse () { };
-}
 export class VerifyEmailAddress {
     /** @param {{externalRef?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
@@ -1030,19 +945,6 @@ export class ViewAppStats {
     getTypeName() { return 'ViewAppStats' }
     getMethod() { return 'GET' }
     createResponse() { return new ViewAppStatsResponse() }
-}
-export class ArchiveMail {
-    /** @param {{messages?:boolean,mailRuns?:boolean,olderThanDays?:number}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {?boolean} */
-    messages;
-    /** @type {?boolean} */
-    mailRuns;
-    /** @type {number} */
-    olderThanDays;
-    getTypeName() { return 'ArchiveMail' }
-    getMethod() { return 'POST' }
-    createResponse() { return new ArchiveMailResponse() }
 }
 export class Hello {
     /** @param {{name?:string}} [init] */
@@ -1091,7 +993,7 @@ export class DeleteThreadLike {
     threadId;
     getTypeName() { return 'DeleteThreadLike' }
     getMethod() { return 'DELETE' }
-    createResponse() { }
+    createResponse() { return new EmptyResponse() }
 }
 export class CreateCommentVote {
     /** @param {{commentId?:number,vote?:number}} [init] */
@@ -1113,19 +1015,63 @@ export class DeleteCommentVote {
     getMethod() { return 'DELETE' }
     createResponse() { }
 }
+export class NewsletterMailRun extends MailRunBase {
+    /** @param {{fromDate?:string,toDate?:string,header?:string,footer?:string,mailingList?:MailingList}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    fromDate;
+    /** @type {?string} */
+    toDate;
+    /** @type {?string} */
+    header;
+    /** @type {?string} */
+    footer;
+    getTypeName() { return 'NewsletterMailRun' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailRunResponse() }
+}
+export class MarkdownEmail extends CreateEmailBase {
+    /** @param {{subject?:string,body?:string,draft?:boolean,email?:string,firstName?:string,lastName?:string}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {string} */
+    subject;
+    /** @type {string} */
+    body;
+    /** @type {?boolean} */
+    draft;
+    getTypeName() { return 'MarkdownEmail' }
+    getMethod() { return 'POST' }
+    createResponse() { return new MailMessage() }
+}
+export class RenderDoc {
+    /** @param {{page?:string}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {string} */
+    page;
+    getTypeName() { return 'RenderDoc' }
+    getMethod() { return 'GET' }
+    createResponse() { return '' }
+}
+export class ViewMailData {
+    /** @param {{year?:number,month?:number,force?:boolean}} [init] */
+    constructor(init) { Object.assign(this, init) }
+    /** @type {?number} */
+    year;
+    /** @type {?number} */
+    month;
+    /** @type {?boolean} */
+    force;
+    getTypeName() { return 'ViewMailData' }
+    getMethod() { return 'POST' }
+    createResponse () { };
+}
 export class Authenticate {
-    /** @param {{provider?:string,state?:string,oauth_token?:string,oauth_verifier?:string,userName?:string,password?:string,rememberMe?:boolean,errorView?:string,nonce?:string,uri?:string,response?:string,qop?:string,nc?:string,cnonce?:string,accessToken?:string,accessTokenSecret?:string,scope?:string,meta?:{ [index: string]: string; }}} [init] */
+    /** @param {{provider?:string,userName?:string,password?:string,rememberMe?:boolean,accessToken?:string,accessTokenSecret?:string,returnUrl?:string,errorView?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { Object.assign(this, init) }
     /**
      * @type {string}
      * @description AuthProvider, e.g. credentials */
     provider;
-    /** @type {string} */
-    state;
-    /** @type {string} */
-    oauth_token;
-    /** @type {string} */
-    oauth_verifier;
     /** @type {string} */
     userName;
     /** @type {string} */
@@ -1133,87 +1079,18 @@ export class Authenticate {
     /** @type {?boolean} */
     rememberMe;
     /** @type {string} */
-    errorView;
-    /** @type {string} */
-    nonce;
-    /** @type {string} */
-    uri;
-    /** @type {string} */
-    response;
-    /** @type {string} */
-    qop;
-    /** @type {string} */
-    nc;
-    /** @type {string} */
-    cnonce;
-    /** @type {string} */
     accessToken;
     /** @type {string} */
     accessTokenSecret;
     /** @type {string} */
-    scope;
+    returnUrl;
+    /** @type {string} */
+    errorView;
     /** @type {{ [index: string]: string; }} */
     meta;
     getTypeName() { return 'Authenticate' }
     getMethod() { return 'POST' }
     createResponse() { return new AuthenticateResponse() }
-}
-export class AssignRoles {
-    /** @param {{userName?:string,permissions?:string[],roles?:string[],meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    userName;
-    /** @type {string[]} */
-    permissions;
-    /** @type {string[]} */
-    roles;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    getTypeName() { return 'AssignRoles' }
-    getMethod() { return 'POST' }
-    createResponse() { return new AssignRolesResponse() }
-}
-export class UnAssignRoles {
-    /** @param {{userName?:string,permissions?:string[],roles?:string[],meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    userName;
-    /** @type {string[]} */
-    permissions;
-    /** @type {string[]} */
-    roles;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    getTypeName() { return 'UnAssignRoles' }
-    getMethod() { return 'POST' }
-    createResponse() { return new UnAssignRolesResponse() }
-}
-export class Register {
-    /** @param {{userName?:string,firstName?:string,lastName?:string,displayName?:string,email?:string,password?:string,confirmPassword?:string,autoLogin?:boolean,errorView?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { Object.assign(this, init) }
-    /** @type {string} */
-    userName;
-    /** @type {string} */
-    firstName;
-    /** @type {string} */
-    lastName;
-    /** @type {string} */
-    displayName;
-    /** @type {string} */
-    email;
-    /** @type {string} */
-    password;
-    /** @type {string} */
-    confirmPassword;
-    /** @type {?boolean} */
-    autoLogin;
-    /** @type {string} */
-    errorView;
-    /** @type {{ [index: string]: string; }} */
-    meta;
-    getTypeName() { return 'Register' }
-    getMethod() { return 'POST' }
-    createResponse() { return new RegisterResponse() }
 }
 export class QueryContacts extends QueryDb_1 {
     /** @param {{search?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
@@ -1224,18 +1101,29 @@ export class QueryContacts extends QueryDb_1 {
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
-export class QueryMailMessages extends QueryDb_1 {
+export class QueryInvalidEmails extends QueryDb_1 {
     /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
+    getTypeName() { return 'QueryInvalidEmails' }
+    getMethod() { return 'GET' }
+    createResponse() { return new QueryResponse() }
+}
+export class QueryMailMessages extends QueryDb_1 {
+    /** @param {{month?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    constructor(init) { super(init); Object.assign(this, init) }
+    /** @type {?string} */
+    month;
     getTypeName() { return 'QueryMailMessages' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
 export class QueryMailRuns extends QueryDb_1 {
-    /** @param {{id?:number,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
+    /** @param {{id?:number,month?:string,skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
     /** @type {?number} */
     id;
+    /** @type {?string} */
+    month;
     getTypeName() { return 'QueryMailRuns' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
@@ -1244,27 +1132,6 @@ export class QueryMailRunMessages extends QueryDb_1 {
     /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
     constructor(init) { super(init); Object.assign(this, init) }
     getTypeName() { return 'QueryMailRunMessages' }
-    getMethod() { return 'GET' }
-    createResponse() { return new QueryResponse() }
-}
-export class QueryArchiveMessages extends QueryDb_1 {
-    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    getTypeName() { return 'QueryArchiveMessages' }
-    getMethod() { return 'GET' }
-    createResponse() { return new QueryResponse() }
-}
-export class QueryArchiveRuns extends QueryDb_1 {
-    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    getTypeName() { return 'QueryArchiveRuns' }
-    getMethod() { return 'GET' }
-    createResponse() { return new QueryResponse() }
-}
-export class QueryArchiveMessageRuns extends QueryDb_1 {
-    /** @param {{skip?:number,take?:number,orderBy?:string,orderByDesc?:string,include?:string,fields?:string,meta?:{ [index: string]: string; }}} [init] */
-    constructor(init) { super(init); Object.assign(this, init) }
-    getTypeName() { return 'QueryArchiveMessageRuns' }
     getMethod() { return 'GET' }
     createResponse() { return new QueryResponse() }
 }
@@ -1387,10 +1254,12 @@ export class UpdateMailMessage {
     createResponse() { return new MailMessage() }
 }
 export class DeleteMailMessages {
-    /** @param {{id?:number}} [init] */
+    /** @param {{id?:number,month?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
+    /** @type {?string} */
+    month;
     getTypeName() { return 'DeleteMailMessages' }
     getMethod() { return 'DELETE' }
     createResponse() { }
@@ -1563,7 +1432,7 @@ export class AdminDeleteThread {
     createResponse() { }
 }
 export class AdminUpdateComment {
-    /** @param {{id?:number,threadId?:number,replyId?:number,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,content?:string}} [init] */
+    /** @param {{id?:number,threadId?:number,replyId?:number,upVotes?:number,downVotes?:number,votes?:number,flagReason?:string,notes?:string,appUserId?:number,deletedDate?:string,content?:string}} [init] */
     constructor(init) { Object.assign(this, init) }
     /** @type {number} */
     id;
@@ -1583,6 +1452,8 @@ export class AdminUpdateComment {
     notes;
     /** @type {?number} */
     appUserId;
+    /** @type {?string} */
+    deletedDate;
     /** @type {string} */
     content;
     getTypeName() { return 'AdminUpdateComment' }

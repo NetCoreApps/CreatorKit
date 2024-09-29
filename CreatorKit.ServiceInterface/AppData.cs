@@ -39,6 +39,7 @@ public class AppData
     /// Images in emails need to be hosted from publicly accessible URLs 
     /// </summary>
     public string PublicBaseUrl { get; init; }
+    public List<string>? AllowOrigins { get; init; }
 
     public Dictionary<string, string> ReplaceTokensInVars { get; set; } = new();
     
@@ -62,7 +63,7 @@ public class AppData
     public IVirtualDirectory EmailsDir { get; set; }
     public IVirtualDirectory EmailImagesDir { get; set; }
 
-    public async Task LoadAsync(ServiceStackHost appHost, IVirtualDirectory emailsDir, IVirtualDirectory emailImagesDir)
+    public void Load(ServiceStackHost appHost, IVirtualDirectory emailsDir, IVirtualDirectory emailImagesDir)
     {
         EmailsDir = emailsDir;
         EmailImagesDir = emailImagesDir;
@@ -91,7 +92,7 @@ public class AppData
         {
             EmailVars.Add(file.Name);
         }
-        await LoadVarsAsync();
+        LoadVars();
     }
 
     public static string Var(string collection, string name) => Instance.Vars[collection][name];
@@ -105,13 +106,13 @@ public class AppData
         public static string SignupConfirmed => Var("urls", "SignupConfirmed");
     }
 
-    public async Task LoadVarsAsync()
+    public void LoadVars()
     {
         Vars.Clear();
         foreach (var file in EmailsDir.GetDirectory("vars").GetFiles().Where(x => x.Name.EndsWith(".txt")))
         {
-            await using var fs = file.OpenRead();
-            var contents = await fs.ReadToEndAsync();
+            using var fs = file.OpenRead();
+            var contents = fs.ReadToEnd();
             foreach (var token in ReplaceTokensInVars)
             {
                 contents = contents.Replace(token.Key, token.Value);

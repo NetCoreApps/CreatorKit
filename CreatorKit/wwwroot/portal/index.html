@@ -3,7 +3,6 @@
 <title>Admin Portal</title>
 <link rel="icon" type="image/svg" href="/img/logo.svg">
 <link rel="stylesheet" href="/css/app.css">
-<script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script><!--safari polyfill-->
 <script type="importmap">
 {
     "imports": {
@@ -77,11 +76,10 @@
 
 <script type="module">
 import { mount } from "/mjs/app.mjs"
-import { SendMailRun, ViewMailRunInfo, QueryContacts, SendMailMessage, SendMailMessageRun, PreviewEmail, ArchiveMail, 
-         ViewAppStats } from "/mjs/dtos.mjs"
-import { leftPart, rightPart, appendQueryString, queryString, on, ApiResult, humanize } from "@servicestack/client"
-import { useAuth, useClient, useMetadata, useUtils, useFormatters, css } from "@servicestack/vue"
-import { ref, computed, onMounted, onUnmounted, shallowRef, watch, nextTick } from "vue"
+import { SendMailRun, ViewMailRunInfo, SendMailMessage, PreviewEmail, ViewAppStats } from "/mjs/dtos.mjs"
+import { leftPart, rightPart, appendQueryString, ApiResult, humanize } from "@servicestack/client"
+import { useAuth, useClient, useMetadata, useFormatters, css } from "@servicestack/vue"
+import { ref, computed, onMounted, onUnmounted, shallowRef, watch } from "vue"
 
 // Order all tables descending so latest appears first
 const idColumns = ['MailRun.Id','MailMessageRun.Id','MailMessage.Id','Contact.Id','AppUser.Id','Thread.Id','Comment.Id','CommentVote.Id','CommentReport.Id']
@@ -158,65 +156,6 @@ const EmailPreview = {
         onMounted(update)
 
         return { api, hadSuccess, isHtml }
-    }
-}
-
-const ArchiveButton = {
-    template:`<div class="relative inline-block text-left">
-    <div>
-      <button @click="toggle()" type="button" :class="[css.grid.toolbarButtonClass,'justify-center gap-x-1.5']" 
-              aria-expanded="true" aria-haspopup="true">
-        Archive
-        <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-        </svg>
-      </button>
-    </div>
-    <div :class="['absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none', transition1]" role="menu" 
-         aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
-      <div class="py-1" role="none">
-        <!-- Active: "bg-gray-100 text-gray-900", Not Active: "text-gray-700" -->
-        <span v-for="(days,label) in durations" @click="archive(days)" class="cursor-pointer text-gray-700 block px-4 py-2 text-sm hover:bg-gray-50" role="menuitem" tabindex="-1" id="menu-item-0">{{label}}</span>
-      </div>
-    </div>
-    </div>`,
-    emits:['done'],
-    props:['type'],
-    setup(props, { emit }) {
-        const client = useClient()
-        const { transition } = useUtils()
-
-        const toggleState = ref(false)
-        const transition1 = ref('hidden')
-        const rule1 = {
-            entering: { cls:'transition ease-out duration-100', from:'transform opacity-0 scale-95',    to:'transform opacity-100 scale-100'},
-            leaving:  { cls:'transition ease-in duration-75',   from:'transform opacity-100 scale-100', to:'transform opacity-0 scale-95'}
-        }
-        function toggle(show) {
-            toggleState.value = show != null ? show : !toggleState.value
-            transition(rule1, transition1, toggleState.value)
-        }
-        
-        const durations = {
-            'All Completed': 0,
-            'Older than a day': 1,
-            'Older than a week': 7,
-            'Older than a month': 30,
-            'Older than 6 months': 183,
-            'Older than a year': 365,
-        }
-        
-        async function archive(olderThanDays) {
-            toggle(false)
-            
-            const api = await client.api(new ArchiveMail({ 
-                [props.type]: true,
-                olderThanDays,
-            }))
-            emit('done')
-        }
-        
-        return { css, durations, transition1, toggle, archive }
     }
 }
 
@@ -327,7 +266,7 @@ const MailRunInfo = {
 }
 
 const MailRuns = {
-    components: { MailRunInfo, EmailPreview, ArchiveButton },
+    components: { MailRunInfo, EmailPreview },
     template:`
       <div class="py-4 flex flex-wrap gap-3">
           <button v-for="op in mailRunApis" @click="selectOp(op)" :class="styles.dialogButton">
@@ -336,11 +275,6 @@ const MailRuns = {
           </button>      
       </div>
       <AutoQueryGrid ref="grid" :type="type" hide="newItem,copyApiUrl" selected-columns="id,mailingList,layout,page,generator,emailsCount,createdDate,sentDate">
-        <template #toolbarbuttons>
-          <div class="pl-2 mt-1">
-            <ArchiveButton type="mailRuns" @done="grid.update()" />
-          </div>
-        </template>
         <template #formfooter="{ model }">
           <div class="p-6 flex items-center">
             <SecondaryButton class="mr-3" @click="$emit('nav','MailRunMessages',{mailRunId:model.id})">View Messages</SecondaryButton>
@@ -463,7 +397,7 @@ const MessageView = {
 }
 
 const Messages = {
-    components: { MessageView, EmailPreview, ArchiveButton },
+    components: { MessageView, EmailPreview },
     template:`
       <div class="py-4 flex flex-wrap gap-3">
           <button v-for="op in createMsgApis" @click="selectOp(op)" :class="styles.dialogButton">
@@ -473,11 +407,6 @@ const Messages = {
       </div>
       <AutoQueryGrid ref="grid" :type="type" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
                      selectedColumns="id,email,layout,page,renderer,rendererArgs,completedDate">
-        <template #toolbarbuttons>
-          <div class="pl-2 mt-1">
-            <ArchiveButton type="messages" @done="grid.update()" />
-          </div>
-        </template>
         <template #renderer="{ renderer, rendererArgs }">
           <span :title="indentJson(rendererArgs)">{{renderer}}</span>
         </template>
@@ -565,7 +494,7 @@ const MailRunMessages = {
 }
 
 const Drafts = {
-    components: { MessageView, EmailPreview, ArchiveButton },
+    components: { MessageView, EmailPreview },
     template:`
       <AutoQueryGrid ref="grid" :type="type" hide="copyApiUrl,downloadCsv" :visibleFrom="{ rendererArgs:'never' }"
                      :filters="{ completedDateIsNull:'',draft:true }"
@@ -636,31 +565,6 @@ const Drafts = {
                  updateModel, submitForm }
     }
 }
-const ArchiveTabs = {
-    ArchiveMessages: {
-        template:`<AutoQueryGrid ref="grid" type="ArchiveMessage" ></AutoQueryGrid>`,
-    },
-    ArchiveMailRuns: {
-        template:`<AutoQueryGrid ref="grid" type="ArchiveRun" ></AutoQueryGrid>`,
-    },
-    ArchiveMailRunMessages: {
-        template:`<AutoQueryGrid ref="grid" type="ArchiveMessageRun" ></AutoQueryGrid>`,
-    },
-}
-const Archive = {
-    components: ArchiveTabs,
-    template:`<Tabs :tabs="ArchiveTabs" :selected="selected"></Tabs>`,
-    setup(props) {
-        const selected = ref('')
-
-        onMounted(() => {
-            const qs = queryString(location.href)
-            selected.value = qs.tab
-        })
-
-        return { ArchiveTabs, selected }
-    }
-}
 
 const sections = {
     Dashboard: {
@@ -700,10 +604,6 @@ const sections = {
         type: 'MailMessageRun',
         icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='currentColor' d='M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5l8-5v10zm-8-7L4 6h16l-8 5z'/></svg>`,
         component: MailRunMessages,
-    },
-    Archive: {
-        icon: `<svg class="h-6 w-6 shrink-0 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M5 21q-.825 0-1.413-.588T3 19V6.5q0-.375.125-.675t.325-.575l1.4-1.7q.2-.275.5-.413T6 3h12q.35 0 .65.137t.5.413l1.4 1.7q.2.275.325.575T21 6.5V19q0 .825-.588 1.413T19 21H5Zm.4-15h13.2l-.85-1H6.25L5.4 6ZM5 8v11h14V8H5Zm7 10l4-4l-1.4-1.4l-1.6 1.6V10h-2v4.2l-1.6-1.6L8 14l4 4Zm-7 1h14H5Z"/></svg>`,
-        component: Archive,
     },
     Users: {
         type: 'AppUser',

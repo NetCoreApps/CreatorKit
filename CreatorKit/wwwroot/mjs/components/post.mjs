@@ -175,7 +175,7 @@ export const InputComment = {
     template: /*html*/`
         <div class="w-full">
             <div class="flex flex-col w-full border border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 overflow-hidden">
-                <textarea v-model="request.content" class="w-full h-24 m-0 border-none outline-none dark:bg-transparent" placeholder="Write a comment"></textarea>
+                <textarea v-model="content" class="w-full h-24 m-0 border-none outline-none dark:bg-transparent" placeholder="Write a comment"></textarea>
                 <div class="flex justify-between p-2 pl-4 bg-dark-100 dark:bg-black items-center">
                     <div>
                         <a v-if="store.config.commentLink" :href="store.config.commentLink.href" target="_blank" class="text-sm text-gray-400 hover:text-gray-600">{{ store.config.commentLink.label }}</a>
@@ -198,25 +198,26 @@ export const InputComment = {
         const store = inject('store')
         const client = useClient()
         
-        const request = ref(new CreateComment({ 
-            threadId: props.threadId, 
-            replyId: props.replyId,
-            content: ''
-        }))
-        const remainingChars = computed(() => 280 - request.value.content.length)
+        const content = ref('')
+        const remainingChars = computed(() => 280 - content.value.length)
 
         async function submit() {
             const { threadId, replyId } = props
-            const api = await client.api(request.value)
+            const request = new CreateComment({
+                threadId,
+                replyId,
+                content: content.value,
+            })
+            const api = await client.api(request)
             if (api.succeeded) {
-                request.value.content = ''
+                content.value = ''
                 emit('updated', api.response)
             }
         }
 
         return {
             store,
-            request,
+            content,
             loading: client.loading,
             remainingChars,
             submit,
@@ -524,7 +525,7 @@ export const PostComments = {
         </div>
       
         <div v-if="user" class="flex justify-center w-full">
-            <InputComment :thread-id="threadId" @updated="refresh" />
+            <InputComment :thread-id="store.thread?.id ?? 0" @updated="refresh" />
         </div>
         <div v-else class="flex justify-center w-full">
             <div class="flex justify-between w-full max-w-2xl border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 overflow-hidden">
@@ -560,7 +561,6 @@ export const PostComments = {
         let comments = ref([])
         let show = ref('')
         let showTarget = ref(null)
-        const threadId = computed(() => store.thread?.id || 0)
         
         function showDialog(dialog,comment) {
             show.value = dialog
@@ -591,7 +591,6 @@ export const PostComments = {
         return {
             store,
             hide,
-            threadId,
             comments,
             user,
             loading: client.loading,

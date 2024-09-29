@@ -98,35 +98,9 @@ public class MailMessageRun
     public int MailRunId { get; set; }
     [Ref(Model = nameof(Contact), RefId = "Id", RefLabel = "Email")]
     public int ContactId { get; set; }
-    [Reference]
-    [Format(FormatMethods.Hidden)]
-    public Contact Contact { get; set; }
-    public string Renderer { get; set; }
-    public Dictionary<string,object> RendererArgs { get; set; }
-    public string ExternalRef { get; set; }
-    public EmailMessage Message { get; set; }
-    public DateTime CreatedDate { get; set; }
-    public DateTime? StartedDate { get; set; }
-    public DateTime? CompletedDate { get; set; }
-    public ResponseStatus? Error { get; set; }
-}
-
-[Icon(Svg = Icons.Mail)]
-[NamedConnection("archive")]
-public class ArchiveMessage : MailMessage {}
-
-[Icon(Svg = Icons.MailRun)]
-[NamedConnection("archive")]
-public class ArchiveRun : MailRun {}
-
-[Icon(Svg = Icons.Mail)]
-[NamedConnection("archive")]
-public class ArchiveMessageRun
-{
-    [AutoIncrement]
-    public int Id { get; set; }
-    public int MailRunId { get; set; }
-    public int ContactId { get; set; }
+    // [Reference]
+    // [Format(FormatMethods.Hidden)]
+    // public Contact Contact { get; set; }
     public string Renderer { get; set; }
     public Dictionary<string,object> RendererArgs { get; set; }
     public string ExternalRef { get; set; }
