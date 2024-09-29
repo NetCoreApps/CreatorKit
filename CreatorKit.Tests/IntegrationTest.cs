@@ -17,6 +17,9 @@ public class IntegrationTest
 
         public override void Configure(Container container)
         {
+             DefaultScriptContext.ScriptAssemblies.Add(typeof(Hello).Assembly);
+            DefaultScriptContext.ScriptMethods.Add(new ValidationScripts());
+            DefaultScriptContext.Args[nameof(AppData)] = AppData.Instance;
         }
     }
 
