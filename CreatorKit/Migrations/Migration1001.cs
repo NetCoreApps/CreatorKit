@@ -71,9 +71,12 @@ public class Migration1001 : MigrationBase
         Db.CreateTable<Contact>();
         Db.CreateTable<InvalidEmail>();
 
+#if DEBUG
+        // Only run during development
         EmailRenderer.SaveMailingListEnum(seedPath: "Migrations/seed/mailinglists.csv",
             savePath: "../CreatorKit.ServiceModel/Types/MailingList.cs");
-        
+#endif
+
         var seedContacts = File.ReadAllText("Migrations/seed/subscribers.csv").FromCsv<List<SeedContact>>();
         foreach (var contact in seedContacts)
         {
