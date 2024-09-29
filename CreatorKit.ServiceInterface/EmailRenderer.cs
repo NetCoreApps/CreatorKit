@@ -185,8 +185,11 @@ public class EmailRenderer(IVirtualFiles virtualFiles, IBackgroundJobs jobs)
         public string Description { get; set; }
     }
 
-    public static void SaveMailingListEnum(string seedPath, string savePath)
+    public static void SaveMailingListEnum(string seedPath, string savePath)    
     {
+        // Ignore when run during CI deployments
+        if (!Directory.Exists(Path.GetDirectoryName(seedPath)))
+            return;
         var seedMailingLists = File.ReadAllText(seedPath).FromCsv<List<SeedMailingList>>();
         var enumSrc = GenerateMailingListEnum(seedMailingLists);
         File.WriteAllText(savePath, enumSrc);
