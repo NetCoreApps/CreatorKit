@@ -58,7 +58,7 @@ jobs:
         run: dotnet tool install -g x
           
       - name: Apply Production AppSettings
-        working-directory: ./BlazorDiffusion
+        working-directory: ./CreatorKit
         run: | 
           cat <<EOF >> appsettings.json.patch
           ${{ secrets.APPSETTINGS_PATCH }}
