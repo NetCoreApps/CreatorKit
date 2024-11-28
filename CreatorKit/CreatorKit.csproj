@@ -10,6 +10,10 @@
     <Using Include="CreatorKit" />
     <Using Include="ServiceStack" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ContainerLabel Include="service" Value="creatorkit" />
+  </ItemGroup>
   
   <ItemGroup>
     <Content Include="emails\**" CopyToPublishDirectory="PreserveNewest" />
