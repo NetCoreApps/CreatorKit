@@ -12,7 +12,7 @@ env:
 servers:
   # IP address of server, optionally use env variable.
   web:
-    - 5.78.128.205
+    - 5.78.77.149
 #   - <%= ENV['KAMAL_DEPLOY_IP'] %>
 
 
